@@ -1,0 +1,12 @@
+.celesteMorado{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.celesteMorado strong{
+    color:#111B21
+}
+
+.celesteMorado span{
+    color:#283959;
+}
