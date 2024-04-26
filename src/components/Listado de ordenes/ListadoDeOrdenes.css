@@ -1,0 +1,16 @@
+.estadoOrden{
+    border: 3px solid #8EA3BF;
+}
+.estadoOrden .itemsOrdenes{
+    display:flex;
+    flex-direction: column;
+}
+
+.estadoOrden .itemsOrdenes li{
+    list-style: none;
+}
+
+.estadoOrden .itemsOrdenes .ordenes{
+    display:flex;
+    justify-content: space-between;
+}

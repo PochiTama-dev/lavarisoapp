@@ -1,0 +1,13 @@
+.headerHome{
+    display:flex;
+    justify-content: space-around;
+}
+
+.headerHome img{
+    cursor: pointer;
+}
+
+.headerHome .iconHome{
+    height: 30px;
+    margin-top:5px;
+}

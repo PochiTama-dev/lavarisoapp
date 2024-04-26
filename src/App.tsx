@@ -29,13 +29,14 @@ const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactRouter>
-        <IonSplitPane contentId="main">
+        <IonSplitPane contentId='main'>
           <Menu />
-          <IonRouterOutlet id="main">
-            <Route path="/" exact={true}>
-              <Redirect to="/folder/Inbox" />
+          <IonRouterOutlet id='main'>
+            <Route path='/' exact={true}>
+              {/* <Redirect to="/login" /> */}
+              <Redirect to='/folder/Inbox' />
             </Route>
-            <Route path="/folder/:name" exact={true}>
+            <Route path='/folder/:name' exact={true}>
               <Page />
             </Route>
           </IonRouterOutlet>
