@@ -4,6 +4,7 @@ import { Redirect, Route } from 'react-router-dom';
 import Menu from './components/Menu';
 import Page from './pages/Page';
 import Diagnostico from './pages/Diagnostico/Diagnostico';
+import Chat from './pages/Chat/Chat';
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
 
@@ -41,6 +42,9 @@ const App: React.FC = () => {
         
             <Route path='/diagnostico' exact={true}>
               <Diagnostico />
+            </Route>
+            <Route path='/chat' exact={true}>
+              <Chat />
             </Route>
           </IonRouterOutlet>
         </IonSplitPane>
