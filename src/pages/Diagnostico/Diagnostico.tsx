@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { IonContent, IonPage, IonIcon, IonCheckbox, IonInput, IonButton } from '@ionic/react';
 import { pencilOutline } from 'ionicons/icons';
 import './diagnostico.css';
+ 
 
 const Diagnostico: React.FC = () => {
     const [producto, setProducto] = useState('');
@@ -28,6 +29,7 @@ const Diagnostico: React.FC = () => {
     return (
         <IonPage>
             <IonContent>
+         
                 <div className="diagnostico-ctn">
                     <div className="section">
                         <h2>Diagnosticar</h2>

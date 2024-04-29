@@ -1,15 +1,17 @@
 import '../../styles/general.css';
 import arrowBack from '../../images/arrow-back.webp';
 import home from '../../images/home.webp';
-
-const ExploreContainer: React.FC = () => {
+import { IonContent, IonPage, IonHeader } from '@ionic/react';
+const HeaderGeneral: React.FC = () => {
   return (
-    <header className='azulMorado headerHome'>
+ 
+    <IonHeader className='azulMorado headerHome'>
       <img src={arrowBack} alt='cerrar sesión' />
       <strong>LavaRiso</strong>
       <img className='iconHome' src={home} alt='home' />
-    </header>
+    </IonHeader>
+ 
   );
 };
 
-export default ExploreContainer;
+export default HeaderGeneral;

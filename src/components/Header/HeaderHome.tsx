@@ -2,7 +2,7 @@ import '../../styles/general.css';
 import './Header.css';
 import logOut from '../../images/log-out.webp';
 
-const ExploreContainer: React.FC = () => {
+const HeaderHome: React.FC = () => {
   return (
     <header className='azulMorado headerHome'>
       <strong>LavaRiso</strong>
@@ -11,4 +11,4 @@ const ExploreContainer: React.FC = () => {
   );
 };
 
-export default ExploreContainer;
+export default HeaderHome;
