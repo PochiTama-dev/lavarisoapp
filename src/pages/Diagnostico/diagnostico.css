@@ -1,0 +1,40 @@
+.diagnostico-ctn{
+    margin-left: 3%;
+}
+.diagnostico-ctn .item, .diagnostico-ctn .checkbox-item {
+    margin-top: 5px;
+    font-size: 20px;
+}
+ 
+.checkbox {
+    margin-right: 10px; 
+  }
+
+  .diagnostico-ctn .item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+  }
+  
+  .diagnostico-ctn .item .icon-pencil {
+    justify-self: end;
+    margin-right: 20px;
+    
+  }
+  .diagnostico-ctn .section
+{
+    margin-top: 8%;
+}
+
+.diagnostico-ctn h2
+{
+    margin-bottom: 5%;
+}
+.button{
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 20px auto;
+    width: 250px;
+  
+}
+ 
