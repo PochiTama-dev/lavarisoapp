@@ -40,7 +40,7 @@ const Diagnostico: React.FC = () => {
                                 onIonChange={(e) => setProducto(e.detail.value!)}
                                
                             />
-                            <IonIcon icon={pencilOutline} className="icon-pencil" />
+                            <IonIcon icon={pencilOutline} className="icon-pencil" style={{fontSize:'22px'}} />
                         </div>
                         <div className="item">
                             <span><strong>Marca:</strong></span>
@@ -51,7 +51,7 @@ const Diagnostico: React.FC = () => {
                                 onIonChange={(e) => setMarca(e.detail.value!)}
                                  
                             />
-                            <IonIcon icon={pencilOutline} className="icon-pencil" />
+                            <IonIcon icon={pencilOutline} className="icon-pencil" style={{fontSize:'22px'}} />
                         </div>
                         <div className="item">
                             <span><strong>Modelo:</strong></span>
@@ -62,7 +62,7 @@ const Diagnostico: React.FC = () => {
                                 onIonChange={(e) => setModelo(e.detail.value!)}
                                
                             />
-                            <IonIcon icon={pencilOutline} className="icon-pencil" />
+                            <IonIcon icon={pencilOutline} className="icon-pencil" style={{fontSize:'22px'}} />
                         </div>
                         <div className="item">
                             <span><strong>N° de cliente:</strong></span>
@@ -73,7 +73,7 @@ const Diagnostico: React.FC = () => {
                                 onIonChange={(e) => setCliente(e.detail.value!)}
                                 
                             />
-                            <IonIcon icon={pencilOutline} className="icon-pencil" />
+                            <IonIcon icon={pencilOutline} className="icon-pencil" style={{fontSize:'22px'}} />
                         </div>
                     </div>
                     <div className="section">
@@ -98,6 +98,7 @@ const Diagnostico: React.FC = () => {
                     <div className="section">
                         <h2>Observaciones</h2>
                         <IonInput
+                        className='obs-input'
                             value={observaciones}
                             onIonChange={(e) => setObservaciones(e.detail.value!)}
                             placeholder="Ingrese observaciones"
