@@ -1,0 +1,38 @@
+.login {
+  --ion-background-color: #8ea3bf;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10% !important;
+  height: auto;
+}
+
+.login h1 {
+  color: white;
+  display: flex;
+  justify-content: center;
+  font-size: xx-large;
+  margin-top: 40%;
+}
+
+.login h2 {
+  color: #283959;
+  display: flex;
+  justify-content: center;
+  margin-top: 10%;
+}
+
+.inputs {
+  background-color: white !important;
+  color: #777777;
+  width: 80%;
+  margin-left: 10%;
+  border-radius: 20px;
+  margin-top: 10%;
+  /* margin-bottom: 10%; */
+  padding-left: 20px !important;
+}
+
+.login-button {
+  margin-top: 15%;
+}
