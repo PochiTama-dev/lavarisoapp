@@ -6,9 +6,11 @@ import {
   IonCheckbox,
   IonInput,
   IonButton,
+  IonHeader,
 } from "@ionic/react";
 import { pencilOutline } from "ionicons/icons";
 import "./diagnostico.css";
+import HeaderGeneral from "../../components/Header/HeaderGeneral";
 
 const Diagnostico: React.FC = () => {
   const [producto, setProducto] = useState("");
@@ -48,6 +50,10 @@ const Diagnostico: React.FC = () => {
   return (
     <IonPage>
       <IonContent>
+        <IonHeader>
+          <HeaderGeneral />
+        </IonHeader>
+
         <div className="diagnostico-ctn">
           <div className="section">
             <h2>Diagnosticar</h2>
@@ -146,7 +152,7 @@ const Diagnostico: React.FC = () => {
           </div>
           <div className="section">
             <IonButton
-              className="diagnostico-button"
+              className="button"
               style={{ "--border-radius": "20px" }}
               onClick={handleConfirmarClick}
             >

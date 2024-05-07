@@ -31,6 +31,7 @@ import "@ionic/react/css/display.css";
 /* Theme variables */
 import "./theme/variables.css";
 import Login from "./pages/Login/Login";
+import LoginRol from "./pages/Login/LoginRol";
 import Alertas from "./pages/Alertas/Alertas";
 
 setupIonicReact();
@@ -38,10 +39,12 @@ setupIonicReact();
 const App: React.FC = () => {
   return (
     <IonApp>
-      <HeaderGeneral />
       <IonReactRouter>
         <Route path="/login" exact={true}>
           <Login />
+        </Route>
+        <Route path="/rol" exact={true}>
+          <LoginRol />
         </Route>
         <Route path="/alertas" exact={true}>
           <Alertas />
