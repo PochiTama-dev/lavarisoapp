@@ -1,0 +1,27 @@
+.alertas-container {
+  margin-top: 12% !important;
+}
+
+.alertas-container h1 {
+  display: flex;
+  justify-content: center;
+  color: #283959;
+  border-bottom: 3px solid #8ea3bf;
+  margin-top: 5%;
+  margin-bottom: 10%;
+}
+
+.alertas-container ion-button {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+  width: 80%;
+  font-size: larger;
+  font-weight: bold;
+  color: #283959;
+  --background-color: #e6e6e6;
+  --background: #e6e6e6;
+  --transition: none;
+  --border-radius: none;
+  border-bottom: 8px solid #8ea3bf;
+}
