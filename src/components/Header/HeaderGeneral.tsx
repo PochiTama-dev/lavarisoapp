@@ -1,7 +1,7 @@
 import '../../styles/general.css';
 import arrowBack from '../../images/arrow-back.webp';
 import home from '../../images/home.webp';
-import { IonContent, IonPage, IonHeader } from '@ionic/react';
+import {  IonHeader } from '@ionic/react';
 const HeaderGeneral: React.FC = () => {
   return (
  
