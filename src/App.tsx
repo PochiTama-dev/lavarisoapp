@@ -33,6 +33,7 @@ import "./theme/variables.css";
 import Login from "./pages/Login/Login";
 import LoginRol from "./pages/Login/LoginRol";
 import Alertas from "./pages/Alertas/Alertas";
+import ConfirmacionOrden from "./pages/Orden/ConfirmacionOrden";
 
 setupIonicReact();
 
@@ -54,6 +55,9 @@ const App: React.FC = () => {
         </Route>
         <Route path="/chat" exact={true}>
           <Chat />
+        </Route>
+        <Route path="/verorden">
+          <ConfirmacionOrden />
         </Route>
       </IonReactRouter>
     </IonApp>
