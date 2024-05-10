@@ -1,0 +1,60 @@
+.confirmacion-orden-top-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #283959;
+}
+
+.confirmacion-orden-top-box h1 {
+  margin-bottom: 0;
+}
+
+.confirmacion-orden-top-box h3 {
+  margin-top: 0;
+  font-weight: normal;
+  font-size: medium;
+}
+
+.confirmacion-orden-medium-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  margin-left: 10%;
+  width: 80%;
+  color: #283959;
+}
+
+.confirmacion-orden-medium-box h4 {
+  margin-top: 0px;
+}
+
+.confirmacion-orden-medium-box ion-button {
+  min-height: 30px;
+  height: 35px;
+  --border-radius: 30px;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.confirmacion-orden-bottom-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.confirmacion-orden-bottom-box h4 {
+  color: #69688c;
+  margin-bottom: 0;
+}
+
+.confirmacion-orden-bottom-box h3 {
+  color: #40a63d;
+  margin-top: 2px;
+}
+
+.confirmacion-orden-bottom-box button {
+  color: #e58769;
+  background-color: transparent;
+  font-size: medium;
+}
