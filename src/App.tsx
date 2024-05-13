@@ -47,7 +47,7 @@ const App: React.FC = () => {
           <Entrega />
         </Route>
         <Route path="/presupuesto" exact={true}>
-          <Entrega />
+          <Presupuesto />
         </Route>
         <Route path="/chat" exact={true}>
           <Chat />
