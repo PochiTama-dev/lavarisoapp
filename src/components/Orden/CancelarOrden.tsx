@@ -1,5 +1,4 @@
-import { IonButton, IonContent, IonHeader } from '@ionic/react';
-import HeaderGeneral from '../Header/HeaderGeneral';
+import { IonButton, IonContent } from '@ionic/react';
 import './ConfirmacionOrden.css';
 import ModalCancelacionComponent from './ModalCancel';
 import { useState } from 'react';
@@ -14,9 +13,6 @@ function CancelacionOrdenComponent() {
   };
   return (
     <IonContent className='confirmacion-orden-container'>
-      <IonHeader>
-        <HeaderGeneral />
-      </IonHeader>
       <div className='confirmacion-orden-top-box'>
         <h1>
           <strong>Cancelar Orden</strong>
