@@ -1,13 +1,23 @@
+import HeaderGeneral from "../Header/HeaderGeneral";
 import "./Alertas.css";
-import { IonAlert, IonButton, IonContent, IonTitle } from "@ionic/react";
+import {
+  IonAlert,
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonTitle,
+} from "@ionic/react";
 
 function AlertasComponent() {
   return (
     <IonContent className="alertas-container">
+      <IonHeader>
+        <HeaderGeneral />
+      </IonHeader>
       <>
         <h1>Alertas</h1>
       </>
-      <>
+      <div className="alertas-buttons-container">
         <IonButton id="en-camino">En camino</IonButton>
         <IonAlert
           trigger="en-camino"
@@ -44,7 +54,7 @@ function AlertasComponent() {
           message="De regreso"
           buttons={["Cerrar"]}
         ></IonAlert>
-      </>
+      </div>
     </IonContent>
   );
 }
