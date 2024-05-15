@@ -43,6 +43,9 @@ const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactRouter>
+        <Route exact path="/">
+          <Redirect to="/login" />
+        </Route>
         <Route path="/login" exact={true}>
           <Login />
         </Route>
