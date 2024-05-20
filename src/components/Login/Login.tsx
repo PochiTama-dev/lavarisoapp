@@ -34,29 +34,31 @@ const LoginComponent: React.FC = () => {
   return (
     <IonPage className="login">
       <IonContent>
-        <h1>LavaRiso</h1>
-        <h2>Credenciales requeridas</h2>
-        <form onSubmit={handleSubmit}>
-          <IonInput
-            className="inputs"
-            type="text"
-            placeholder="E-mail"
-            value={email}
-            onIonChange={(e) => setEmail(e.detail.value!)}
-          />
-          <IonInput
-            className="inputs"
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onIonChange={(e) => setPassword(e.detail.value!)}
-          />
-          <a href="/rol">
-            <IonButton className="login-button" type="submit">
-              Iniciar sesión
-            </IonButton>
-          </a>
-        </form>
+        <div className="login-content">
+          <h1>LavaRiso</h1>
+          <h2>Credenciales requeridas</h2>
+          <form onSubmit={handleSubmit}>
+            <IonInput
+              className="inputs"
+              type="text"
+              placeholder="E-mail"
+              value={email}
+              onIonChange={(e) => setEmail(e.detail.value!)}
+            />
+            <IonInput
+              className="inputs"
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onIonChange={(e) => setPassword(e.detail.value!)}
+            />
+            <a href="/rol">
+              <IonButton className="login-button" type="submit">
+                Iniciar sesión
+              </IonButton>
+            </a>
+          </form>
+        </div>
       </IonContent>
     </IonPage>
   );
