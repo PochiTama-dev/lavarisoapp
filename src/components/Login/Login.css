@@ -1,5 +1,9 @@
 .login {
-  --ion-background-color: #8ea3bf;
+  --ion-background-color: transparent;
+  /* --ion-background-color: #8ea3bf; */
+  background-image: url(../../images/imageLogin.webp);
+  background-position: -420px 0;
+  background-size: 1300px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -7,12 +11,19 @@
   height: auto;
 }
 
+.login-content {
+  height: 60%;
+  background-color: #8ea3bf;
+  opacity: 0.9;
+}
+
 .login h1 {
   color: white;
   display: flex;
   justify-content: center;
   font-size: xx-large;
-  margin-top: 30%;
+  margin-top: 40%;
+  padding-top: 10%;
 }
 
 .login h2 {
