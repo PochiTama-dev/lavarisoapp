@@ -14,6 +14,10 @@ const HeaderGeneral: React.FC = () => {
       <img onClick={() => window.history.back()} src={arrowBack} alt='cerrar sesión' />
       <strong className='headerTitle'>LavaRiso</strong>
       <img onClick={() => handleNavigate('rol')} className='iconHome' src={home} alt='home' />
+      <div className='headerSesion'>
+        <h3>Sesión de Alan Almendra</h3>
+        <span>leg.987654 - Camioneta #1</span>
+      </div>
     </IonHeader>
   );
 };
