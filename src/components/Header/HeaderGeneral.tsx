@@ -12,7 +12,7 @@ const HeaderGeneral: React.FC = () => {
   return (
     <IonHeader className='azulMorado headerHome'>
       <img onClick={() => window.history.back()} src={arrowBack} alt='cerrar sesión' />
-      <strong>LavaRiso</strong>
+      <strong className='headerTitle'>LavaRiso</strong>
       <img onClick={() => handleNavigate('rol')} className='iconHome' src={home} alt='home' />
     </IonHeader>
   );
