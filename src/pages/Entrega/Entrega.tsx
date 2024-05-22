@@ -14,12 +14,14 @@ import {
   IonRadio,
   IonRow,
   IonCol,
+  IonHeader,
 } from '@ionic/react';
 import { pencilOutline } from 'ionicons/icons';
 import '../Diagnostico/diagnostico.css';
 import SignatureCanvas from 'react-signature-canvas';
 import './entrega.css';
 import CancelarOrden from '../../components/Orden/CancelarOrden';
+import HeaderGeneral from '../../components/Header/HeaderGeneral';
 
 const Entrega: React.FC = () => {
   const [modal, setModal] = useState(false);
@@ -64,6 +66,9 @@ const Entrega: React.FC = () => {
   return (
     <IonPage>
       <IonContent>
+        <IonHeader>
+          <HeaderGeneral />
+        </IonHeader>
         <div className='diagnostico-ctn'>
           <div className='section'>
             <h2>Entrega</h2>
