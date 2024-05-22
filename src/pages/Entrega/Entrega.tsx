@@ -59,6 +59,7 @@ const Entrega: React.FC = () => {
     console.log(dataToSend);
   };
 
+ 
   const handleModal = () => {
     setModal(!modal);
   };
@@ -126,6 +127,7 @@ const Entrega: React.FC = () => {
                     className='checkbox'
                   />
                   <span>{texto}</span>
+ 
                 </div>
               ))}
             </div>
