@@ -43,7 +43,7 @@ const Entrega: React.FC = () => {
                                 onIonChange={(e) => setProducto(e.detail.value!)}
                                
                             />
-                            <IonIcon icon={pencilOutline} className="icon-pencil" style={{fontSize:'22px'}} />
+               
                         </div>
                         <div className="item">
                             <span><strong>Marca:</strong></span>
@@ -54,7 +54,7 @@ const Entrega: React.FC = () => {
                                 onIonChange={(e) => setMarca(e.detail.value!)}
                                  
                             />
-                            <IonIcon icon={pencilOutline} className="icon-pencil" style={{fontSize:'22px'}} />
+              
                         </div>
                         <div className="item">
                             <span><strong>Modelo:</strong></span>
@@ -65,7 +65,7 @@ const Entrega: React.FC = () => {
                                 onIonChange={(e) => setModelo(e.detail.value!)}
                                
                             />
-                            <IonIcon icon={pencilOutline} className="icon-pencil" style={{fontSize:'22px'}} />
+               
                         </div>
                         <div className="item">
                             <span><strong>N° de cliente:</strong></span>
@@ -76,7 +76,7 @@ const Entrega: React.FC = () => {
                                 onIonChange={(e) => setCliente(e.detail.value!)}
                                 
                             />
-                            <IonIcon icon={pencilOutline} className="icon-pencil" style={{fontSize:'22px'}} />
+             
                         </div>
                     </div>
                     <div className="section">
@@ -155,7 +155,7 @@ const Entrega: React.FC = () => {
                         <IonButton className='button' style={{ '--border-radius': '20px' }} onClick={handleConfirmarClick}>
                             Concretar entrega
                         </IonButton>
-                        <IonButton className='button' style={{ '--border-radius': '20px' }}  >
+                        <IonButton className='button-cancelarOrden' style={{ '--border-radius': '20px' }}  >
                            Cancelar orden
                         </IonButton>
                     </div>

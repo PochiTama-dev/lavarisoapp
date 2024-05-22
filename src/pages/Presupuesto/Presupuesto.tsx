@@ -39,8 +39,9 @@ const Presupuesto: React.FC = () => {
   const [signature2, setSignature2] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [selectedOptions, setSelectedOptions] = useState([]);
+ 
   const [selectedList, setSelectedList] = useState<string[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const textosCheckbox = [
     "de 48  72hs",
     "de 3 A 15 días",
@@ -174,6 +175,7 @@ const Presupuesto: React.FC = () => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
+                    marginTop: "-10px",
                   }}
                 >
                   <span>
@@ -182,7 +184,7 @@ const Presupuesto: React.FC = () => {
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <span>$</span>
                     <IonInput
-                      style={{ width: "100px" }}
+                      style={{ width: "100px", marginLeft: "20px" }}
                       type="number"
                       value={monto}
                       onIonChange={(e) =>
@@ -290,7 +292,13 @@ const Presupuesto: React.FC = () => {
               <IonCheckbox
                 onIonChange={(e) => setAcceptedPolicies(e.detail.checked)}
               />
-              <span>Acepto las políticas de garantía</span>
+              <span
+                style={{
+                  marginLeft: "20px",
+                }}
+              >
+                Acepto las políticas de garantía
+              </span>
             </div>
           </div>
           <div className="section">
@@ -315,7 +323,14 @@ const Presupuesto: React.FC = () => {
             >
               Confirmar
             </IonButton>
-            <IonButton className="button" style={{ "--border": "none", "--background": "none" , "--color": "#E58769" }}>
+            <IonButton
+              className="button"
+              style={{
+                "--border": "none",
+                "--background": "none",
+                "--color": "#E58769",
+              }}
+            >
               Cancelar orden
             </IonButton>
           </div>

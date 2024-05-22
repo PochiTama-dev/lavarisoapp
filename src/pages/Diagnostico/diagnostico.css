@@ -16,6 +16,7 @@
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
+    margin-top: -15px;
   }
   
   .diagnostico-ctn .item .icon-pencil {
