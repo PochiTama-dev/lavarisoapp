@@ -1,12 +1,17 @@
 import '../../styles/general.css';
 import './Header.css';
 import logOut from '../../images/log-out.webp';
+import { useHistory } from 'react-router-dom';
 
 const HeaderHome: React.FC = () => {
+  const history = useHistory();
+  const handleNavigate = (text: string) => {
+    history.push(`${text}`);
+  };
   return (
     <header className='azulMorado headerHome'>
-      <strong>LavaRiso</strong>
-      <img src={logOut} alt='cerrar sesión' />
+      <strong className='headerTitle'>LavaRiso</strong>
+      <img onClick={() => handleNavigate('/login')} src={logOut} alt='cerrar sesión' />
     </header>
   );
 };
