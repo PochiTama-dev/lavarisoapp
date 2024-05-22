@@ -32,14 +32,29 @@ import "@ionic/react/css/display.css";
 
 /* Theme variables */
 import "./theme/variables.css";
+import Login from "./pages/Login/Login";
+import LoginRol from "./pages/Login/LoginRol";
+import Alertas from "./pages/Alertas/Alertas";
+import ConfirmacionOrden from "./pages/Orden/ConfirmacionOrden";
 
 setupIonicReact();
 
 const App: React.FC = () => {
   return (
     <IonApp>
-      <HeaderGeneral />
       <IonReactRouter>
+        <Route exact path="/">
+          <Redirect to="/login" />
+        </Route>
+        <Route path="/login" exact={true}>
+          <Login />
+        </Route>
+        <Route path="/rol" exact={true}>
+          <LoginRol />
+        </Route>
+        <Route path="/alertas" exact={true}>
+          <Alertas />
+        </Route>
         <Route path="/diagnostico" exact={true}>
           <Diagnostico />
         </Route>
@@ -51,6 +66,9 @@ const App: React.FC = () => {
         </Route>
         <Route path="/chat" exact={true}>
           <Chat />
+        </Route>
+        <Route path="/verorden">
+          <ConfirmacionOrden />
         </Route>
       </IonReactRouter>
     </IonApp>

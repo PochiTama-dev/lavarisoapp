@@ -1,0 +1,37 @@
+.alertas-container {
+  height: 90%;
+}
+
+.alertas-container h1 {
+  display: flex;
+  justify-content: center;
+  color: #283959;
+  font-weight: 700;
+  border-bottom: 3px solid #8ea3bf;
+  margin-top: 5%;
+  margin-bottom: 10%;
+}
+
+.alertas-buttons-container {
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1%;
+}
+
+.alertas-container ion-button {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 25px auto;
+  min-height: 10%;
+  width: 80%;
+  text-transform: none;
+  font-size: larger;
+  font-weight: 700;
+  color: #283959;
+  --background-color: #e6e6e6;
+  --background: #e6e6e6;
+  --transition: none;
+  --border-radius: none;
+  border-bottom: 8px solid #8ea3bf;
+}

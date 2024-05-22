@@ -1,47 +1,43 @@
-.diagnostico-ctn{
-    margin-left: 3%;
+.diagnostico-ctn {
+  margin-left: 3%;
 }
-.diagnostico-ctn .item, .diagnostico-ctn .checkbox-item {
-    margin-top: 5px;
-    font-size: 20px;
+.diagnostico-ctn .item,
+.diagnostico-ctn .checkbox-item {
+  margin-top: 5px;
+  font-size: 20px;
 }
- .diagnostico-ctn h2{
+.diagnostico-ctn h2 {
   font-size: 26px;
- }
+}
 .checkbox {
-    margin-right: 10px; 
-  }
+  margin-right: 10px;
+}
 
-  .diagnostico-ctn .item {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    margin-top: -15px;
-  }
-  
-  .diagnostico-ctn .item .icon-pencil {
-    justify-self: end;
-    margin-right: 20px;
-    
-  }
-  .diagnostico-ctn .section
-{
-    margin-top: 8%;
+ 
+.diagnostico-ctn .item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
 }
-.obs-input{
-border-bottom: solid 3px #69688C
-;
-width: 95%;  
+
+.diagnostico-ctn .item .icon-pencil {
+  justify-self: end;
+  margin-right: 20px;
 }
-.diagnostico-ctn h2
-{
-    margin-bottom: 5%;
+.diagnostico-ctn .section {
+  margin-top: 8%;
 }
-.button{
-    display: flex;
-    justify-content: center;
-    margin: 0 auto 20px auto;
-    width: 250px;
-  
+.obs-input {
+  border-bottom: solid 3px #69688c;
+  width: 95%;
+}
+.diagnostico-ctn h2 {
+  margin-bottom: 5%;
+}
+.diagnostico-button {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+  width: 250px;
 }
  

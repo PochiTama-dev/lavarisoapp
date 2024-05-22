@@ -1,0 +1,74 @@
+.login {
+  --ion-background-color: transparent;
+  /* --ion-background-color: #8ea3bf; */
+  background-image: url(../../images/imageLogin.webp);
+  background-position: -420px 0;
+  background-size: 1300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10% !important;
+  height: auto;
+}
+
+.login-content {
+  height: 60%;
+  background-color: #8ea3bf;
+  opacity: 0.9;
+}
+
+.login h1 {
+  color: white;
+  display: flex;
+  justify-content: center;
+  font-size: xx-large;
+  margin-top: 40%;
+  padding-top: 10%;
+}
+
+.login h2 {
+  color: #283959;
+  display: flex;
+  justify-content: center;
+  margin-top: 10%;
+}
+
+.inputs {
+  background-color: white !important;
+  color: #777777;
+  width: 80%;
+  margin-left: 10%;
+  border-radius: 20px;
+  margin-top: 10%;
+  padding-left: 20px !important;
+}
+
+.login-button {
+  margin-top: 15%;
+  width: 60%;
+  margin-left: 20%;
+}
+
+.login-rol-container h1 {
+  display: flex;
+  justify-content: center;
+  margin-top: 20%;
+}
+
+.login-rol-container strong {
+  margin-left: 8px;
+}
+
+.login-rol-container h2 {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10%;
+  margin-top: 0;
+}
+
+.login-rol-container ion-button {
+  min-height: 35px !important;
+  height: 35px !important;
+  width: 80%;
+  margin-left: 10%;
+}
