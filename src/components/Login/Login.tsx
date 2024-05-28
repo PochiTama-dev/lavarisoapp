@@ -9,10 +9,12 @@ import {
 } from "@ionic/react";
 import "./Login.css";
 import { useState } from "react";
+import { useHistory } from "react-router-dom";
 
 const LoginComponent: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const history = useHistory();
 
   const handleSubmit = (event: any) => {
     event.preventDefault();
@@ -22,13 +24,10 @@ const LoginComponent: React.FC = () => {
     }
 
     if (!password) {
-      <IonAlert
-        trigger="password"
-        message="Ingrese su contraseña"
-        buttons={["Cerrar"]}
-      ></IonAlert>;
+      alert("Ingrese su contraseña");
       return;
     }
+    history.push("/rol");
   };
 
   return (
@@ -52,11 +51,9 @@ const LoginComponent: React.FC = () => {
               value={password}
               onIonChange={(e) => setPassword(e.detail.value!)}
             />
-            <a href="/rol">
-              <IonButton className="login-button" type="submit">
-                Iniciar sesión
-              </IonButton>
-            </a>
+            <IonButton className="login-button" type="submit">
+              Iniciar sesión
+            </IonButton>
           </form>
         </div>
       </IonContent>
