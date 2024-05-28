@@ -4,3 +4,12 @@
 .diagnostico-ctn h2{
     font-weight: bold;
 }
+
+.button-cancelarOrden{
+
+    --border: none;
+    --background: none;
+    --color: #E58769;
+    display: flex;
+    justify-content: center;
+}

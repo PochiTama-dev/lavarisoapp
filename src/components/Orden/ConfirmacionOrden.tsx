@@ -3,10 +3,8 @@ import HeaderGeneral from '../Header/HeaderGeneral';
 import './ConfirmacionOrden.css';
 import mapa from '../../images/mapa.webp';
 import { useState } from 'react';
-import CancelarOrden from './CancelarOrden';
 
 function ConfirmacionOrdenComponent() {
-  const [modal, setModal] = useState(false);
   const numeroOrden = '#25645';
   const orden = {
     cliente: 'Martín Inchausti',
@@ -16,9 +14,6 @@ function ConfirmacionOrdenComponent() {
     precio: 17800,
   };
 
-  const handleModal = () => {
-    setModal(!modal);
-  };
   return (
     <IonContent className='confirmacion-orden-container'>
       <IonHeader>
@@ -47,7 +42,7 @@ function ConfirmacionOrdenComponent() {
           <strong>Dirección:</strong> {orden.direccion}
         </h4>
         <img src={mapa} alt='mapa' />
-        <IonButton onClick={handleModal}>Entrega</IonButton>
+        <IonButton href='entrega'>Entrega</IonButton>
         <IonButton>Facturación</IonButton>
       </div>
       <div className='confirmacion-orden-bottom-box'>
@@ -55,7 +50,6 @@ function ConfirmacionOrdenComponent() {
         <h3>${orden.precio}</h3>
         <button>Cerrar orden</button>
       </div>
-      {modal && <CancelarOrden />}
     </IonContent>
   );
 }

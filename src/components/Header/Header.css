@@ -1,8 +1,13 @@
 .headerHome{
     display:flex;
     justify-content: space-around;
+    flex-wrap: wrap;
 }
-
+.headerHome .headerSesion{
+    width:100%;
+    color: #111B21;
+    text-align: center;
+}
 .headerHome img{
     cursor: pointer;
 }
@@ -10,4 +15,10 @@
 .headerHome .iconHome{
     height: 30px;
     margin-top:5px;
+}
+.headerTitle{
+    margin: auto 0;
+}
+.headerSesion{
+    background-color: #C8CFDA;
 }
