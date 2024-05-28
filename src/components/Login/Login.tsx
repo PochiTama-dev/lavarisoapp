@@ -8,26 +8,21 @@ import {
   IonTitle,
 } from "@ionic/react";
 import "./Login.css";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
 
 const LoginComponent: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const history = useHistory();
-
-  const handleEmailChange = (e: CustomEvent) => {
-    setEmail(e.detail.value!);
-  };
-
-  const handlePasswordChange = (e: CustomEvent) => {
-    setPassword(e.detail.value!);
-  };
+  const emailRef = useRef<HTMLIonInputElement>(null);
+  const passwordRef = useRef<HTMLIonInputElement>(null);
 
   const handleSubmit = (event: any) => {
     event.preventDefault();
+
+    const email = emailRef.current?.value as string;
+    const password = passwordRef.current?.value as string;
     if (!email || !email.includes("@") || !email.includes(".com")) {
       setAlertMessage("Por favor, ingrese un correo electrónico válido.");
       setShowAlert(true);
@@ -56,18 +51,16 @@ const LoginComponent: React.FC = () => {
           <h2>Credenciales requeridas</h2>
           <form onSubmit={handleSubmit}>
             <IonInput
+              ref={emailRef}
               className="inputs"
               type="text"
               placeholder="E-mail"
-              value={email}
-              onIonChange={handleEmailChange}
             />
             <IonInput
+              ref={passwordRef}
               className="inputs"
               type="password"
               placeholder="Contraseña"
-              value={password}
-              onIonChange={handlePasswordChange}
             />
             <IonButton className="login-button" type="submit">
               Iniciar sesión
