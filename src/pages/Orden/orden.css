@@ -1,0 +1,10 @@
+.orden-datosCliente h4{
+    margin-bottom: -10px;
+}
+
+ .section .buttonOrder{
+    display: flex;
+    width: 50%;
+    margin: 0 auto 25px auto;
+ 
+ }

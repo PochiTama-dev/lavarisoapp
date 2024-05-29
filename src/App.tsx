@@ -40,7 +40,7 @@ import Alertas from "./pages/Alertas/Alertas";
 import ConfirmacionOrden from "./pages/Orden/ConfirmacionOrden";
 import TecnicoDomicilio from "./pages/TecnicoDomicilio/TecnicoDomicilio";
 import TecnicoTaller from "./pages/TecnicoTaller/TecnicoTaller";
-
+import TallerVerOrden from "./pages/Orden/TallerVerOrden";
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -85,6 +85,9 @@ const App: React.FC = () => {
         </Route>
         <Route path="/verorden">
           <ConfirmacionOrden />
+        </Route>
+        <Route path="/tallerorden">
+          <TallerVerOrden />
         </Route>
       </IonReactRouter>
     </IonApp>

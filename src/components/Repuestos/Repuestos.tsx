@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useHistory } from "react-router-dom";  
 import {
   IonContent,
   IonHeader,
@@ -23,6 +24,7 @@ interface RepuestosProps {
 }
 
 const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
+  const history = useHistory(); 
   const repuestosVisita: Repuesto[] = [
     { nombre: "Fuelle cambio lineal", cantidad: 1 },
     { nombre: "Repuesto B", cantidad: 0 },
@@ -136,6 +138,10 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
     </>
   );
 
+  const handleConfirm = () => {
+    history.push("/tallerOrden"); // Navega a la ruta /tallerOrden
+  };
+
   return (
     <IonContent className="repuestos-container">
       <IonHeader>
@@ -155,7 +161,9 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
         : renderRepuestosTaller()}
       {estadoOrden === "taller" && (
         <div className="container-confirm-button">
-          <IonButton className="confirm-button">Confirmar</IonButton>
+          <IonButton className="confirm-button" onClick={handleConfirm}>
+            Confirmar
+          </IonButton>
         </div>
       )}
     </IonContent>
