@@ -38,6 +38,8 @@ import Login from "./pages/Login/Login";
 import LoginRol from "./pages/Login/LoginRol";
 import Alertas from "./pages/Alertas/Alertas";
 import ConfirmacionOrden from "./pages/Orden/ConfirmacionOrden";
+import TecnicoDomicilio from "./pages/TecnicoDomicilio/TecnicoDomicilio";
+import TecnicoTaller from "./pages/TecnicoTaller/TecnicoTaller";
 
 setupIonicReact();
 
@@ -53,6 +55,12 @@ const App: React.FC = () => {
         </Route>
         <Route path="/rol" exact={true}>
           <LoginRol />
+        </Route>
+        <Route path="/domicilio" exact={true}>
+          <TecnicoDomicilio />
+        </Route>
+        <Route path="/taller" exact={true}>
+          <TecnicoTaller />
         </Route>
         <Route path="/alertas" exact={true}>
           <Alertas />
