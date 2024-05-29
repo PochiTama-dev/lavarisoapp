@@ -15,6 +15,7 @@ import HeaderHome from "./components/Header/HeaderHome";
 import Entrega from "./pages/Entrega/Entrega";
 import Presupuesto from "./pages/Presupuesto/Presupuesto";
 import Facturacion from "./pages/Facturacion/Facturacion";
+import Repuesto from "./pages/Repuesto/Repuesto";
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
 
@@ -67,6 +68,9 @@ const App: React.FC = () => {
         </Route>
         <Route path="/facturacion" exact={true}>
           <Facturacion />
+        </Route>
+        <Route path="/repuestos" exact={true}>
+          <Repuesto />
         </Route>
         <Route path="/chat" exact={true}>
           <Chat />
