@@ -47,8 +47,8 @@ function FacturacionComponent() {
             <IonIcon icon={addOutline} />
         </div>
         <div className="adjuntar-foto">
-          <IonButton>
-            <IonIcon icon={cameraOutline} />
+          <IonButton className="custom-button">
+            <IonIcon icon={cameraOutline} className="custom-icon" />
           </IonButton>
           <IonLabel>Adjuntar foto de comprobante</IonLabel>
         </div>

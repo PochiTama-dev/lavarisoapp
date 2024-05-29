@@ -1,0 +1,46 @@
+.container-confirm-button {
+  display: flex;
+  justify-content: center;
+
+  .confirm-button {
+    margin-top: 2rem;
+    width: 60%;
+    --border-radius: 2rem;
+  }
+}
+
+.title-repuestos {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 1.7rem;
+  font-weight: bold;
+}
+
+.subtitle-repuestos {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.container-listado-respuestos {
+  padding: 1rem 2rem;
+
+  .listado-respuestos {
+    border: 2px solid #69688c;
+  }
+}
+
+.listado-seleccionados {
+  margin-top: 1.5rem;
+
+  .subtitle-listado-seleccionados {
+    font-size: 1.4rem;
+    font-weight: bold;
+  }
+}
+
+.listado-respuestos .repuesto-incrementado {
+    --color: #40A63D;
+  }
+  

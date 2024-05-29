@@ -1,86 +1,89 @@
 .facturacion-container {
-    padding: 20px;
+  padding: 20px;
+}
+
+.facturacion-box {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.facturacion-box h2 {
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.estado-pago {
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+  border: 1px solid #777777;
+  border-radius: 10rem;
+
+  .placeholder-estado-pago {
+    color: #777777;
   }
-  
-  .facturacion-box {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.estado-pago-total {
+  display: flex;
+  justify-content: space-between;
+
+  .total-amount {
+    color: #40a63d;
   }
-  
-  .facturacion-box h2 {
-    font-weight: bold;
-    margin-top: 20px;
-  }
-  
-  .estado-pago {
-    margin-bottom: 1rem;
-    padding: 0 .5rem;
+}
+
+.subtitle-forma-pago {
+  margin-top: 2rem;
+  font-weight: bold;
+}
+
+.forma-pago {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+
+  ion-select {
     border: 1px solid #777777;
-    border-radius: 10rem;
-
-    .placeholder-estado-pago {
-        color: #777777;
-    }
+    border-radius: 5rem;
+    padding: 0 1rem;
+    margin-right: 1.5rem;
   }
 
-  .estado-pago-total {
-    display: flex;
-    justify-content: space-between;
-    
-    .total-amount {
-        color: #40A63D;
-    }
+  Ion-Input {
+    border-bottom: 2px solid #69688c;
   }
+}
 
-  .subtitle-forma-pago {
-    margin-top: 2rem;
+.add-payment-method {
+  margin: 20px 0;
+
+  ion-icon {
+    width: 2rem;
+    height: 2rem;
     font-weight: bold;
+    color: #69688c;
   }
-  
-  .forma-pago {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 10px 0;
+}
 
-    ion-select {
-        border: 1px solid #777777;
-        border-radius: 5rem;
-        padding: 0 1rem;
-        margin-right: 1.5rem;
-    }
+.adjuntar-foto {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
 
-    Ion-Input {
-        border-bottom: 2px solid #69688C;
-    }
+  ion-button {
+    margin-right: 1rem;
   }
-  
-  .add-payment-method {
-    margin: 20px 0;
 
-    ion-icon {
-        width: 2rem;
-        height: 2rem;
-        font-weight: bold;
-        color: #69688C;
-    }
+  .custom-button {
+    --background: white;
+    --border-radius: 8px;
   }
-  
-  .adjuntar-foto {
-    display: flex;
-    align-items: center;
-    margin: 20px 0;
 
-    ion-button {
-        margin-right: 1rem;
-    }
+  .custom-icon {
+    color: #69688c;
+    background-color: #fff;
   }
-  
-  .finalizar-button {
-    margin-top: 20px;
-    background-color: #6c757d;
-    color: white;
-  }
-  
+}
