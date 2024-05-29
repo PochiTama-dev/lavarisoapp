@@ -1,0 +1,92 @@
+.tecnico-domicilio-container {
+  height: 90%;
+}
+
+.tecnico-domicilio-container .tecnico-alerta-button ion-button {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 25px auto;
+  margin-top: 5%;
+  min-height: 5%;
+  width: 80%;
+  text-transform: none;
+  font-size: larger;
+  font-weight: 700;
+  color: #283959;
+  --background-color: #e6e6e6;
+  --background: #e6e6e6;
+  --transition: none;
+  --border-radius: none;
+  border-bottom: 8px solid #8ea3bf;
+}
+
+.tecnico-domicilio-top-box {
+  border: 5px solid #8ea3bf;
+  width: 80%;
+  margin-left: 10%;
+}
+
+.tecnico-domicilio-top-box h3 {
+  color: #283959;
+  margin-left: 5%;
+}
+
+.tecnico-domicilio-top-box h3 strong {
+  font-weight: bold;
+  font-size: x-large;
+}
+
+.tecnico-domicilio-top-box h3 svg {
+  margin-right: 2.5%;
+}
+
+.tecnico-domicilio-top-box ion-button {
+  --background-color: #c8cfda;
+  --background: #c8cfda;
+  --border-radius: none;
+  color: #283959;
+  font-weight: bold;
+  width: 48%;
+  margin-right: 1%;
+  min-height: none;
+  margin-bottom: 5%;
+}
+
+.tecnico-domicilio-top-box div {
+  width: 90%;
+  margin-left: 5%;
+}
+
+.tecnico-domicilio-container h2 {
+  color: #283959;
+  font-weight: bold;
+  display: flex;
+  justify-content: left;
+  width: 80%;
+  margin-left: 10%;
+}
+
+.tecnico-domicilio-bottom-box {
+  border: 5px solid #8ea3bf;
+  width: 80%;
+  margin-left: 10%;
+  color: #283959;
+}
+
+.tecnico-domicilio-bottom-box h4 {
+  font-size: medium;
+  margin-left: 5%;
+}
+
+.tecnico-domicilio-bottom-box span {
+  color: #40a63d;
+  margin-left: 5%;
+  margin-right: 2.5%;
+}
+
+.tecnico-domicilio-bottom-button ion-button {
+  width: 70%;
+  margin-left: 15%;
+  min-height: 1vh;
+  height: 4vh;
+}

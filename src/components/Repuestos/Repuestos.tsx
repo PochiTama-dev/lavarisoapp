@@ -13,8 +13,17 @@ import {
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./Repuestos.css";
 
-const Repuestos = ({ estadoOrden = "taller" }) => {
-  const repuestosVisita = [
+interface Repuesto {
+  nombre: string;
+  cantidad: number;
+}
+
+interface RepuestosProps {
+  estadoOrden?: "taller" | "visita";
+}
+
+const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
+  const repuestosVisita: Repuesto[] = [
     { nombre: "Fuelle cambio lineal", cantidad: 1 },
     { nombre: "Repuesto B", cantidad: 0 },
     { nombre: "Repuesto C", cantidad: 0 },
@@ -22,7 +31,7 @@ const Repuestos = ({ estadoOrden = "taller" }) => {
     { nombre: "Repuesto E", cantidad: 0 },
   ];
 
-  const initialRepuestosTaller = [
+  const initialRepuestosTaller: Repuesto[] = [
     { nombre: "Fuelle cambio lineal", cantidad: 0 },
     { nombre: "Repuesto B", cantidad: 0 },
     { nombre: "Repuesto C", cantidad: 0 },
@@ -32,12 +41,14 @@ const Repuestos = ({ estadoOrden = "taller" }) => {
     { nombre: "Repuesto G", cantidad: 0 },
   ];
 
-  const [repuestosTaller, setRepuestosTaller] = useState(
+  const [repuestosTaller, setRepuestosTaller] = useState<Repuesto[]>(
     initialRepuestosTaller
   );
-  const [selectedRepuestos, setSelectedRepuestos] = useState({});
+  const [selectedRepuestos, setSelectedRepuestos] = useState<{
+    [key: string]: number;
+  }>({});
 
-  const handleAddRepuesto = (index) => {
+  const handleAddRepuesto = (index: any) => {
     const newRepuestos = [...repuestosTaller];
     newRepuestos[index].cantidad += 1;
     setRepuestosTaller(newRepuestos);
@@ -52,7 +63,7 @@ const Repuestos = ({ estadoOrden = "taller" }) => {
     setSelectedRepuestos(selected);
   };
 
-  const handleRemoveRepuesto = (index) => {
+  const handleRemoveRepuesto = (index: any) => {
     const newRepuestos = [...repuestosTaller];
     if (newRepuestos[index].cantidad > 0) {
       newRepuestos[index].cantidad -= 1;
@@ -91,7 +102,13 @@ const Repuestos = ({ estadoOrden = "taller" }) => {
             <IonItem key={index}>
               <IonLabel>{repuesto.nombre}</IonLabel>
               <IonButtons slot="end">
-                <IonLabel className={repuesto.cantidad > 0 ? 'repuesto-incrementado' : ''}>{repuesto.cantidad}</IonLabel>
+                <IonLabel
+                  className={
+                    repuesto.cantidad > 0 ? "repuesto-incrementado" : ""
+                  }
+                >
+                  {repuesto.cantidad}
+                </IonLabel>
                 <IonButton onClick={() => handleAddRepuesto(index)}>
                   +
                 </IonButton>
@@ -120,20 +137,19 @@ const Repuestos = ({ estadoOrden = "taller" }) => {
   );
 
   return (
-    <IonContent>
+    <IonContent className="repuestos-container">
       <IonHeader>
         <HeaderGeneral />
       </IonHeader>
-      <IonToolbar>
-        <IonTitle className="title-repuestos">Gestión de repuestos</IonTitle>
-      </IonToolbar>
-      <IonToolbar>
-        <IonTitle className="subtitle-repuestos">
+      <div>
+        <h1 className="title-repuestos">Gestión de repuestos</h1>
+        <h2 className="subtitle-repuestos">
           {estadoOrden === "visita"
             ? "Repuestos en camioneta"
             : "Repuestos en taller"}
-        </IonTitle>
-      </IonToolbar>
+        </h2>
+      </div>
+
       {estadoOrden === "visita"
         ? renderRepuestosVisita()
         : renderRepuestosTaller()}

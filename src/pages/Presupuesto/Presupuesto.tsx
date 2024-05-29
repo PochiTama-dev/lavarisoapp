@@ -17,12 +17,14 @@ import {
   IonModal,
   IonSearchbar,
   IonList,
+  IonHeader,
 } from "@ionic/react";
 import "./presupuesto.css";
 
 import "../Diagnostico/diagnostico.css";
 import SignatureCanvas from "react-signature-canvas";
 import "../Entrega/entrega.css";
+import HeaderGeneral from "../../components/Header/HeaderGeneral";
 const Presupuesto: React.FC = () => {
   const [producto, setProducto] = useState("");
   const [marca, setMarca] = useState("");
@@ -39,7 +41,7 @@ const Presupuesto: React.FC = () => {
   const [signature2, setSignature2] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [searchText, setSearchText] = useState("");
- 
+
   const [selectedList, setSelectedList] = useState<string[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const textosCheckbox = [
@@ -103,6 +105,9 @@ const Presupuesto: React.FC = () => {
 
   return (
     <IonPage>
+      <IonHeader>
+        <HeaderGeneral />
+      </IonHeader>
       <IonContent>
         <div className="diagnostico-ctn">
           <div className="section">

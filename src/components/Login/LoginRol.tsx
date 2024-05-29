@@ -1,4 +1,4 @@
-import { useHistory } from 'react-router-dom';
+import { useHistory } from "react-router-dom";
 import HeaderHome from "../Header/HeaderHome";
 import "./Login.css";
 import { IonButton, IonContent, IonHeader } from "@ionic/react";
@@ -6,8 +6,8 @@ import { IonButton, IonContent, IonHeader } from "@ionic/react";
 function LoginRolComponent() {
   const name = " Alan";
   const history = useHistory();
-  
-  const handleButtonClick = (path) => {
+
+  const handleButtonClick = (path: any) => {
     history.push(path);
   };
 
@@ -23,8 +23,12 @@ function LoginRolComponent() {
         <h2>Hoy...</h2>
       </>
       <>
-        <IonButton onClick={() => handleButtonClick("/domicilio")}>Trabajo a domicilio</IonButton>
-        <IonButton onClick={() => handleButtonClick("/taller")}>Trabajo en taller</IonButton>
+        <IonButton onClick={() => handleButtonClick("/domicilio")}>
+          Trabajo a domicilio
+        </IonButton>
+        <IonButton onClick={() => handleButtonClick("/taller")}>
+          Trabajo en taller
+        </IonButton>
       </>
     </IonContent>
   );
