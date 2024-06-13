@@ -29,11 +29,11 @@ const LoginComponent: React.FC = () => {
     try {
       const response = await fetch("https://lv-back.online/empleados");
       const empleados = await response.json();
-      const emailExists = empleados.some(
+      const empleado = empleados.find(
         (empleado: any) => empleado.email === email
       );
 
-      if (!emailExists) {
+      if (!empleado) {
         setAlertMessage("El correo electrónico no existe en la base de datos.");
         setShowAlert(true);
         return;
@@ -44,6 +44,20 @@ const LoginComponent: React.FC = () => {
       //   setShowAlert(true);
       //   return;
       // }
+
+      if (empleado.id_rol !== 5) {
+        setAlertMessage(
+          "Acceso denegado. Solo los técnicos pueden acceder a esta pantalla."
+        );
+        setShowAlert(true);
+        return;
+      }
+
+      // Guardo el email, el nombre y el id del empleado en localStorage para usarlo en LoginRol
+      localStorage.setItem("empleadoEmail", email);
+      localStorage.setItem("empleadoNombre", empleado.nombre);
+      localStorage.setItem("empleadoId", empleado.id);
+
       history.push("/rol");
     } catch (error) {
       setAlertMessage("Ocurrió un error al verificar el correo electrónico.");
