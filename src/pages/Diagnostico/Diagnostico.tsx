@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   IonContent,
   IonPage,
@@ -35,6 +35,19 @@ const Diagnostico: React.FC = () => {
     "No enciende",
   ];
 
+  useEffect(() => {
+    // Load data from localStorage when the component mounts
+    const savedData = JSON.parse(localStorage.getItem("diagnosticoData") || "{}");
+    if (savedData) {
+      setProducto(savedData.producto || "");
+      setMarca(savedData.marca || "");
+      setModelo(savedData.modelo || "");
+      setCliente(savedData.cliente || "");
+      setCheckboxValues(savedData.checkboxValues || Array(10).fill(false));
+      setObservaciones(savedData.observaciones || "");
+    }
+  }, []);
+
   const handleConfirmarClick = () => {
     const dataToSend = {
       producto,
@@ -45,6 +58,7 @@ const Diagnostico: React.FC = () => {
       observaciones,
     };
     console.log(dataToSend);
+    localStorage.setItem("diagnosticoData", JSON.stringify(dataToSend));
   };
 
   return (
