@@ -1,9 +1,14 @@
 .diagnostico-ctn {
   margin-left: 3%;
+ 
 }
-.diagnostico-ctn .item,
+.diagnostico-ctn .item {
+  margin-top: -15px;
+  font-size: 20px;
+}
+ 
 .diagnostico-ctn .checkbox-item {
-  margin-top: 5px;
+  margin-top: 2px;
   font-size: 20px;
 }
 .diagnostico-ctn h2 {
@@ -25,7 +30,7 @@
   margin-right: 20px;
 }
 .diagnostico-ctn .section {
-  margin-top: 8%;
+  margin-top: 4%;
 }
 .obs-input {
   border-bottom: solid 3px #69688c;

@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   IonContent,
   IonPage,
-  IonIcon,
   IonCheckbox,
   IonInput,
   IonButton,
@@ -16,7 +15,7 @@ import {
   IonCol,
   IonHeader,
 } from '@ionic/react';
-import { pencilOutline } from 'ionicons/icons';
+import { useLocation } from 'react-router-dom';
 import '../Diagnostico/diagnostico.css';
 import SignatureCanvas from 'react-signature-canvas';
 import './entrega.css';
@@ -24,28 +23,74 @@ import CancelarOrden from '../../components/Orden/CancelarOrden';
 import HeaderGeneral from '../../components/Header/HeaderGeneral';
 
 const Entrega: React.FC = () => {
+  const location = useLocation();
+  const { orden } = location.state as { orden: any };
+
   const [modal, setModal] = useState(false);
   const [producto, setProducto] = useState('');
   const [marca, setMarca] = useState('');
   const [modelo, setModelo] = useState('');
   const [cliente, setCliente] = useState('');
-  const [checkboxValues, setCheckboxValues] = useState<boolean[]>(Array(10).fill(false));
+  const [checkboxValues, setCheckboxValues] = useState<boolean[]>([]);
   const [observaciones, setObservaciones] = useState('');
-  const [selectedOption, setSelectedOption] = useState(' ');
+  const [selectedOption, setSelectedOption] = useState('');
   const [signature1, setSignature1] = useState('');
   const [signature2, setSignature2] = useState('');
-  const textosCheckbox = [
-    'Enciende',
-    'Ingresa agua',
-    'No ingresa agua',
-    'Gira motor para los dos lados',
-    'Centrifuga',
-    'No centrifuga',
-    'Desagota',
-    'No desagota',
-    'Sin prueba de funcionamiento',
-    'No enciende',
-  ];
+  const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
+  const [ordenSelected, setOrdenSelected] = useState<any>(null);
+
+  useEffect(() => {
+    fetchTiposFunciones();
+    if (orden && orden.id) {
+      fetchOrden(orden.id);
+    }
+  }, [orden]);
+
+  const fetchOrden = async (id: any) => {
+    try {
+      const ordenResponse = await fetch(`https://lv-back.online/ordenes/${id}`);
+      const clienteResponse = await fetch("https://lv-back.online/clientes/lista");
+
+      if (!ordenResponse.ok || !clienteResponse.ok) {
+        throw new Error('Error al obtener datos de las APIs');
+      }
+
+      const orden = await ordenResponse.json();
+      const clientes = await clienteResponse.json();
+
+      if (orden && clientes.length > 0) {
+        const cliente = clientes.find((c: { id: any; }) => c.id === orden.id_cliente);
+        const ordenConCliente = { ...orden, cliente };
+        setOrdenSelected(ordenConCliente);
+      } else {
+        console.log("No se encontraron la orden o el cliente en la base de datos.");
+      }
+    } catch (error) {
+      console.error("Error al obtener datos:", error);
+    }
+  };
+
+  const fetchTiposFunciones = async () => {
+    try {
+      const response = await fetch("https://lv-back.online/opciones/funcion");
+      const funciones = await response.json();
+      if (funciones && funciones.length > 0) {
+        setTextosCheckbox(funciones.map((funcion: { tipo_funcion: string }) => funcion.tipo_funcion));
+        setCheckboxValues(Array(funciones.length).fill(false));
+      } else {
+        console.log('Aún no se registra ningún tipo de funcion...');
+      }
+    } catch (error) {
+      console.error("Error, no se encontraron tipos de funciones en la base de datos....", error);
+    }
+  };
+
+  useEffect(() => {
+    if (ordenSelected && ordenSelected.diagnostico) {
+      const updatedCheckboxValues = textosCheckbox.map(texto => ordenSelected.diagnostico.includes(texto));
+      setCheckboxValues(updatedCheckboxValues);
+    }
+  }, [ordenSelected, textosCheckbox]);
 
   const handleConfirmarClick = () => {
     const dataToSend = {
@@ -59,7 +104,6 @@ const Entrega: React.FC = () => {
     console.log(dataToSend);
   };
 
- 
   const handleModal = () => {
     setModal(!modal);
   };
@@ -78,38 +122,35 @@ const Entrega: React.FC = () => {
                 <strong>Producto:</strong>
               </span>
               <IonInput
+               disabled
                 style={{ marginLeft: '10px' }}
-                value={producto}
+                value={ordenSelected?.equipo || ''}
                 placeholder='Ingrese producto'
                 onIonChange={(e) => setProducto(e.detail.value!)}
               />
-              <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: '22px' }} />
             </div>
             <div className='item'>
               <span>
                 <strong>Marca:</strong>
               </span>
-              <IonInput style={{ marginLeft: '10px' }} value={marca} placeholder='Ingrese marca' onIonChange={(e) => setMarca(e.detail.value!)} />
-              <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: '22px' }} />
+              <IonInput   disabled style={{ marginLeft: '10px' }} value={ordenSelected?.marca || ''} placeholder='Ingrese marca' onIonChange={(e) => setMarca(e.detail.value!)} />
             </div>
             <div className='item'>
               <span>
                 <strong>Modelo:</strong>
               </span>
-              <IonInput style={{ marginLeft: '10px' }} value={modelo} placeholder='Ingrese modelo' onIonChange={(e) => setModelo(e.detail.value!)} />
-              <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: '22px' }} />
+              <IonInput   disabled style={{ marginLeft: '10px' }} value={ordenSelected?.modelo || ''} placeholder='Ingrese modelo' onIonChange={(e) => setModelo(e.detail.value!)} />
             </div>
             <div className='item'>
               <span>
                 <strong>N° de cliente:</strong>
               </span>
-              <IonInput
+              <IonInput   disabled
                 style={{ marginLeft: '10px' }}
-                value={cliente}
+                value={ordenSelected?.id_cliente || ''}
                 placeholder='Ingrese N° de cliente'
                 onIonChange={(e) => setCliente(e.detail.value!)}
               />
-              <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: '22px' }} />
             </div>
           </div>
           <div className='section'>
@@ -127,12 +168,10 @@ const Entrega: React.FC = () => {
                     className='checkbox'
                   />
                   <span>{texto}</span>
- 
                 </div>
               ))}
             </div>
           </div>
-
           <div className='section'>
             <h2>Tipo de entrega</h2>
             <IonSelect value={selectedOption} placeholder='Seleccionar' onIonChange={(e) => setSelectedOption(e.detail.value)}>
@@ -158,7 +197,7 @@ const Entrega: React.FC = () => {
             <SignatureCanvas penColor='black' canvasProps={{ width: 500, height: 200, className: 'sigCanvas' }} />
           </div>
           <div className='section'>
-            <h2>¿Nos recomendarias? </h2>
+            <h2>¿Nos recomendarías? </h2>
             <IonRadioGroup value={selectedOption} onIonChange={(e) => setSelectedOption(e.detail.value)}>
               <IonRow>
                 <IonCol>
