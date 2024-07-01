@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useHistory } from "react-router-dom";  
+import React, { useState, useEffect } from "react";
+import { useHistory } from "react-router-dom";
 import {
   IonContent,
   IonHeader,
@@ -15,6 +15,7 @@ import HeaderGeneral from "../Header/HeaderGeneral";
 import "./Repuestos.css";
 
 interface Repuesto {
+  descripcion: string;
   nombre: string;
   cantidad: number;
 }
@@ -24,114 +25,99 @@ interface RepuestosProps {
 }
 
 const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
-  const history = useHistory(); 
-  const repuestosVisita: Repuesto[] = [
-    { nombre: "Fuelle cambio lineal", cantidad: 1 },
-    { nombre: "Repuesto B", cantidad: 0 },
-    { nombre: "Repuesto C", cantidad: 0 },
-    { nombre: "Repuesto D", cantidad: 0 },
-    { nombre: "Repuesto E", cantidad: 0 },
-  ];
+  const history = useHistory();
+  const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
+  const [selectedRepuestos, setSelectedRepuestos] = useState<Repuesto[]>([]);
 
-  const initialRepuestosTaller: Repuesto[] = [
-    { nombre: "Fuelle cambio lineal", cantidad: 0 },
-    { nombre: "Repuesto B", cantidad: 0 },
-    { nombre: "Repuesto C", cantidad: 0 },
-    { nombre: "Repuesto D", cantidad: 0 },
-    { nombre: "Repuesto E", cantidad: 0 },
-    { nombre: "Repuesto F", cantidad: 0 },
-    { nombre: "Repuesto G", cantidad: 0 },
-  ];
+  useEffect(() => {
+    const fetchRepuestos = async () => {
+      try {
+        const response = await fetch("https://lv-back.online/repuestos/lista");
+        const repuestosData: Repuesto[] = await response.json();
+        if (repuestosData.length > 0) {
+          setRepuestos(repuestosData);
+        } else {
+          console.log("No se encontraron repuestos en la base de datos.");
+        }
+      } catch (error) {
+        console.error("Error al cargar repuestos:", error);
+      }
+    };
 
-  const [repuestosTaller, setRepuestosTaller] = useState<Repuesto[]>(
-    initialRepuestosTaller
-  );
-  const [selectedRepuestos, setSelectedRepuestos] = useState<{
-    [key: string]: number;
-  }>({});
+    fetchRepuestos();
+  }, []);
 
-  const handleAddRepuesto = (index: any) => {
-    const newRepuestos = [...repuestosTaller];
+  const handleAddRepuesto = (index: number) => {
+    const newRepuestos = [...repuestos];
     newRepuestos[index].cantidad += 1;
-    setRepuestosTaller(newRepuestos);
+    setRepuestos(newRepuestos);
 
-    const selected = { ...selectedRepuestos };
     const nombre = newRepuestos[index].nombre;
-    if (selected[nombre]) {
-      selected[nombre] += 1;
+    const foundIndex = selectedRepuestos.findIndex((r) => r.nombre === nombre);
+    if (foundIndex !== -1) {
+      const updatedRepuesto = { ...selectedRepuestos[foundIndex] };
+      updatedRepuesto.cantidad += 1;
+      const updatedSelected = [...selectedRepuestos];
+      updatedSelected[foundIndex] = updatedRepuesto;
+      setSelectedRepuestos(updatedSelected);
     } else {
-      selected[nombre] = 1;
+      setSelectedRepuestos([
+        ...selectedRepuestos,
+        { ...newRepuestos[index], cantidad: 1 },
+      ]);
     }
-    setSelectedRepuestos(selected);
   };
 
-  const handleRemoveRepuesto = (index: any) => {
-    const newRepuestos = [...repuestosTaller];
+  const handleRemoveRepuesto = (index: number) => {
+    const newRepuestos = [...repuestos];
     if (newRepuestos[index].cantidad > 0) {
       newRepuestos[index].cantidad -= 1;
-      setRepuestosTaller(newRepuestos);
+      setRepuestos(newRepuestos);
 
-      const selected = { ...selectedRepuestos };
       const nombre = newRepuestos[index].nombre;
-      if (selected[nombre] > 0) {
-        selected[nombre] -= 1;
-        if (selected[nombre] === 0) {
-          delete selected[nombre];
+      const foundIndex = selectedRepuestos.findIndex((r) => r.nombre === nombre);
+      if (foundIndex !== -1) {
+        const updatedRepuesto = { ...selectedRepuestos[foundIndex] };
+        updatedRepuesto.cantidad -= 1;
+        const updatedSelected = [...selectedRepuestos];
+        if (updatedRepuesto.cantidad === 0) {
+          updatedSelected.splice(foundIndex, 1);
+        } else {
+          updatedSelected[foundIndex] = updatedRepuesto;
         }
-        setSelectedRepuestos(selected);
+        setSelectedRepuestos(updatedSelected);
       }
     }
   };
 
-  const renderRepuestosVisita = () => (
-    <div className="container-listado-respuestos">
-      <IonList className="listado-respuestos">
-        {repuestosVisita.map((repuesto, index) => (
-          <IonItem key={index}>
-            <IonLabel>{repuesto.nombre}</IonLabel>
-            <IonLabel slot="end">{repuesto.cantidad}</IonLabel>
-          </IonItem>
-        ))}
-      </IonList>
-    </div>
-  );
-
-  const renderRepuestosTaller = () => (
+  const renderRepuestos = () => (
     <>
       <div className="container-listado-respuestos">
         <IonList className="listado-respuestos">
-          {repuestosTaller.map((repuesto, index) => (
+          {repuestos.map((repuesto, index) => (
             <IonItem key={index}>
-              <IonLabel>{repuesto.nombre}</IonLabel>
+              <IonLabel>{repuesto.descripcion}</IonLabel>
               <IonButtons slot="end">
                 <IonLabel
-                  className={
-                    repuesto.cantidad > 0 ? "repuesto-incrementado" : ""
-                  }
+                  className={repuesto.cantidad > 0 ? "repuesto-incrementado" : ""}
                 >
                   {repuesto.cantidad}
                 </IonLabel>
-                <IonButton onClick={() => handleAddRepuesto(index)}>
-                  +
-                </IonButton>
-                <IonButton onClick={() => handleRemoveRepuesto(index)}>
-                  -
-                </IonButton>
+                <IonButton onClick={() => handleAddRepuesto(index)}>+</IonButton>
+                <IonButton onClick={() => handleRemoveRepuesto(index)}>-</IonButton>
               </IonButtons>
             </IonItem>
           ))}
         </IonList>
       </div>
       <IonItem className="listado-seleccionados">
-        <IonLabel className="subtitle-listado-seleccionados">
-          Seleccionado:
-        </IonLabel>
+        <IonLabel className="subtitle-listado-seleccionados">Seleccionado:</IonLabel>
       </IonItem>
       <IonList>
-        {Object.keys(selectedRepuestos).map((nombre, index) => (
+        {selectedRepuestos.map((repuesto, index) => (
           <IonItem key={index}>
-            <IonLabel>{nombre}</IonLabel>
-            <IonLabel>{selectedRepuestos[nombre]}</IonLabel>
+            <IonLabel>{repuesto.descripcion}</IonLabel>
+            <IonLabel>{repuesto.cantidad}</IonLabel>
           </IonItem>
         ))}
       </IonList>
@@ -150,15 +136,11 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
       <div>
         <h1 className="title-repuestos">Gestión de repuestos</h1>
         <h2 className="subtitle-repuestos">
-          {estadoOrden === "visita"
-            ? "Repuestos en camioneta"
-            : "Repuestos en taller"}
+          {estadoOrden === "visita" ? "Repuestos en camioneta" : "Repuestos en taller"}
         </h2>
       </div>
 
-      {estadoOrden === "visita"
-        ? renderRepuestosVisita()
-        : renderRepuestosTaller()}
+      {renderRepuestos()}
       {estadoOrden === "taller" && (
         <div className="container-confirm-button">
           <IonButton className="confirm-button" onClick={handleConfirm}>

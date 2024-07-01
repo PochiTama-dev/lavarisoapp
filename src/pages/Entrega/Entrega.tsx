@@ -92,7 +92,33 @@ const Entrega: React.FC = () => {
     }
   }, [ordenSelected, textosCheckbox]);
 
-  const handleConfirmarClick = () => {
+  const guardarEntrega = async () => {
+    const entrega = {
+      id_orden: ordenSelected?.id || 0,
+      firma_cliente: signature1,
+      firma_empleado: signature2,
+      recomienda: selectedOption === 'si' ? 1 : 0
+    };
+    try {
+      const response = await fetch("https://lv-back.online/entregas/guardar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(entrega)
+      });
+      const result = await response.json();
+      if (result) {
+        console.log("Entrega registrada con éxito!!!");
+        return true;
+      } else {
+        console.log("Se produjo un error, la entrega no pudo ser registrada...");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error al registrar la entrega.", error);
+    }
+  };
+
+  const handleConfirmarClick = async () => {
     const dataToSend = {
       producto,
       marca,
@@ -102,6 +128,13 @@ const Entrega: React.FC = () => {
       observaciones,
     };
     console.log(dataToSend);
+
+    const entregaGuardada = await guardarEntrega();
+    if (entregaGuardada) {
+      console.log("Entrega concretada con éxito.");
+    } else {
+      console.log("Error al concretar la entrega.");
+    }
   };
 
   const handleModal = () => {
