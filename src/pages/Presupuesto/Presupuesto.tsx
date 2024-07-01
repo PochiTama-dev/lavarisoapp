@@ -18,12 +18,18 @@ import {
 import "./presupuesto.css";
 import SignatureCanvas from "react-signature-canvas";
 import HeaderGeneral from "../../components/Header/HeaderGeneral";
+import { useLocation } from 'react-router-dom';
 interface Repuesto {
   id: number;
   codigo_repuesto: string;
   descripcion: string;
 }
 interface MedioDePago {
+  id: number;
+  medio_de_pago: string;
+}
+
+interface FormaPago {
   id: number;
   medio_de_pago: string;
 }
@@ -39,8 +45,8 @@ const Presupuesto: React.FC = () => {
   const [montos, setMontos] = useState(Array(7).fill(0));
   const [observaciones, setObservaciones] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
-  const [formaPago, setFormaPago] = useState<string[]>([]);
-  const [estado, setEstado] = useState("");
+  const [formaPago, setFormaPago] = useState<FormaPago[]>([]);
+  const [estado, setEstado] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [selectedList, setSelectedList] = useState<string[]>([]);
@@ -51,11 +57,15 @@ const Presupuesto: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
   const sigCanvas1 = useRef<SignatureCanvas>(null);
   const sigCanvas2 = useRef<SignatureCanvas>(null);
-  const [plazos, setPlazos] = useState<string[]>([]);
+  const [plazos, setPlazos] = useState<any[]>([]);
   const [plazosCheckboxValues, setPlazosCheckboxValues] = useState<boolean[]>([]);
-  const [estados, setEstados] = useState<string[]>([]);
+  const [estados, setEstados] = useState<any[]>([]);
   const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
   const [medioPago, setMedioPago] = useState<MedioDePago[]>([]);
+ 
+  const location = useLocation();
+  const { orden } = location.state as { orden: any };
+
   const fetchPlazosReparacion = async () => {
     try {
       const response = await fetch("https://lv-back.online/opciones/plazo");
@@ -131,7 +141,7 @@ const Presupuesto: React.FC = () => {
     }
   };
  
-
+ 
 
   useEffect(() => {
     fetchPlazosReparacion();
@@ -164,42 +174,44 @@ const servicioToDBFieldMap: Record<Servicio, string> = {
   "Gasto impositivo": "gasto_impositivo",
 };
 
-
-  useEffect(() => {
  
-    const savedData = JSON.parse(
-      localStorage.getItem("presupuestoData") || "{}"
-    );
-    if (savedData) {
-      setProducto(savedData.producto || "");
-  
-      setPlazosCheckboxValues(savedData.plazosCheckboxValues || Array(6).fill(false));
-      setMontos(savedData.montos || Array(7).fill(0));
-    
-      setSelectedOption(savedData.selectedOption || "");
-      setFormaPago(savedData.formaPago.medio_de_pago || "");
-      setEstado(savedData.estado || "");
-      setSelectedList(savedData.selectedList || []);
-      setAcceptedPolicies(savedData.acceptedPolicies || false);
-      setSignature1(savedData.signature1 || "");
-      setSignature2(savedData.signature2 || "");
-
-      // Load signatures into canvas
-      if (savedData.signature1 && sigCanvas1.current) {
-        sigCanvas1.current.fromDataURL(savedData.signature1);
-      }
-      if (savedData.signature2 && sigCanvas2.current) {
-        sigCanvas2.current.fromDataURL(savedData.signature2);
-      }
-    }
-  }, []);
 
   const handleMontoChange = (index: number, value: any) => {
     const newMontos = [...montos];
     newMontos[Number(index)] = Number(value);
     setMontos(newMontos);
   };
-
+  useEffect(() => {
+ 
+    const loadFromLocalStorage = () => {
+      const savedData = JSON.parse(localStorage.getItem("presupuestoData") || "{}");
+  
+      setProducto(savedData.producto || "");
+      setMontos(savedData.montos || Array(7).fill(0));
+      setSelectedOption(savedData.selectedOption || "");
+      setFormaPago(savedData.formaPago || null);
+      setEstado(savedData.estado || "");
+      setSelectedList(savedData.selectedList || []);
+      setAcceptedPolicies(savedData.acceptedPolicies || false);
+      setSignature1(savedData.signature1 || "");
+      setSignature2(savedData.signature2 || "");
+      setPlazosCheckboxValues(savedData.plazosCheckboxValues || Array(6).fill(false));
+ 
+      if (savedData.signature1 && sigCanvas1.current) {
+        sigCanvas1.current.fromDataURL(savedData.signature1);
+      }
+      if (savedData.signature2 && sigCanvas2.current) {
+        sigCanvas2.current.fromDataURL(savedData.signature2);
+      }
+    };
+  
+ 
+    loadFromLocalStorage();
+    fetchPlazosReparacion();
+    estadosPresupuestos();
+    listaRepuestos();
+    mediosDePago();
+  }, []);
   const handleConfirmarClick = async () => {
     const serviciosMontos: Record<string, number> = {};
     montos.forEach((monto, index) => {
@@ -213,7 +225,7 @@ const servicioToDBFieldMap: Record<Servicio, string> = {
     const firma_cliente = sigCanvas1.current?.toDataURL();
     const firma_empleado = sigCanvas2.current?.toDataURL();
     const dataToSend = {
-      id_orden: 1, // Cambia este valor según sea necesario
+      id_orden: orden.id, 
       id_plazo_reparacion: plazosCheckboxValues ,
       id_medio_de_pago: formaPago.id,
       id_estado_presupuesto: estado,
@@ -245,10 +257,7 @@ const servicioToDBFieldMap: Record<Servicio, string> = {
         console.log(result);
         localStorage.setItem("presupuestoData", JSON.stringify({
           producto,
-       
-    
           montos,
-  
           selectedOption,
           formaPago,
           estado,
