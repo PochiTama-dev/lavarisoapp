@@ -113,7 +113,7 @@ console.log("ORDENN", orden)
             <div>
               {!loading && <Map position={position} zoom={13} />}
             </div>
-            {orden && orden.Presupuesto && orden.Presupuesto.id_estado_presupuesto == 4 ? (
+            {orden && orden.Presupuesto && orden.Presupuesto.id_estado_presupuesto === 4 ? (
   <>
  <IonButton onClick={() => handleButtonClick("/entrega", orden)}>Entrega</IonButton>
  <IonButton onClick={() => handleButtonClick("/facturacion", orden)}>Facturación</IonButton>
