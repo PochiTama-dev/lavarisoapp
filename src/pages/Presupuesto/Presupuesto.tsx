@@ -18,6 +18,15 @@ import {
 import "./presupuesto.css";
 import SignatureCanvas from "react-signature-canvas";
 import HeaderGeneral from "../../components/Header/HeaderGeneral";
+interface Repuesto {
+  id: number;
+  codigo_repuesto: string;
+  descripcion: string;
+}
+interface MedioDePago {
+  id: number;
+  medio_de_pago: string;
+}
 
 const Presupuesto: React.FC = () => {
   const [producto, setProducto] = useState("");
@@ -25,12 +34,12 @@ const Presupuesto: React.FC = () => {
   const [modelo, setModelo] = useState("");
   const [cliente, setCliente] = useState("");
   const [checkboxValues, setCheckboxValues] = useState<boolean[]>(
-    Array(10).fill(false)
+    Array(6).fill(false)
   );
   const [montos, setMontos] = useState(Array(7).fill(0));
   const [observaciones, setObservaciones] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
-  const [formaPago, setFormaPago] = useState("");
+  const [formaPago, setFormaPago] = useState<string[]>([]);
   const [estado, setEstado] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -42,49 +51,133 @@ const Presupuesto: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
   const sigCanvas1 = useRef<SignatureCanvas>(null);
   const sigCanvas2 = useRef<SignatureCanvas>(null);
+  const [plazos, setPlazos] = useState<string[]>([]);
+  const [plazosCheckboxValues, setPlazosCheckboxValues] = useState<boolean[]>([]);
+  const [estados, setEstados] = useState<string[]>([]);
+  const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
+  const [medioPago, setMedioPago] = useState<MedioDePago[]>([]);
+  const fetchPlazosReparacion = async () => {
+    try {
+      const response = await fetch("https://lv-back.online/opciones/plazo");
+      const plazosData = await response.json();
+      if (plazosData.length > 0) {
+        const plazosList = plazosData.map((plazo: { id: number; plazo_reparacion: string }) => {
+          return { id: plazo.id, texto: plazo.plazo_reparacion };
+        });
+        setPlazos(plazosList);
+      } else {
+        setPlazos([]);
+        setPlazosCheckboxValues([]);
+      }
+    } catch (error) {
+      console.error("Error fetching repair periods from the database.", error);
+    }
+  };
+  const estadosPresupuestos = async () => {
+    try {
+      const response = await fetch("https://lv-back.online/opciones/presupuesto");
+      const data = await response.json();
+  
+      if (data.length > 0) {
+        const estadosList = data.map((item: { id: number; estado_presupuesto: any; }) => ({
+          id: item.id,
+          texto: item.estado_presupuesto
+        }));
+        setEstados(estadosList);
+       
+        return data;
+      } else {
+  
+        return false; 
+      }
+    } catch (error) {
+      console.error("Error, no se encontraron estados de los presupuestos en la base de datos....", error);
+    }
+  };
+  
 
-  const textosCheckbox = [
-    "de 48  72hs",
-    "de 3 A 15 días",
-    "de 4 a 7 días",
-    "de 7 a 15 días",
-    "No especificado",
-    "Dentro de las 24 hs",
-  ];
-  const options = [
-    "Option 1",
-    "Option 2",
-    "Option 3",
-    "Option 4",
-    "Fuelle",
-    "coso",
-    "cosito",
-  ];
-  const servicios = [
-    "Viaticos",
-    "Descuentos",
-    "Comisión visita",
-    "Comisión reparación",
-    "Comisión entrega",
-    "Comisión rep. a domicilio",
-    "Gasto impositivo",
-  ];
+  const listaRepuestos = async () => {
+    try {
+      const response = await fetch("https://lv-back.online/repuestos/lista");
+      const repuestosData: Repuesto[] = await response.json();
+
+      if (repuestosData.length > 0) {
+        setRepuestos(repuestosData);
+        
+        return repuestosData;
+      } else {
+      
+        return false;
+      }
+    } catch (error) {
+      console.error("Error, no se encontraron repuestos en la base de datos....", error);
+    }
+  };
+
+  const mediosDePago = async () => {
+    try {
+      const response = await fetch("https://lv-back.online/opciones/pago");
+      const mediosDePago = await response.json();
+      if (mediosDePago[0] !== undefined) {
+        setMedioPago(mediosDePago);
+     
+        return mediosDePago;
+      } else {
+     
+        return false; 
+      }
+    } catch (error) {
+      console.error("Error, no se encontraron medios de pago en la base de datos....", error);
+    }
+  };
+ 
+
 
   useEffect(() => {
-    // Load data from localStorage when the component mounts
+    fetchPlazosReparacion();
+    estadosPresupuestos();
+    listaRepuestos();
+    mediosDePago()
+  }, []);
+  
+ 
+ 
+const servicios = [
+  "Viaticos",
+  "Descuentos",
+  "Comisión visita",
+  "Comisión reparación",
+  "Comisión entrega",
+  "Comisión rep. a domicilio",
+  "Gasto impositivo",
+] as const;
+
+type Servicio = typeof servicios[number];
+
+const servicioToDBFieldMap: Record<Servicio, string> = {
+  "Viaticos": "viaticos",
+  "Descuentos": "descuentos_referidos",
+  "Comisión visita": "comision_visita",
+  "Comisión reparación": "comision_reparacion",
+  "Comisión entrega": "comision_entrega",
+  "Comisión rep. a domicilio": "comision_reparacion_domicilio",
+  "Gasto impositivo": "gasto_impositivo",
+};
+
+
+  useEffect(() => {
+ 
     const savedData = JSON.parse(
       localStorage.getItem("presupuestoData") || "{}"
     );
     if (savedData) {
       setProducto(savedData.producto || "");
-      setMarca(savedData.marca || "");
-      setModelo(savedData.modelo || "");
-      setCliente(savedData.cliente || "");
-      setCheckboxValues(savedData.checkboxValues || Array(10).fill(false));
+  
+      setPlazosCheckboxValues(savedData.plazosCheckboxValues || Array(6).fill(false));
       setMontos(savedData.montos || Array(7).fill(0));
-      setObservaciones(savedData.observaciones || "");
+    
       setSelectedOption(savedData.selectedOption || "");
-      setFormaPago(savedData.formaPago || "");
+      setFormaPago(savedData.formaPago.medio_de_pago || "");
       setEstado(savedData.estado || "");
       setSelectedList(savedData.selectedList || []);
       setAcceptedPolicies(savedData.acceptedPolicies || false);
@@ -107,27 +200,79 @@ const Presupuesto: React.FC = () => {
     setMontos(newMontos);
   };
 
-  const handleConfirmarClick = () => {
+  const handleConfirmarClick = async () => {
+    const serviciosMontos: Record<string, number> = {};
+    montos.forEach((monto, index) => {
+      const servicio = servicios[index];
+      const dbField = servicioToDBFieldMap[servicio];
+      if (dbField) {
+        serviciosMontos[dbField] = monto;
+      }
+    });
+    
+    const firma_cliente = sigCanvas1.current?.toDataURL();
+    const firma_empleado = sigCanvas2.current?.toDataURL();
     const dataToSend = {
-      producto,
-      marca,
-      modelo,
-      cliente,
-      checkboxValues,
-      montos,
-      observaciones,
-      selectedOption,
-      formaPago,
-      estado,
-      signature1: sigCanvas1.current?.toDataURL(),
-      signature2: sigCanvas2.current?.toDataURL(),
+      id_orden: 1, // Cambia este valor según sea necesario
+      id_plazo_reparacion: plazosCheckboxValues ,
+      id_medio_de_pago: formaPago.id,
+      id_estado_presupuesto: estado,
+      firma_cliente,
+      firma_empleado,
       selectedList,
       acceptedPolicies,
+      ...serviciosMontos,
+      total
     };
-    console.log(dataToSend);
-    localStorage.setItem("presupuestoData", JSON.stringify(dataToSend));
+  
+    console.log("Datos a enviar:", dataToSend); // Log para verificar los datos antes de enviar
+  
+    try {
+ 
+      const response = await fetch("https://lv-back.online/presupuestos/guardar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSend),
+      });
+  
+ 
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Presupuesto guardado con éxito!!!");
+        console.log(result);
+        localStorage.setItem("presupuestoData", JSON.stringify({
+          producto,
+       
+    
+          montos,
+  
+          selectedOption,
+          formaPago,
+          estado,
+          selectedList,
+          selectedOptions,
+          acceptedPolicies,
+          signature1,
+          signature2,
+          plazosCheckboxValues,
+        }))
+      } else {
+        console.log("Se produjo un error al guardar el presupuesto...");
+        console.log(`Error: ${response.status} ${response.statusText}`);
+        // Aquí podrías manejar el error de alguna manera, como mostrar un mensaje al usuario
+      }
+    } catch (error) {
+      console.error("Error al realizar la solicitud:", error); // Captura errores durante el fetch
+    } finally {
+      console.log("Finalizando la operación de guardar presupuesto"); // Asegura la ejecución final
+    }
   };
-
+  
+  
+  
   const total = montos.reduce((a, b) => a + b, 0);
 
   const handleSelect = (selectedValue: string) => {
@@ -166,23 +311,18 @@ const Presupuesto: React.FC = () => {
                 value={searchText || ""}
                 onIonChange={(e) => setSearchText(e.detail.value || "")}
               ></IonSearchbar>
-              <IonList>
-                {options
-                  .filter((option) =>
-                    option
-                      .toLowerCase()
-                      .includes(searchText?.toLowerCase() || "")
-                  )
-                  .map((option, index) => (
-                    <IonItem key={index}>
-                      <IonLabel>{option}</IonLabel>
-                      <IonCheckbox
-                        slot="end"
-                        onIonChange={() => handleSelect(option)}
-                      />
-                    </IonItem>
-                  ))}
-              </IonList>
+    
+   <IonList>
+      {repuestos.map((item, index) => (
+        <IonItem key={index}>
+          <IonLabel>{item.descripcion}</IonLabel>
+          <IonCheckbox
+            slot="end"
+            onIonChange={() => handleSelect(item.descripcion)}
+          />
+        </IonItem>
+      ))}
+    </IonList>
               <IonButton
                 onClick={() => {
                   setSelectedList((prevList) => {
@@ -277,74 +417,59 @@ const Presupuesto: React.FC = () => {
                   justifyContent: "space-between",
                 }}
               >
-                <IonSelect
-                  value={formaPago}
-                  placeholder="Seleccione método de pago"
-                  onIonChange={(e) => setFormaPago(e.detail.value)}
-                >
-                  <IonSelectOption value="efectivo">Efectivo</IonSelectOption>
-                  <IonSelectOption value="mp">MercadoPago</IonSelectOption>
-                  <IonSelectOption value="banco">
-                    Transferencia Bancaria
-                  </IonSelectOption>
-                </IonSelect>
+              <IonSelect
+      value={formaPago}
+      placeholder="Seleccione método de pago"
+      onIonChange={(e) => setFormaPago(e.detail.value)}
+    >
+      {medioPago.map((medio, index) => (
+        <IonSelectOption key={index} value={medio}>
+          {medio.medio_de_pago}
+        </IonSelectOption>
+      ))}
+    </IonSelect>
               </div>
             </div>
             <div className="section">
               <h2>Tiempo estimado de reparación/diagnóstico</h2>
               <div className="checkbox-container">
-                {textosCheckbox.map((texto, index) => (
-                  <div key={index} className="checkbox-item">
-                    <IonCheckbox
-                      checked={checkboxValues[index]}
-                      onIonChange={(e) => {
-                        const newCheckboxValues = [...checkboxValues];
-                        newCheckboxValues[index] = e.detail.checked;
-                        setCheckboxValues(newCheckboxValues);
-                      }}
-                      className="checkbox"
-                    />
-                    <span>{texto}</span>
-                  </div>
-                ))}
-              </div>
+  {plazos.map((plazo, index) => (
+    <div key={index} className="checkbox-item">
+      <IonCheckbox
+        checked={plazosCheckboxValues.includes(plazo.id)}
+        onIonChange={(e) => {
+          const isChecked = e.detail.checked;
+          if (isChecked) {
+            setPlazosCheckboxValues((prevValues) => [...prevValues, plazo.id]);
+          } else {
+            setPlazosCheckboxValues((prevValues) => prevValues.filter((id) => id !== plazo.id));
+          }
+        }}
+        className="checkbox"
+      />
+      <span>{plazo.texto}</span>
+    </div>
+  ))}
+</div>
+
               <div>
-                <IonSelect placeholder="Estado" className="estado-select">
-                  <IonSelectOption value="option1">Visitado</IonSelectOption>
-                  <IonSelectOption value="option2">En taller</IonSelectOption>
-                  <IonSelectOption value="option3">Entregado</IonSelectOption>
-                </IonSelect>
+              <IonSelect
+  placeholder="Estado"
+  value={estado}
+  onIonChange={(e) => setEstado(e.detail.value)}
+  className="estado-select"
+>
+  {estados.map((estado, index) => (
+    <IonSelectOption key={index} value={estado.id}>
+      {estado.texto}
+    </IonSelectOption>
+  ))}
+</IonSelect>
+ 
               </div>
             </div>
-            <div>
-              <div
-                className="separador"
-                style={{
-                  borderBottom: "2px solid #000",
-                  margin: "20px 10px",
-                  width: "90%",
-                }}
-              ></div>
-              <h2>Estado</h2>
-              <div
-                style={{
-                  width: "100%",
-                  marginTop: "30px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
-                <IonSelect
-                  value={estado}
-                  placeholder="Seleccione estado"
-                  onIonChange={(e) => setEstado(e.detail.value)}
-                >
-                  <IonSelectOption value="pendiente">Pendiente</IonSelectOption>
-                  <IonSelectOption value="aprobado">Aprobado</IonSelectOption>
-                  <IonSelectOption value="rechazado">Rechazado</IonSelectOption>
-                </IonSelect>
-              </div>
-            </div>
+             
+    
             <div>
               <div
                 className="separador"
@@ -363,6 +488,7 @@ const Presupuesto: React.FC = () => {
                     padding: "10px",
                     marginBottom: "10px",
                     borderRadius: "15px",
+                    width:'95%'
                   }}
                 >
                   <p>
