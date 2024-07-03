@@ -62,7 +62,7 @@ const CancelacionOrdenComponent: React.FC<CancelacionOrdenComponentProps> = ({
           placeholder="Detalles del incumplimiento"
           rows={10}
         ></textarea>
-        <IonButton onClick={handleCancelOrder}>Cancelar orden</IonButton>
+        <button onClick={handleCancelOrder}>Cancelar orden</button>
       </div>
       {modal && (
         <ModalCancelacionComponent

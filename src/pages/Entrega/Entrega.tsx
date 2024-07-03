@@ -264,13 +264,13 @@ const Entrega: React.FC = () => {
             >
               Concretar entrega
             </IonButton>
-            <IonButton
+            <button
               onClick={handleModal}
               className="button"
-              style={{ "--border-radius": "20px" }}
+              style={{ borderRadius: "20px" }}
             >
               Cancelar orden
-            </IonButton>
+            </button>
             {modal && <CancelarOrden onCancel={handleModal} />}
           </div>
         </div>
