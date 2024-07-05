@@ -239,13 +239,12 @@ const Presupuesto: React.FC = () => {
 
   // Función para procesar id_plazo_reparacion
   const procesarPlazoReparacion = (plazosCheckboxValues: any[]) => {
- 
     // Asume que plazosCheckboxValues es un array de booleanos y devuelve el índice del primer valor verdadero o 0 si todos son falsos
     const index =
       plazosCheckboxValues.findIndex((value) => value) !== -1
         ? plazosCheckboxValues.findIndex((value) => value)
         : 0;
-    return parseInt(index.toString(), 10);  
+    return parseInt(index.toString(), 10);
   };
 
   const total = montos.reduce((a, b) => a + b, 0);
@@ -263,11 +262,46 @@ const Presupuesto: React.FC = () => {
   const handleRemove = (itemToRemove: string) => {
     setSelectedList(selectedList.filter((item) => item !== itemToRemove));
   };
-  const handleCancelarOrden = () => {
-    localStorage.removeItem("presupuestoData");
 
-    window.location.reload();
+  const handleCancelAlert = () => {
+    setShowAlert(true);
   };
+
+  const handleCancelarOrden = async () => {
+    setShowAlert(false);
+    try {
+      console.log("Cancelando orden:", orden.id);
+
+      const response = await fetch(
+        `https://lv-back.online/ordenes/modificar/${orden.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id_tipo_estado: 2, // 2 es el ID para el estado "cancelada"
+          }),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Orden cancelada exitosamente");
+        alert("Orden cancelada exitosamente");
+        window.history.back();
+      } else {
+        console.log("Error al cancelar la orden");
+        console.log(`Error: ${response.status} ${response.statusText}`);
+        alert("Error al cancelar la orden. Intente nuevamente.");
+      }
+    } catch (error) {
+      console.error("Error al realizar la solicitud:", error);
+      alert(
+        "Error al realizar la solicitud. Verifique su conexión e intente nuevamente."
+      );
+    }
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -563,10 +597,7 @@ const Presupuesto: React.FC = () => {
                   },
                   {
                     text: "Sí",
-                    handler: () => {
-                      handleCancelarOrden();
-                      setShowAlert(false);
-                    },
+                    handler: handleCancelarOrden,
                   },
                 ]}
               />

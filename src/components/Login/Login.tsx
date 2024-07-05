@@ -41,9 +41,9 @@ const LoginComponent: React.FC = () => {
         return;
       }
 
-      if (empleado.id_rol !== 5) {
+      if (empleado.id_rol !== 5 || empleado.id_rol !== 4) {
         setAlertMessage(
-          "Acceso denegado. Solo los técnicos pueden acceder a esta pantalla."
+          "Acceso denegado. Solo los técnicos y los super administradores pueden acceder a esta pantalla."
         );
         setShowAlert(true);
         return;
