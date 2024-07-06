@@ -1,22 +1,35 @@
-import { IonButton, IonContent } from '@ionic/react';
-import HeaderGeneral from '../Header/HeaderGeneral';
-import './ConfirmacionOrden.css';
+import { IonButton, IonContent, IonModal } from "@ionic/react";
+import "./ConfirmacionOrden.css";
+import HeaderGeneral from "../Header/HeaderGeneral";
 
-function ModalCancelacionComponent() {
+interface ModalCancelacionComponentProps {
+  onCancel: () => void;
+  onClose: () => void;
+}
+
+const ModalCancelacionComponent: React.FC<ModalCancelacionComponentProps> = ({
+  onCancel,
+  onClose,
+}) => {
   return (
-    <IonContent className='confirmacion-orden-container'>
-      <div className='confirmacion-orden-top-box'>
+    <IonModal
+      isOpen={true}
+      onDidDismiss={onClose}
+      className="confirmacion-orden-container"
+    >
+      <div className="confirmacion-orden-top-box">
         <h1>
           <strong>Cancelar Orden</strong>
         </h1>
       </div>
-      <div className='confirmacion-orden-medium-box'>
+      <div className="confirmacion-orden-medium-box">
         <h3>Se encuentra a punto de cancelar la orden numero 25645</h3>
         <h3>¿Desea continuar?</h3>
-        <IonButton>Si, cancelar orden</IonButton>
+        <IonButton onClick={onCancel}>Sí, cancelar</IonButton>
+        <IonButton onClick={onClose}>No, cerrar</IonButton>
       </div>
-    </IonContent>
+    </IonModal>
   );
-}
+};
 
 export default ModalCancelacionComponent;
