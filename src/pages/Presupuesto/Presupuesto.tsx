@@ -327,7 +327,7 @@ const Presupuesto: React.FC = () => {
   const handleRemove = (itemToRemove: string) => {
     setSelectedList(selectedList.filter((item) => item !== itemToRemove));
   };
-
+ 
   const handleCancelAlert = () => {
     setShowAlert(true);
 
@@ -374,6 +374,7 @@ const Presupuesto: React.FC = () => {
 
   };
 
+ 
   const handleCancelarOrden = async () => {
     setShowAlert(false);
     try {

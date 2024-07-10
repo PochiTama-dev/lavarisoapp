@@ -16,6 +16,7 @@ import {
   IonRow,
   IonCol,
   IonHeader,
+  IonAlert,
 } from "@ionic/react";
 import { useLocation } from "react-router-dom";
 import "../Diagnostico/diagnostico.css";
@@ -40,6 +41,7 @@ const Entrega: React.FC = () => {
   const [signature2, setSignature2] = useState("");
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
   const [ordenSelected, setOrdenSelected] = useState<any>(null);
+ 
   const [firmaCliente, setFirmaCliente] = useState<string>('');
   const [firmaTecnico, setFirmaTecnico] = useState<string>('');
 
@@ -71,6 +73,7 @@ const Entrega: React.FC = () => {
       console.error("Error, entrega no encontrada.", error);
     }
   };
+ 
 
   useEffect(() => {
     fetchTiposFunciones();
@@ -161,16 +164,18 @@ console.log(firmaCliente)
   
     const entrega = {
       id_orden: ordenSelected?.id || 0,
+ 
       firma_cliente: firma_cliente,
       firma_empleado: firma_empleado,
       recomienda: selectedOption === 'si' ? 1 : 0
+ 
     };
   
     try {
       const response = await fetch("https://lv-back.online/entregas/guardar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(entrega)
+        body: JSON.stringify(entrega),
       });
   
       const result = await response.json();
@@ -178,7 +183,9 @@ console.log(firmaCliente)
         console.log("Entrega registrada con éxito!!!");
         return true;
       } else {
-        console.log("Se produjo un error, la entrega no pudo ser registrada...");
+        console.log(
+          "Se produjo un error, la entrega no pudo ser registrada..."
+        );
         return false;
       }
     } catch (error) {
@@ -205,6 +212,41 @@ console.log(firmaCliente)
 
   const handleModal = () => {
     setModal(!modal);
+  };
+
+  const handleCancelarOrden = async () => {
+    setShowAlert(true);
+    try {
+      console.log("Cancelando orden:", orden.id);
+
+      const response = await fetch(
+        `https://lv-back.online/ordenes/modificar/${orden.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id_tipo_estado: 2, // 2 es el ID para el estado "cancelada"
+          }),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Orden cancelada exitosamente");
+        alert("Orden cancelada exitosamente");
+        window.history.back();
+      } else {
+        console.log("Error al cancelar la orden");
+        console.log(`Error: ${response.status} ${response.statusText}`);
+        alert("Error al cancelar la orden. Intente nuevamente.");
+      }
+    } catch (error) {
+      console.error("Error al realizar la solicitud:", error);
+      alert(
+        "Error al realizar la solicitud. Verifique su conexión e intente nuevamente."
+      );
+    }
   };
 
   return (
@@ -376,14 +418,38 @@ console.log(firmaCliente)
             >
               Concretar entrega
             </IonButton>
-            <button
-              onClick={handleModal}
+            <IonButton
               className="button"
-              style={{ borderRadius: "20px" }}
+              style={{
+                "--border": "none",
+                "--background": "none",
+                "--color": "#E58769",
+              }}
+              onClick={() => setShowAlert(true)}
             >
               Cancelar orden
-            </button>
-            {modal && <CancelarOrden onCancel={handleModal} />}
+            </IonButton>
+
+            <IonAlert
+              isOpen={showAlert}
+              onDidDismiss={() => setShowAlert(false)}
+              header={"Confirmar"}
+              message={"¿Estás seguro de que deseas cancelar la orden?"}
+              buttons={[
+                {
+                  text: "No",
+                  role: "cancel",
+                  cssClass: "secondary",
+                  handler: () => {
+                    setShowAlert(false);
+                  },
+                },
+                {
+                  text: "Sí",
+                  handler: handleCancelarOrden,
+                },
+              ]}
+            />
           </div>
         </div>
       </IonContent>
