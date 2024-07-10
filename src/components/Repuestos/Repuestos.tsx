@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import {
   IonContent,
   IonHeader,
@@ -15,6 +15,7 @@ import HeaderGeneral from "../Header/HeaderGeneral";
 import "./Repuestos.css";
 
 interface Repuesto {
+  id: any;
   descripcion: string;
   nombre: string;
   cantidad: number;
@@ -24,36 +25,56 @@ interface RepuestosProps {
   estadoOrden?: "taller" | "visita";
 }
 
+interface LocationState {
+  ordenSeleccionada: any; 
+}
+
 const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
   const history = useHistory();
   const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
   const [selectedRepuestos, setSelectedRepuestos] = useState<Repuesto[]>([]);
-
+  const location = useLocation<LocationState>();
+  
+  const ordenSeleccionada = location.state?.ordenSeleccionada;
+console.log(ordenSeleccionada)
   useEffect(() => {
     const fetchRepuestos = async () => {
       try {
-        const response = await fetch("https://lv-back.online/repuestos/lista");
-        const repuestosData: Repuesto[] = await response.json();
-        if (repuestosData.length > 0) {
-          setRepuestos(repuestosData);
+        const responseRepuestos = await fetch("https://lv-back.online/repuestos/lista");
+        const repuestosData: Repuesto[] = await responseRepuestos.json();
+        
+        const responseStock = await fetch("https://lv-back.online/stock/taller/lista");
+        const stockData = await responseStock.json();
+        
+        if (repuestosData.length > 0 && stockData.length > 0) {
+          // Combina los datos de repuestos con el stock
+          const combinedData = repuestosData.map(repuesto => {
+            const stockItem = stockData.find((item: { id: any; }) => item.id === repuesto.id);
+            return {
+              ...repuesto,
+              cantidad: stockItem ? stockItem.cantidad : 0
+            };
+          });
+
+          setRepuestos(combinedData);
+          console.log(combinedData)
         } else {
-          console.log("No se encontraron repuestos en la base de datos.");
+          console.log("No se encontraron repuestos o stock en la base de datos.");
         }
       } catch (error) {
-        console.error("Error al cargar repuestos:", error);
+        console.error("Error al cargar repuestos o stock:", error);
       }
     };
 
     fetchRepuestos();
   }, []);
-
   const handleAddRepuesto = (index: number) => {
     const newRepuestos = [...repuestos];
-    newRepuestos[index].cantidad += 1;
+    newRepuestos[index].cantidad -= 1;
     setRepuestos(newRepuestos);
 
-    const nombre = newRepuestos[index].nombre;
-    const foundIndex = selectedRepuestos.findIndex((r) => r.nombre === nombre);
+    const nombre = newRepuestos[index].descripcion;
+    const foundIndex = selectedRepuestos.findIndex((r) => r.descripcion === nombre);
     if (foundIndex !== -1) {
       const updatedRepuesto = { ...selectedRepuestos[foundIndex] };
       updatedRepuesto.cantidad += 1;
@@ -67,28 +88,31 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
       ]);
     }
   };
-
   const handleRemoveRepuesto = (index: number) => {
     const newRepuestos = [...repuestos];
-    if (newRepuestos[index].cantidad > 0) {
-      newRepuestos[index].cantidad -= 1;
-      setRepuestos(newRepuestos);
-
-      const nombre = newRepuestos[index].nombre;
-      const foundIndex = selectedRepuestos.findIndex((r) => r.nombre === nombre);
-      if (foundIndex !== -1) {
-        const updatedRepuesto = { ...selectedRepuestos[foundIndex] };
-        updatedRepuesto.cantidad -= 1;
-        const updatedSelected = [...selectedRepuestos];
-        if (updatedRepuesto.cantidad === 0) {
-          updatedSelected.splice(foundIndex, 1);
-        } else {
-          updatedSelected[foundIndex] = updatedRepuesto;
-        }
-        setSelectedRepuestos(updatedSelected);
+    const nombre = newRepuestos[index].nombre;
+  
+  
+    let updatedSelected = [...selectedRepuestos];
+    const foundIndex = selectedRepuestos.findIndex((r) => r.nombre === nombre);
+    if (foundIndex !== -1) {
+      const updatedRepuesto = { ...selectedRepuestos[foundIndex] };
+      updatedRepuesto.cantidad -= 1;
+      if (updatedRepuesto.cantidad === 0) {
+        updatedSelected.splice(foundIndex, 1);
+      } else {
+        updatedSelected[foundIndex] = updatedRepuesto;
       }
+      setSelectedRepuestos(updatedSelected);
+    }
+  
+    // Decrement quantity in repuestos after updating selectedRepuestos
+    if (newRepuestos[index].cantidad > 0) {
+      newRepuestos[index].cantidad += 1;
+      setRepuestos(newRepuestos);
     }
   };
+  
 
   const renderRepuestos = () => (
     <>
@@ -124,9 +148,13 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
     </>
   );
 
-  const handleConfirm = () => {
-    history.push("/tallerOrden"); // Navega a la ruta /tallerOrden
-  };
+const handleConfirm = () => {
+  history.push({
+    pathname: "/tallerOrden",
+    state: { selectedRepuestos,ordenSeleccionada }
+  });
+};
+console.log(selectedRepuestos)
 
   return (
     <IonContent className="repuestos-container">

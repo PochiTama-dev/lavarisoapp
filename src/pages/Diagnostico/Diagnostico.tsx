@@ -49,7 +49,7 @@ const Diagnostico: React.FC = () => {
       const response = await fetch("https://lv-back.online/opciones/funcion");
       const funciones = await response.json();
       if (funciones && funciones.length > 0) {
-        console.log(`Se encontró un listado con ${funciones.length} tipos de funciones!!`);
+
         setTextosCheckbox(funciones.map((funcion: { tipo_funcion: string }) => funcion.tipo_funcion));
       } else {
         console.log('Aún no se registra ningún tipo de funcion...');
@@ -58,26 +58,68 @@ const Diagnostico: React.FC = () => {
       console.error("Error, no se encontraron tipos de funciones en la base de datos....", error);
     }
   };
- 
-  useEffect(() => {
-    const savedData = JSON.parse(localStorage.getItem("diagnosticoData") || "{}");
-    if (savedData) {
-      setEquipo(savedData.equipo || "");
-      setMarca(savedData.marca || "");
-      setModelo(savedData.modelo || "");
-      setCliente(savedData.cliente || "");
-      setCheckboxValues(savedData.checkboxValues || Array(10).fill(false));  
-      setMotivo(savedData.motivo || "");  
-      
+
+  const fetchOrden = async (id: any) => {
+    try {
+      const ordenResponse = await fetch(`https://lv-back.online/ordenes/${id}`);
+      if (!ordenResponse.ok) {
+        throw new Error('Error al obtener datos de la API');
+      }
+
+      const orden = await ordenResponse.json();
+      if (orden) {
+        const clienteResponse = await fetch(`https://lv-back.online/clientes/${orden.id_cliente}`);
+        const cliente = await clienteResponse.json();
+        return { ...orden, cliente };
+      } else {
+        console.log("No se encontró la orden en la base de datos.");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error al obtener datos:", error);
+      return null;
     }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      let data = null;
+
+      if (orden) {
+        data = await fetchOrden(orden.id);
+      }
+
+      if (!data) {
+        const localStorageData = localStorage.getItem("diagnosticoData");
+        if (localStorageData) {
+          data = JSON.parse(localStorageData);
+        }
+      }
+
+      if (data) {
+        setEquipo(data.equipo || "");
+        setMarca(data.marca || "");
+        setModelo(data.modelo || "");
+        setCliente(data.cliente?.numero_cliente || "");
+
+        // Marcar los checkboxes según el diagnostico de la orden
+        const diagnosticoOrden = data.diagnostico || "";
+        const nuevosCheckboxValues = checkboxValues.map((value, index) => {
+          return diagnosticoOrden.includes(textosCheckbox[index]);
+        });
+        setCheckboxValues(nuevosCheckboxValues);
+      }
+    };
+
+    loadData();
     fetchTiposFunciones();
-  }, []);
+  }, [orden, textosCheckbox]);
 
   const handleConfirmarClick = async () => {
     const diagnostico = textosCheckbox
       .filter((texto, index) => checkboxValues[index])
       .join(', ');
-  
+
     const dataToSend = {
       equipo,
       marca,
@@ -85,12 +127,12 @@ const Diagnostico: React.FC = () => {
       cliente,
       diagnostico,
       motivo,
-      checkboxValues,  
+      checkboxValues,
     };
-  
+
     console.log("data", dataToSend);
     localStorage.setItem("diagnosticoData", JSON.stringify(dataToSend));
-  
+
     if (orden && orden.id) {
       const success = await modificarOrden(orden.id, dataToSend);
       if (success) {
@@ -103,8 +145,6 @@ const Diagnostico: React.FC = () => {
     }
   };
 
-  console.log(orden);
-
   return (
     <IonPage>
       <IonContent>
@@ -112,111 +152,108 @@ const Diagnostico: React.FC = () => {
           <HeaderGeneral />
         </IonHeader>
 
-        {orden && (
-          <div className="diagnostico-ctn">
-            <div className="section">
-              <h2>Diagnosticar</h2>
-              
-              <div className="item">
-                <span>
-                  <strong>Equipo:</strong>  
-                </span>
-                <IonInput
-                  style={{ marginLeft: "10px" }}
-                  value={equipo}
-                  placeholder="Ingrese equipo"
-                  onIonChange={(e) => setEquipo(e.detail.value!)}
-                />
-                <IonIcon
-                  icon={pencilOutline}
-                  className="icon-pencil"
-                  style={{ fontSize: "22px" }}
-                />
-              </div>
-              <div className="item">
-                <span>
-                  <strong>Marca:</strong>
-                </span>
-                <IonInput
-                  style={{ marginLeft: "10px" }}
-                  value={marca}
-                  placeholder="Ingrese marca"
-                  onIonChange={(e) => setMarca(e.detail.value!)}
-                />
-                <IonIcon
-                  icon={pencilOutline}
-                  className="icon-pencil"
-                  style={{ fontSize: "22px" }}
-                />
-              </div>
-              <div className="item">
-                <span>
-                  <strong>Modelo:</strong>
-                </span>
-                <IonInput
-                  style={{ marginLeft: "10px" }}
-                  value={modelo}
-                  placeholder="Ingrese modelo"
-                  onIonChange={(e) => setModelo(e.detail.value!)}
-                />
-                <IonIcon
-                  icon={pencilOutline}
-                  className="icon-pencil"
-                  style={{ fontSize: "22px" }}
-                />
-              </div>
-              <div className="item">
-                <span>
-                  <strong>N° de cliente:</strong>
-                </span>
-                <IonInput
-                  style={{ marginLeft: "10px" }}
-                  value={orden.Cliente.numero_cliente}
-                  placeholder="Ingrese N° de cliente"
-                  onIonChange={(e) => setCliente(e.detail.value!)}
-                />
-             
-              </div>
-            </div>
-            <div className="section">
-              <h2>Chequeo de funcionamiento</h2>
-              <div className="checkbox-container">
-                {textosCheckbox.map((texto, index) => (
-                  <div key={index} className="checkbox-item">
-                    <IonCheckbox
-                      checked={checkboxValues[index]}
-                      onIonChange={(e) => {
-                        const newCheckboxValues = [...checkboxValues];
-                        newCheckboxValues[index] = e.detail.checked;
-                        setCheckboxValues(newCheckboxValues);
-                      }}
-                      className="checkbox"
-                    />
-                    <span>{texto}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="section">
-              <h2>Diagnostico</h2>
+        <div className="diagnostico-ctn">
+          <div className="section">
+            <h2>Diagnosticar</h2>
+
+            <div className="item">
+              <span>
+                <strong>Equipo:</strong>
+              </span>
               <IonInput
-                className="obs-input"
-                value={motivo}
-                onIonChange={(e) => setMotivo(e.detail.value!)}
-                placeholder="Ingrese diagnostico"
+                style={{ marginLeft: "10px" }}
+                value={equipo}
+                placeholder="Ingrese equipo"
+                onIonChange={(e) => setEquipo(e.detail.value!)}
+              />
+              <IonIcon
+                icon={pencilOutline}
+                className="icon-pencil"
+                style={{ fontSize: "22px" }}
               />
             </div>
-            <div className="section">
-              <IonButton
-                className="button"
-                style={{ "--border-radius": "20px" }}
-                onClick={handleConfirmarClick}
-              >
-                Confirmar
-              </IonButton>
+            <div className="item">
+              <span>
+                <strong>Marca:</strong>
+              </span>
+              <IonInput
+                style={{ marginLeft: "10px" }}
+                value={marca}
+                placeholder="Ingrese marca"
+                onIonChange={(e) => setMarca(e.detail.value!)}
+              />
+              <IonIcon
+                icon={pencilOutline}
+                className="icon-pencil"
+                style={{ fontSize: "22px" }}
+              />
+            </div>
+            <div className="item">
+              <span>
+                <strong>Modelo:</strong>
+              </span>
+              <IonInput
+                style={{ marginLeft: "10px" }}
+                value={modelo}
+                placeholder="Ingrese modelo"
+                onIonChange={(e) => setModelo(e.detail.value!)}
+              />
+              <IonIcon
+                icon={pencilOutline}
+                className="icon-pencil"
+                style={{ fontSize: "22px" }}
+              />
+            </div>
+            <div className="item">
+              <span>
+                <strong>N° de cliente:</strong>
+              </span>
+              <IonInput
+                style={{ marginLeft: "10px" }}
+                value={cliente}
+                placeholder="Ingrese N° de cliente"
+                onIonChange={(e) => setCliente(e.detail.value!)}
+              />
             </div>
           </div>
-        )}
+          <div className="section">
+            <h2>Chequeo de funcionamiento</h2>
+            <div className="checkbox-container">
+              {textosCheckbox.map((texto, index) => (
+                <div key={index} className="checkbox-item">
+                  <IonCheckbox
+                    checked={checkboxValues[index]}
+                    onIonChange={(e) => {
+                      const newCheckboxValues = [...checkboxValues];
+                      newCheckboxValues[index] = e.detail.checked;
+                      setCheckboxValues(newCheckboxValues);
+                    }}
+                    className="checkbox"
+                  />
+                  <span>{texto}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="section">
+            <h2>Diagnostico</h2>
+            <IonInput
+              className="obs-input"
+              value={orden.motivo}
+              onIonChange={(e) => setMotivo(e.detail.value!)}
+              placeholder="Ingrese diagnostico"
+            />
+          </div>
+          <div className="section">
+            <IonButton
+              className="button"
+              style={{ "--border-radius": "20px" }}
+              onClick={handleConfirmarClick}
+            >
+              Confirmar
+            </IonButton>
+          </div>
+        </div>
       </IonContent>
     </IonPage>
   );
