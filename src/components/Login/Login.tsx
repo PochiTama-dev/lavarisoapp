@@ -14,13 +14,13 @@ const LoginComponent: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const history = useHistory();
   const emailRef = useRef<HTMLIonInputElement>(null);
-  // const passwordRef = useRef<HTMLIonInputElement>(null);
+  const cuilRef = useRef<HTMLIonInputElement>(null);
 
   const handleSubmit = async (event: any) => {
     event.preventDefault();
 
     const email = emailRef.current?.value as string;
-    // const password = passwordRef.current?.value as string;
+    const cuil = cuilRef.current?.value as string;
     if (!email || !email.includes("@") || !email.includes(".com")) {
       setAlertMessage("Por favor, ingrese un correo electrónico válido.");
       setShowAlert(true);
@@ -29,21 +29,31 @@ const LoginComponent: React.FC = () => {
     try {
       const response = await fetch("https://lv-back.online/empleados");
       const empleados = await response.json();
-      const emailExists = empleados.some(
-        (empleado: any) => empleado.email === email
-      );
+      const empleado =
+        empleados.find((empleado: any) => empleado.email === email) &&
+        empleados.find((empleado: any) => empleado.cuil === cuil);
 
-      if (!emailExists) {
-        setAlertMessage("El correo electrónico no existe en la base de datos.");
+      if (!empleado) {
+        setAlertMessage(
+          "El correo electrónico o el cuil no coinciden en la base de datos."
+        );
         setShowAlert(true);
         return;
       }
 
-      // if (!password) {
-      //   setAlertMessage("Ingrese su contraseña");
-      //   setShowAlert(true);
-      //   return;
-      // }
+      if (empleado.id_rol !== 5 && empleado.id_rol !== 4) {
+        setAlertMessage(
+          "Acceso denegado. Solo los técnicos pueden acceder a esta pantalla."
+        );
+        setShowAlert(true);
+        return;
+      }
+
+      // Guardo el email, el nombre y el id del empleado en localStorage para usarlo en LoginRol
+      localStorage.setItem("empleadoEmail", email);
+      localStorage.setItem("empleadoNombre", empleado.nombre);
+      localStorage.setItem("empleadoId", empleado.id);
+
       history.push("/rol");
     } catch (error) {
       setAlertMessage("Ocurrió un error al verificar el correo electrónico.");
@@ -70,12 +80,12 @@ const LoginComponent: React.FC = () => {
               type="text"
               placeholder="E-mail"
             />
-            {/* <IonInput
-              ref={passwordRef}
+            <IonInput
+              ref={cuilRef}
               className="inputs"
-              type="password"
-              placeholder="Contraseña"
-            /> */}
+              type="number"
+              placeholder="Número de cuil"
+            />
             <IonButton className="login-button" type="submit">
               Iniciar sesión
             </IonButton>
