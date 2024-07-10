@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from 'react';
+ 
 import {
   IonContent,
   IonPage,
@@ -39,12 +41,45 @@ const Entrega: React.FC = () => {
   const [signature2, setSignature2] = useState("");
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
   const [ordenSelected, setOrdenSelected] = useState<any>(null);
-  const [showAlert, setShowAlert] = useState(false);
+ 
+  const [firmaCliente, setFirmaCliente] = useState<string>('');
+  const [firmaTecnico, setFirmaTecnico] = useState<string>('');
+
+  const sigCanvasCliente = useRef<SignatureCanvas | null>(null);
+  const sigCanvasTecnico = useRef<SignatureCanvas | null>(null);
 
   useEffect(() => {
     fetchTiposFunciones();
     if (orden && orden.id) {
       fetchOrden(orden.id);
+      obtenerEntrega(orden.id);
+    }
+  }, [orden]);
+
+  const obtenerEntrega = async (id: any) => {
+    try {
+      const response = await fetch(`https://lv-back.online/entregas/orden/${id}`);
+      const entrega = await response.json();
+      if (entrega) {
+        console.log(`Se encontró una entrega asociada al id ${id}`);
+        console.log(entrega);
+        setFirmaCliente(entrega.firma_cliente);
+        setFirmaTecnico(entrega.firma_empleado);
+        setSelectedOption(entrega.recomienda === 1 ? 'si' : 'no');
+      } else {
+        console.log(`No se encontró ninguna entrega con el id ${id}`);
+      }
+    } catch (error) {
+      console.error("Error, entrega no encontrada.", error);
+    }
+  };
+ 
+
+  useEffect(() => {
+    fetchTiposFunciones();
+    if (orden && orden.id) {
+      fetchOrden(orden.id);
+      obtenerEntrega(orden.id); 
     }
   }, [orden]);
 
@@ -108,20 +143,41 @@ const Entrega: React.FC = () => {
       setCheckboxValues(updatedCheckboxValues);
     }
   }, [ordenSelected, textosCheckbox]);
+console.log(firmaCliente)
+  useEffect(() => {
+    if (firmaCliente && sigCanvasCliente.current) {
+      // Convertir la firma de base64 a URL de datos
+      sigCanvasCliente.current.fromDataURL(firmaCliente);
+    }
+    if (firmaTecnico && sigCanvasTecnico.current) {
+      // Convertir la firma de base64 a URL de datos
+      sigCanvasTecnico.current.fromDataURL(firmaTecnico);
+    }
+  }, [firmaCliente, firmaTecnico]);
+
+
 
   const guardarEntrega = async () => {
+    // Obtener las firmas en formato base64 desde los SignatureCanvas
+    const firma_cliente = sigCanvasCliente.current?.toDataURL();
+    const firma_empleado = sigCanvasTecnico.current?.toDataURL();
+  
     const entrega = {
       id_orden: ordenSelected?.id || 0,
-      firma_cliente: signature1,
-      firma_empleado: signature2,
-      recomienda: selectedOption === "si" ? 1 : 0,
+ 
+      firma_cliente: firma_cliente,
+      firma_empleado: firma_empleado,
+      recomienda: selectedOption === 'si' ? 1 : 0
+ 
     };
+  
     try {
       const response = await fetch("https://lv-back.online/entregas/guardar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entrega),
       });
+  
       const result = await response.json();
       if (result) {
         console.log("Entrega registrada con éxito!!!");
@@ -139,12 +195,10 @@ const Entrega: React.FC = () => {
 
   const handleConfirmarClick = async () => {
     const dataToSend = {
-      producto,
-      marca,
-      modelo,
-      cliente,
       checkboxValues,
       observaciones,
+      firmaCliente,
+      firmaTecnico
     };
     console.log(dataToSend);
 
@@ -210,9 +264,11 @@ const Entrega: React.FC = () => {
               </span>
               <IonInput
                 disabled
-                style={{ marginLeft: "10px" }}
-                value={ordenSelected?.equipo || ""}
-                placeholder="Ingrese producto"
+
+                style={{ marginLeft: '10px' }}
+                value={ordenSelected?.equipo || ''}
+                placeholder='Ingrese producto'
+
                 onIonChange={(e) => setProducto(e.detail.value!)}
               />
             </div>
@@ -222,9 +278,11 @@ const Entrega: React.FC = () => {
               </span>
               <IonInput
                 disabled
-                style={{ marginLeft: "10px" }}
-                value={ordenSelected?.marca || ""}
-                placeholder="Ingrese marca"
+
+                style={{ marginLeft: '10px' }}
+                value={ordenSelected?.marca || ''}
+                placeholder='Ingrese marca'
+
                 onIonChange={(e) => setMarca(e.detail.value!)}
               />
             </div>
@@ -234,9 +292,11 @@ const Entrega: React.FC = () => {
               </span>
               <IonInput
                 disabled
-                style={{ marginLeft: "10px" }}
-                value={ordenSelected?.modelo || ""}
-                placeholder="Ingrese modelo"
+
+                style={{ marginLeft: '10px' }}
+                value={ordenSelected?.modelo || ''}
+                placeholder='Ingrese modelo'
+
                 onIonChange={(e) => setModelo(e.detail.value!)}
               />
             </div>
@@ -246,9 +306,11 @@ const Entrega: React.FC = () => {
               </span>
               <IonInput
                 disabled
-                style={{ marginLeft: "10px" }}
-                value={ordenSelected?.id_cliente || ""}
-                placeholder="Ingrese N° de cliente"
+
+                style={{ marginLeft: '10px' }}
+                value={ordenSelected?.id_cliente || ''}
+                placeholder='Ingrese N° de cliente'
+
                 onIonChange={(e) => setCliente(e.detail.value!)}
               />
             </div>
@@ -287,8 +349,10 @@ const Entrega: React.FC = () => {
           <div className="section">
             <h2>Observaciones</h2>
             <IonInput
-              className="obs-input"
-              value={observaciones}
+
+              className='obs-input'
+              value={orden.motivo}
+
               onIonChange={(e) => setObservaciones(e.detail.value!)}
               placeholder="Ingrese observaciones"
             />
@@ -296,15 +360,33 @@ const Entrega: React.FC = () => {
           <div className="section">
             <h2>Conformidad de la entrega</h2>
             <span>Firma del cliente</span>
+
+            <div>
+
             <SignatureCanvas
-              penColor="black"
-              canvasProps={{ width: 500, height: 200, className: "sigCanvas" }}
+              ref={sigCanvasCliente}
+              penColor='black'
+              canvasProps={{ width: 500, height: 200, className: 'sigCanvas' }}
             />
+                  <IonButton onClick={() => sigCanvasCliente.current?.clear()}>
+                  Borrar
+                </IonButton>
+            </div>
+
             <span>Firma del técnico</span>
+            <div>
+
             <SignatureCanvas
-              penColor="black"
-              canvasProps={{ width: 500, height: 200, className: "sigCanvas" }}
+              ref={sigCanvasTecnico}
+              penColor='black'
+              canvasProps={{ width: 500, height: 200, className: 'sigCanvas' }}
             />
+             <IonButton onClick={() => sigCanvasTecnico.current?.clear()}>
+                  Borrar
+                </IonButton>
+
+            </div>
+
           </div>
           <div className="section">
             <h2>¿Nos recomendarías? </h2>

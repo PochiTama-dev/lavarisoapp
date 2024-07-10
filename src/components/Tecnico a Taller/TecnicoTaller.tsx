@@ -3,7 +3,7 @@ import { useHistory } from "react-router";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./TecnicoTaller.css";
 import { IonAlert, IonButton, IonContent, IonHeader } from "@ionic/react";
-import { LocationDescriptor } from "history";
+ 
 
 function TecnicoTallerComponent() {
   const history = useHistory();
@@ -13,7 +13,10 @@ function TecnicoTallerComponent() {
   const [ordenSeleccionada, setOrdenSeleccionada] = useState<any>(null);
   
   const handleButtonClick = (path: any) => {
-    history.push(path);
+   history.push({
+      pathname: path,
+      state: { ordenSeleccionada }, 
+    });
   };
 
   const estadoPresupuestoMap = {
@@ -23,30 +26,14 @@ function TecnicoTallerComponent() {
     4: "Para retirar",
   };
 
-
-  const guardarStockReserva = async (repuesto: any) => {
-    try {
-      const response = await fetch("https://lv-back.online/stock/reserva/guardar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(repuesto)
-      });
-      const result = await response.json();
-      if (result) {
-        console.log("El repuesto se reservó con exito!!!");
-        return true;
-      } else {
-        console.log("Se produjo un error, el repuesto no pudo ser reservado...");
-        return false;
-      }
-    } catch (error) {
-      console.error("Error al tratar de reservar el repuesto.", error);
-    }
-  };
-
   useEffect(() => {
     const fetchOrdenes = async () => {
+     /* const storedOrdenActiva = localStorage.getItem('ordenActiva');
+      if (storedOrdenActiva) {
+        setOrdenActiva(JSON.parse(storedOrdenActiva));
+      }*/
       try {
+        
         const ordenesResponse = await fetch("https://lv-back.online/ordenes");
         const clientesResponse = await fetch("https://lv-back.online/clientes/lista");
 
@@ -76,22 +63,14 @@ function TecnicoTallerComponent() {
 
     fetchOrdenes();
 
-    const storedOrdenActiva = localStorage.getItem('ordenActiva');
-    if (storedOrdenActiva) {
-      setOrdenActiva(JSON.parse(storedOrdenActiva));
-    }
+ 
   }, []);
   const handleVerOrden = (orden: any) => {
     setOrdenSeleccionada(orden);
     setShowAlert(true);
   };
-
-  const clearOrdenActiva = () => {
-    setOrdenActiva(null);
-    localStorage.removeItem('ordenActiva');
-  };
-
-  console.log(ordenActiva);
+ 
+  console.log(ordenSeleccionada);
 
   return (
     <IonContent className="tecnico-taller-container">
@@ -129,7 +108,7 @@ function TecnicoTallerComponent() {
         {ordenes.map((orden: { id: boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.Key | null | undefined; Presupuesto: { id_estado_presupuesto: string | number; }; }) => (
           <div key={orden.id} className="orden-item">
             <h4>
-              Orden #{orden.id} <span>{estadoPresupuestoMap[orden.Presupuesto.id_estado_presupuesto]}</span>
+              {`Orden #${orden.id}`}  <span>{estadoPresupuestoMap[orden.Presupuesto.id_estado_presupuesto]}</span>
               <svg
                 width="18"
                 height="18"

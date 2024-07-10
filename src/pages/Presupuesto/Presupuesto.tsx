@@ -62,16 +62,27 @@ const Presupuesto: React.FC = () => {
   const [signature1, setSignature1] = useState("");
   const [signature2, setSignature2] = useState("");
   const [showAlert, setShowAlert] = useState(false);
+  const [showAlert2, setShowAlert2] = useState(false);
+  const [showConfirmAlert, setShowConfirmAlert] = useState(false);
   const sigCanvas1 = useRef<SignatureCanvas>(null);
   const sigCanvas2 = useRef<SignatureCanvas>(null);
   const [plazos, setPlazos] = useState<any[]>([]);
-  const [plazosCheckboxValues, setPlazosCheckboxValues] = useState<boolean[]>(
+  const [plazosCheckboxValues, setPlazosCheckboxValues] = useState<number[]>(
     []
   );
+  const handleAcceptPoliciesChange = (event: CustomEvent) => {
+    setAcceptedPolicies(event.detail.checked);
+  };
   const [estados, setEstados] = useState<any[]>([]);
   const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
   const [medioPago, setMedioPago] = useState<MedioDePago[]>([]);
-
+  const [selectedMedioPago, setSelectedMedioPago] = useState<number | null>(
+    null
+  );
+  const [selectedEstadoPresupuesto, setSelectedEstadoPresupuesto] = useState<
+    number | null
+  >(null);
+ 
   const location = useLocation();
   const { orden } = location.state as { orden: any };
 
@@ -98,8 +109,8 @@ const Presupuesto: React.FC = () => {
   type Servicio = (typeof servicios)[number];
 
   const servicioToDBFieldMap: Record<Servicio, string> = {
-    Viaticos: "viaticos",
-    Descuentos: "descuentos_referidos",
+    "Viaticos": "viaticos",
+    "Descuentos": "descuentos_referidos",
     "Comisión visita": "comision_visita",
     "Comisión reparación": "comision_reparacion",
     "Comisión entrega": "comision_entrega",
@@ -112,41 +123,95 @@ const Presupuesto: React.FC = () => {
     newMontos[Number(index)] = Number(value);
     setMontos(newMontos);
   };
+  const total = montos.reduce((a, b) => a + parseFloat(b), 0);
   useEffect(() => {
-    const loadFromLocalStorage = () => {
-      const savedData = JSON.parse(
-        localStorage.getItem("presupuestoData") || "{}"
-      );
-
-      setProducto(savedData.producto || "");
-      setMontos(savedData.montos || Array(7).fill(0));
-      setSelectedOption(savedData.selectedOption || "");
-      setFormaPago(savedData.formaPago || null);
-      setEstado(savedData.estado || "");
-      setSelectedList(savedData.selectedList || []);
-      setAcceptedPolicies(savedData.acceptedPolicies || false);
-      setSignature1(savedData.signature1 || "");
-      setSignature2(savedData.signature2 || "");
-      setPlazosCheckboxValues(
-        savedData.plazosCheckboxValues || Array(6).fill(false)
-      );
-
-      if (savedData.signature1 && sigCanvas1.current) {
-        sigCanvas1.current.fromDataURL(savedData.signature1);
-      }
-      if (savedData.signature2 && sigCanvas2.current) {
-        sigCanvas2.current.fromDataURL(savedData.signature2);
+    const loadData = async () => {
+      setPlazos(await fetchPlazosReparacion());
+      setEstados(await estadosPresupuestos());
+      setRepuestos(await listaRepuestos());
+      setMedioPago(await mediosDePago());
+  
+      if (orden && orden.Presupuesto) {
+        setProducto(orden.Presupuesto.producto || "");
+        setFormaPago(orden.Presupuesto.formaPago || null);
+        setEstado(orden.Presupuesto.estado || "");
+        setSelectedList(orden.Presupuesto.selectedList || []);
+        setAcceptedPolicies(orden.Presupuesto.acceptedPolicies || false);
+        setPlazosCheckboxValues([orden.Presupuesto.id_plazo_reparacion] || []);
+        setSelectedMedioPago(orden.Presupuesto.id_medio_de_pago || null);
+        setSelectedEstadoPresupuesto(orden.Presupuesto.id_estado_presupuesto || null);
+  
+        setMontos([
+          orden.Presupuesto.viaticos || 0,
+          orden.Presupuesto.descuentos_referidos || 0,
+          orden.Presupuesto.comision_visita || 0,
+          orden.Presupuesto.comision_reparacion || 0,
+          orden.Presupuesto.comision_entrega || 0,
+          orden.Presupuesto.comision_reparacion_domicilio || 0,
+          orden.Presupuesto.gasto_impositivo || 0,
+        ]);
+  
+   
+        const firmaClienteDataURL = orden.Presupuesto.firma_cliente;
+        const firmaEmpleadoDataURL = orden.Presupuesto.firma_empleado;
+  
+        if (sigCanvas1.current) {
+          sigCanvas1.current.fromDataURL(firmaClienteDataURL);
+        }
+        if (sigCanvas2.current) {
+          sigCanvas2.current.fromDataURL(firmaEmpleadoDataURL);
+        }
+      } else {
+        const savedData = JSON.parse(localStorage.getItem("presupuestoData") || "{}");
+        setMontos(savedData.montos || "");
+        setProducto(savedData.producto || "");
+        setFormaPago(savedData.formaPago || null);
+        setEstado(savedData.estado || "");
+        setSelectedList(savedData.selectedList || []);
+        setAcceptedPolicies(savedData.acceptedPolicies || false);
+        setSignature1(savedData.signature1 || "");
+        setSignature2(savedData.signature2 || "");
+        setPlazosCheckboxValues(savedData.plazosCheckboxValues || []);
+        setSelectedMedioPago(savedData.selectedMedioPago || null);
+        setSelectedEstadoPresupuesto(savedData.selectedEstadoPresupuesto || null);
+  
+        if (sigCanvas1.current) {
+          sigCanvas1.current.fromDataURL(savedData.signature1 || "");
+        }
+        if (sigCanvas2.current) {
+          sigCanvas2.current.fromDataURL(savedData.signature2 || "");
+        }
       }
     };
+  
+    loadData();
+  }, [orden]);
+  
 
-    loadFromLocalStorage();
-    fetchPlazosReparacion();
-    estadosPresupuestos();
-    listaRepuestos();
-    mediosDePago();
-  }, []);
+ console.log(orden.Presupuesto.firma_cliente)
+
+  const handleMedioPagoChange = (event: CustomEvent) => {
+    setSelectedMedioPago(event.detail.value);
+  };
+
+  const handleEstadoPresupuestoChange = (event: CustomEvent) => {
+    setSelectedEstadoPresupuesto(event.detail.value);
+  };
+
+
+
+  
 
   const handleConfirmarClick = async () => {
+    if (!acceptedPolicies) {
+      setShowAlert2(true); // Mostrar alerta de políticas de privacidad si no están aceptadas
+    } else {
+      setShowConfirmAlert(true); // Mostrar alerta de confirmación si las políticas están aceptadas
+    }
+  };
+  
+  const handleConfirmAlert = async () => {
+    setShowConfirmAlert(false); // Ocultar la alerta de confirmación
     const serviciosMontos: Record<string, number> = {};
     montos.forEach((monto, index) => {
       const servicio = servicios[index];
@@ -159,13 +224,13 @@ const Presupuesto: React.FC = () => {
     const firma_cliente = sigCanvas1.current?.toDataURL();
     const firma_empleado = sigCanvas2.current?.toDataURL();
 
-    const id_plazo_reparacion = procesarPlazoReparacion(plazosCheckboxValues);
+    const id_plazo_reparacion = plazosCheckboxValues.length > 0 ? plazosCheckboxValues[0] : null;
 
     const dataToSend = {
       id_orden: orden.id,
       id_plazo_reparacion,
-      id_medio_de_pago: formaPago.id,
-      id_estado_presupuesto: estado,
+      id_medio_de_pago: selectedMedioPago,
+      id_estado_presupuesto: selectedEstadoPresupuesto,
       firma_cliente,
       firma_empleado,
       selectedList,
@@ -177,14 +242,14 @@ const Presupuesto: React.FC = () => {
     console.log("Datos a enviar:", dataToSend);
     try {
       const verificarResponse = await fetch(
-        `https://lv-back.online/presupuestos/${orden.id}`
+        `https://lv-back.online/presupuestos/${orden.Presupuesto.id}`
       );
       const presupuestoExiste = await verificarResponse.json();
 
       let response;
       if (presupuestoExiste) {
         response = await fetch(
-          `https://lv-back.online/presupuestos/modificar/${orden.id}`,
+          `https://lv-back.online/presupuestos/modificar/${orden.Presupuesto.id}`,
           {
             method: "PUT",
             headers: {
@@ -194,7 +259,6 @@ const Presupuesto: React.FC = () => {
           }
         );
       } else {
-        // Crear un nuevo presupuesto
         response = await fetch("https://lv-back.online/presupuestos/guardar", {
           method: "POST",
           headers: {
@@ -222,20 +286,21 @@ const Presupuesto: React.FC = () => {
             signature1,
             signature2,
             plazosCheckboxValues,
+            selectedMedioPago,
+            selectedEstadoPresupuesto,
           })
         );
       } else {
         console.log(
           "Se produjo un error al guardar/modificar el presupuesto..."
         );
-        console.log(`Error: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
-      console.error("Error al realizar la solicitud:", error);
-    } finally {
-      console.log("Finalizando la operación de guardar/modificar presupuesto");
+      console.log("Error al verificar la existencia del presupuesto:", error);
     }
-  };
+
+
+    setShowConfirmAlert(false);
 
   // Función para procesar id_plazo_reparacion
   const procesarPlazoReparacion = (plazosCheckboxValues: any[]) => {
@@ -245,9 +310,9 @@ const Presupuesto: React.FC = () => {
         ? plazosCheckboxValues.findIndex((value) => value)
         : 0;
     return parseInt(index.toString(), 10);
-  };
 
-  const total = montos.reduce((a, b) => a + b, 0);
+  };
+ 
 
   const handleSelect = (selectedValue: string) => {
     setSelectedOptions((prevOptions) => {
@@ -262,7 +327,54 @@ const Presupuesto: React.FC = () => {
   const handleRemove = (itemToRemove: string) => {
     setSelectedList(selectedList.filter((item) => item !== itemToRemove));
   };
+ 
+  const handleCancelAlert = () => {
+    setShowAlert(true);
 
+  };
+
+  const handleCancelarOrden = async () => {
+    setShowAlert(false);
+    try {
+      console.log("Cancelando orden:", orden.id);
+
+      const response = await fetch(
+        `https://lv-back.online/ordenes/modificar/${orden.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id_tipo_estado: 2, // 2 es el ID para el estado "cancelada"
+          }),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Orden cancelada exitosamente");
+        alert("Orden cancelada exitosamente");
+        window.history.back();
+      } else {
+        console.log("Error al cancelar la orden");
+        console.log(`Error: ${response.status} ${response.statusText}`);
+        alert("Error al cancelar la orden. Intente nuevamente.");
+      }
+    } catch (error) {
+      console.error("Error al realizar la solicitud:", error);
+      alert(
+        "Error al realizar la solicitud. Verifique su conexión e intente nuevamente."
+      );
+    }
+  };
+
+
+  const handleConfirmAlertCancel = () => {
+    setShowConfirmAlert(false);
+
+  };
+
+ 
   const handleCancelarOrden = async () => {
     setShowAlert(false);
     try {
@@ -422,17 +534,17 @@ const Presupuesto: React.FC = () => {
                   justifyContent: "space-between",
                 }}
               >
-                <IonSelect
-                  value={formaPago}
-                  placeholder="Seleccione método de pago"
-                  onIonChange={(e) => setFormaPago(e.detail.value)}
-                >
-                  {medioPago.map((medio, index) => (
-                    <IonSelectOption key={index} value={medio}>
-                      {medio.medio_de_pago}
-                    </IonSelectOption>
-                  ))}
-                </IonSelect>
+             <IonSelect
+  value={selectedMedioPago}
+  placeholder="Seleccione medio de pago"
+  onIonChange={handleMedioPagoChange}
+>
+  {medioPago.map((medio) => (
+    <IonSelectOption key={medio.id} value={medio.id}>
+      {medio.medio_de_pago}
+    </IonSelectOption>
+  ))}
+</IonSelect>
               </div>
             </div>
             <div className="section">
@@ -463,18 +575,17 @@ const Presupuesto: React.FC = () => {
               </div>
 
               <div>
-                <IonSelect
-                  placeholder="Estado"
-                  value={estado}
-                  onIonChange={(e) => setEstado(e.detail.value)}
-                  className="estado-select"
-                >
-                  {estados.map((estado, index) => (
-                    <IonSelectOption key={index} value={estado.id}>
-                      {estado.texto}
-                    </IonSelectOption>
-                  ))}
-                </IonSelect>
+              <IonSelect
+  value={selectedEstadoPresupuesto}
+  placeholder="Seleccione estado"
+  onIonChange={handleEstadoPresupuestoChange}
+>
+  {estados.map((estado) => (
+    <IonSelectOption key={estado.id} value={estado.id}>
+      {estado.texto}
+    </IonSelectOption>
+  ))}
+</IonSelect>
               </div>
             </div>
 
@@ -506,8 +617,8 @@ const Presupuesto: React.FC = () => {
                 </div>
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <IonCheckbox
-                    checked={acceptedPolicies}
-                    onIonChange={(e) => setAcceptedPolicies(e.detail.checked)}
+            checked={acceptedPolicies}
+            onIonChange={handleAcceptPoliciesChange}
                   />
                   <span
                     style={{
@@ -516,6 +627,13 @@ const Presupuesto: React.FC = () => {
                   >
                     Acepto las políticas de garantía
                   </span>
+                  <IonAlert
+          isOpen={showAlert2}
+          onDidDismiss={() => setShowAlert2(false)}
+          header="Error"
+          message="Debe aceptar las políticas de privacidad para continuar."
+          buttons={["OK"]}
+        />
                 </div>
               </div>
               <h2>Firmas</h2>
@@ -565,6 +683,23 @@ const Presupuesto: React.FC = () => {
               >
                 Confirmar
               </IonButton>
+              <IonAlert
+          isOpen={showConfirmAlert}
+          onDidDismiss={handleConfirmAlertCancel}
+          header="Confirmar"
+          message="¿Desea confirmar la operación?"
+          buttons={[
+            {
+              text: "Cancelar",
+              role: "cancel",
+              handler: handleConfirmAlertCancel,
+            },
+            {
+              text: "Confirmar",
+              handler: handleConfirmAlert,
+            },
+          ]}
+        />
               <IonButton
                 className="button"
                 style={{
