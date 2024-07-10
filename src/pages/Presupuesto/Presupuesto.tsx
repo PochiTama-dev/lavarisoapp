@@ -263,10 +263,6 @@ const Presupuesto: React.FC = () => {
     setSelectedList(selectedList.filter((item) => item !== itemToRemove));
   };
 
-  const handleCancelAlert = () => {
-    setShowAlert(true);
-  };
-
   const handleCancelarOrden = async () => {
     setShowAlert(false);
     try {
