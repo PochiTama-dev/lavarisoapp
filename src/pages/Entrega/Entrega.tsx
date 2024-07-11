@@ -41,7 +41,8 @@ const Entrega: React.FC = () => {
   const [signature2, setSignature2] = useState("");
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
   const [ordenSelected, setOrdenSelected] = useState<any>(null);
- 
+  const [showAlert, setShowAlert] = useState(false);
+
   const [firmaCliente, setFirmaCliente] = useState<string>('');
   const [firmaTecnico, setFirmaTecnico] = useState<string>('');
 
