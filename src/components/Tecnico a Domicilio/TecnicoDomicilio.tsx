@@ -27,24 +27,35 @@ function TecnicoDomicilioComponent() {
 
   const ordenes = async () => {
     try {
+      // Fetch empleadoId from localStorage
+      const empleadoId = localStorage.getItem("empleadoId");
+  
+      // Fetch orders and clients
       const ordenesResponse = await fetch("https://lv-back.online/ordenes");
       const clientesResponse = await fetch("https://lv-back.online/clientes/lista");
-
+  
+      // Check if the responses are okay
       if (!ordenesResponse.ok || !clientesResponse.ok) {
         throw new Error('Error al obtener datos de las APIs');
       }
-
+  
+      // Parse JSON responses
       const ordenes = await ordenesResponse.json();
       const clientes = await clientesResponse.json();
-
+  
+      // Ensure orders and clients data are not empty
       if (ordenes.length > 0 && clientes.length > 0) {
+        // Map clients to their IDs
         const clientesMap = new Map(clientes.map((cliente: { id: any; }) => [cliente.id, cliente]));
-        const ordenesConClientes = ordenes.map((orden: { cliente_id: any; }) => ({
+  
+        // Map clients to orders and then filter by empleadoId
+        const ordenesConClientes = ordenes.map((orden: { cliente_id: unknown; }) => ({
           ...orden,
           cliente: clientesMap.get(orden.cliente_id)
-        }));
-
+          
+        })).filter((orden: { Empleado: { id: string ; }; }) => orden.Empleado.id == empleadoId);
         console.log(ordenesConClientes);
+       
         return ordenesConClientes;
       } else {
         console.log("No se encontraron ordenes o clientes en la base de datos.");
@@ -55,7 +66,7 @@ function TecnicoDomicilioComponent() {
       throw error;
     }
   };
-
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
