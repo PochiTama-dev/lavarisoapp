@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import { IonButton, IonContent, IonHeader } from "@ionic/react";
 import { Geolocation } from "@capacitor/geolocation";
@@ -31,27 +31,19 @@ function ConfirmacionOrdenComponent() {
         console.log(
           `Se encontró un presupuesto asociado al id_orden ${id_orden}`
         );
-        return presupuesto.id;
+        return presupuesto;
       } else {
         console.log(
           `No se encontró ningún presupuesto con el id_orden ${id_orden}`
         );
-        return false;
+        return null;
       }
     } catch (error) {
       console.error("Error, presupuesto no encontrado.", error);
-      return false;
+      return null;
     }
   };
 
- 
-  const id_orden = orden.id;
-  obtenerPresupuesto(id_orden).then((presupuestoId) => {
-    if (presupuestoId) {
-      // Haz algo con el ID del presupuesto
-      console.log(`ID del presupuesto encontrado: ${presupuestoId}`);
-    }
-  });
   useEffect(() => {
     async function initialize() {
       try {
@@ -73,12 +65,14 @@ function ConfirmacionOrdenComponent() {
       const presupuesto = await obtenerPresupuesto(orden.id);
       if (presupuesto) {
         setTotal(presupuesto.total);
+      } else {
+        setTotal(0); // Si no hay presupuesto, establecer el total a 0 o a un valor por defecto
       }
     };
 
     fetchData();
   }, [orden.id]);
-  console.log("ORDENN", orden);
+
   const handleButtonClick = (path: any, orden = null) => {
     if (orden) {
       history.push({
@@ -90,7 +84,6 @@ function ConfirmacionOrdenComponent() {
     }
   };
 
-  console.log(orden);
   return (
     <IonContent className="confirmacion-orden-container">
       <IonHeader>
@@ -160,7 +153,7 @@ function ConfirmacionOrdenComponent() {
 
       <div className="confirmacion-orden-bottom-box">
         <h4>Cotización</h4>
-        <h3>${orden.Presupuesto.total}</h3>
+        <h3>${total}</h3>
         <button>Cerrar orden</button>
       </div>
     </IonContent>

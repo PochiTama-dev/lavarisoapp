@@ -188,7 +188,7 @@ const Presupuesto: React.FC = () => {
   }, [orden]);
   
 
- console.log(orden.Presupuesto.firma_cliente)
+ 
 
   const handleMedioPagoChange = (event: CustomEvent) => {
     setSelectedMedioPago(event.detail.value);
