@@ -67,7 +67,7 @@ const guardarOrden = async (orden) => {
   }
 };
   
-const modificarOrden = async (id, orden) => {
+export const modificarOrden = async (id, orden) => {
   try {
     const response = await fetch(`https://lv-back.online/ordenes/modificar/${id}`, {
       method: "PUT",

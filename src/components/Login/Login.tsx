@@ -53,6 +53,7 @@ const LoginComponent: React.FC = () => {
       localStorage.setItem("empleadoEmail", email);
       localStorage.setItem("empleadoNombre", empleado.nombre);
       localStorage.setItem("empleadoId", empleado.id);
+      localStorage.setItem("empleadoLegajo", empleado.legajo);
 
       history.push("/rol");
     } catch (error) {

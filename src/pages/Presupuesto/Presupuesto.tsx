@@ -18,7 +18,7 @@ import {
 import "./presupuesto.css";
 import SignatureCanvas from "react-signature-canvas";
 import HeaderGeneral from "../../components/Header/HeaderGeneral";
-import { useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import {
   fetchPlazosReparacion,
   estadosPresupuestos,
@@ -70,6 +70,7 @@ const Presupuesto: React.FC = () => {
   const [plazosCheckboxValues, setPlazosCheckboxValues] = useState<number[]>(
     []
   );
+  const history = useHistory();
   const handleAcceptPoliciesChange = (event: CustomEvent) => {
     setAcceptedPolicies(event.detail.checked);
   };
@@ -120,10 +121,33 @@ const Presupuesto: React.FC = () => {
 
   const handleMontoChange = (index: number, value: any) => {
     const newMontos = [...montos];
-    newMontos[Number(index)] = Number(value);
+    newMontos[index] = Number(value); // Ensure value is parsed to number
     setMontos(newMontos);
   };
-  const total = montos.reduce((a, b) => a + parseFloat(b), 0);
+
+  const total = montos.reduce((a, b) => a + parseFloat(b), 0); // Calculate total based on montos array
+  useEffect(() => {
+    if (orden && !orden.Presupuesto) {
+      // Aquí estás tratando de crear un nuevo presupuesto cuando orden.Presupuesto es null
+      setProducto(orden.producto || "");
+      setMarca(orden.marca || "");
+      setModelo(orden.modelo || "");
+      setCliente(orden.cliente || "");
+      setFormaPago([]); // Puedes inicializar la forma de pago como una lista vacía o algún valor por defecto
+      setEstado([]); // Puedes inicializar el estado como una lista vacía o algún valor por defecto
+      setSelectedList([]); // Puedes inicializar la lista seleccionada como una lista vacía o algún valor por defecto
+      setAcceptedPolicies(false); // Puedes inicializar las políticas aceptadas como false o algún valor por defecto
+
+      // Inicializar montos según la cantidad de servicios
+      const initialMontos = servicios.map(() => 0);
+      setMontos(initialMontos);
+
+      // Inicializar plazosCheckboxValues y otros estados según sea necesario
+      setPlazosCheckboxValues([]);
+      setSelectedMedioPago(null);
+      setSelectedEstadoPresupuesto(null);
+    }
+  }, [orden]);
   useEffect(() => {
     const loadData = async () => {
       setPlazos(await fetchPlazosReparacion());
@@ -151,7 +175,6 @@ const Presupuesto: React.FC = () => {
           orden.Presupuesto.gasto_impositivo || 0,
         ]);
   
-   
         const firmaClienteDataURL = orden.Presupuesto.firma_cliente;
         const firmaEmpleadoDataURL = orden.Presupuesto.firma_empleado;
   
@@ -163,7 +186,7 @@ const Presupuesto: React.FC = () => {
         }
       } else {
         const savedData = JSON.parse(localStorage.getItem("presupuestoData") || "{}");
-        setMontos(savedData.montos || "");
+        setMontos(savedData.montos || Array(7).fill(0)); // Ensure montos is parsed correctly as an array
         setProducto(savedData.producto || "");
         setFormaPago(savedData.formaPago || null);
         setEstado(savedData.estado || "");
@@ -212,6 +235,9 @@ const Presupuesto: React.FC = () => {
   
   const handleConfirmAlert = async () => {
     setShowConfirmAlert(false); // Ocultar la alerta de confirmación
+  
+    let presupuestoId = orden.Presupuesto ? orden.Presupuesto.id : null;
+  
     const serviciosMontos: Record<string, number> = {};
     montos.forEach((monto, index) => {
       const servicio = servicios[index];
@@ -220,12 +246,13 @@ const Presupuesto: React.FC = () => {
         serviciosMontos[dbField] = monto;
       }
     });
-
+  
     const firma_cliente = sigCanvas1.current?.toDataURL();
     const firma_empleado = sigCanvas2.current?.toDataURL();
-
-    const id_plazo_reparacion = plazosCheckboxValues.length > 0 ? plazosCheckboxValues[0] : null;
-
+  
+    const id_plazo_reparacion =
+      plazosCheckboxValues.length > 0 ? plazosCheckboxValues[0] : null;
+  
     const dataToSend = {
       id_orden: orden.id,
       id_plazo_reparacion,
@@ -238,18 +265,16 @@ const Presupuesto: React.FC = () => {
       ...serviciosMontos,
       total,
     };
-
+  
     console.log("Datos a enviar:", dataToSend);
+  
     try {
-      const verificarResponse = await fetch(
-        `https://lv-back.online/presupuestos/${orden.Presupuesto.id}`
-      );
-      const presupuestoExiste = await verificarResponse.json();
-
       let response;
-      if (presupuestoExiste) {
+  
+      if (presupuestoId) {
+        // Presupuesto existente, modificar
         response = await fetch(
-          `https://lv-back.online/presupuestos/modificar/${orden.Presupuesto.id}`,
+          `https://lv-back.online/presupuestos/modificar/${presupuestoId}`,
           {
             method: "PUT",
             headers: {
@@ -259,19 +284,26 @@ const Presupuesto: React.FC = () => {
           }
         );
       } else {
-        response = await fetch("https://lv-back.online/presupuestos/guardar", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataToSend),
-        });
+        // Presupuesto no existe, crear nuevo
+        response = await fetch(
+          "https://lv-back.online/presupuestos/guardar",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dataToSend),
+          }
+        );
       }
-
+  
       if (response.ok) {
         const result = await response.json();
         console.log("Presupuesto guardado/modificado con éxito!!!");
         console.log(result);
+        localStorage.removeItem('ordenActiva');
+        history.push('/domicilio')
+
         localStorage.setItem(
           "presupuestoData",
           JSON.stringify({
@@ -286,22 +318,40 @@ const Presupuesto: React.FC = () => {
             signature1,
             signature2,
             plazosCheckboxValues,
-            selectedMedioPago,
-            selectedEstadoPresupuesto,
+            total,
+            observaciones,
           })
         );
+        setShowModal(false);
+        setProducto("");
+        setMarca("");
+        setModelo("");
+        setCliente("");
+        setCheckboxValues(Array(6).fill(false));
+        setMontos([0, 0, 0, 0, 0, 0, 0]);
+        setObservaciones("");
+        setSelectedOption("");
+        setFormaPago([]);
+        setEstado([]);
+        setSelectedList([]);
+        setSelectedOptions([]);
+        setAcceptedPolicies(false);
+        setSignature1("");
+        setSignature2("");
+        setPlazosCheckboxValues([]);
+        setSelectedMedioPago(null);
+        setSelectedEstadoPresupuesto(null);
+        setShowAlert(false);
       } else {
-        console.log(
-          "Se produjo un error al guardar/modificar el presupuesto..."
-        );
+        console.error("Error al guardar/modificar el presupuesto");
+        setShowAlert(true);
       }
     } catch (error) {
-      console.log("Error al verificar la existencia del presupuesto:", error);
+      console.error("Error en la solicitud:", error);
+      setShowAlert(true);
     }
-
-    setShowConfirmAlert(false);
   };
- 
+  
 
   const handleSelect = (selectedValue: string) => {
     setSelectedOptions((prevOptions) => {

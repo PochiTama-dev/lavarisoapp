@@ -24,7 +24,8 @@ function TecnicoTallerComponent() {
     3: "Rechazado",
     4: "Para retirar",
   };
-
+ 
+  
   useEffect(() => {
     const fetchOrdenes = async () => {
       const empleadoId = localStorage.getItem("empleadoId");
@@ -49,7 +50,7 @@ function TecnicoTallerComponent() {
           const ordenesConClientes = ordenesData.map((orden: { cliente_id: any, Empleado: { id: any } }) => ({
             ...orden,
             cliente: clientesMap.get(orden.cliente_id),
-          })) 
+          })).filter((orden: { Empleado: { id: string | null; }; }) => orden.Empleado.id == empleadoId); 
 
           setOrdenes(ordenesConClientes);
         } else {
@@ -101,10 +102,10 @@ function TecnicoTallerComponent() {
       </div>
       <h2>Ordenes activas en taller</h2>
       <div className="tecnico-taller-bottom-box">
-        {ordenes.map((orden: { id: any, Presupuesto: { id_estado_presupuesto: any } }) => (
-          <div key={orden.id} className="orden-item">
+        {ordenes.map((orden: { numero_orden: any, Presupuesto: { id_estado_presupuesto: any } }) => (
+          <div key={orden.numero_orden} className="orden-item">
             <h4>
-              {`Orden #${orden.id}`} <span>{estadoPresupuestoMap[orden.Presupuesto?.id_estado_presupuesto]}</span>
+              {`Orden #${orden.numero_orden}`} <span>{estadoPresupuestoMap[orden.Presupuesto?.id_estado_presupuesto]}</span>
               <svg
                 width="18"
                 height="18"

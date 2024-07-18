@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   IonContent,
   IonPage,
@@ -7,6 +7,7 @@ import {
   IonInput,
   IonButton,
   IonHeader,
+  IonAlert,
 } from "@ionic/react";
 import { pencilOutline } from "ionicons/icons";
 import "./diagnostico.css";
@@ -19,11 +20,12 @@ const Diagnostico: React.FC = () => {
   const [modelo, setModelo] = useState("");
   const [cliente, setCliente] = useState("");
   const [checkboxValues, setCheckboxValues] = useState<boolean[]>(Array(10).fill(false));
-  const [motivo, setMotivo] = useState("");
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
   const location = useLocation<any>();
   const { orden } = location.state;
-
+  const [motivo, setMotivo] = useState("");
+  const motivoRef = useRef<HTMLIonInputElement>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
   const modificarOrden = async (id: any, orden: any) => {
     try {
       const response = await fetch(`https://lv-back.online/ordenes/modificar/${id}`, {
@@ -49,7 +51,6 @@ const Diagnostico: React.FC = () => {
       const response = await fetch("https://lv-back.online/opciones/funcion");
       const funciones = await response.json();
       if (funciones && funciones.length > 0) {
-
         setTextosCheckbox(funciones.map((funcion: { tipo_funcion: string }) => funcion.tipo_funcion));
       } else {
         console.log('Aún no se registra ningún tipo de funcion...');
@@ -83,37 +84,51 @@ const Diagnostico: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      let data = null;
-
-      if (orden) {
-        data = await fetchOrden(orden.id);
-      }
-
-      if (!data) {
-        const localStorageData = localStorage.getItem("diagnosticoData");
-        if (localStorageData) {
-          data = JSON.parse(localStorageData);
+      try {
+        let data = null;
+  
+        if (orden) {
+          data = await fetchOrden(orden.id);
         }
-      }
-
-      if (data) {
-        setEquipo(data.equipo || "");
-        setMarca(data.marca || "");
-        setModelo(data.modelo || "");
-        setCliente(data.cliente?.numero_cliente || "");
-
-        // Marcar los checkboxes según el diagnostico de la orden
-        const diagnosticoOrden = data.diagnostico || "";
-        const nuevosCheckboxValues = checkboxValues.map((value, index) => {
-          return diagnosticoOrden.includes(textosCheckbox[index]);
-        });
-        setCheckboxValues(nuevosCheckboxValues);
+  
+        if (!data) {
+          const localStorageData = localStorage.getItem("diagnosticoData");
+          if (localStorageData) {
+            data = JSON.parse(localStorageData);
+          }
+        }
+  
+        if (data) {
+          // Actualizar estados solo si los datos están disponibles
+          setEquipo(data.equipo || "");
+          setMarca(data.marca || "");
+          setModelo(data.modelo || "");
+          setCliente(data.cliente?.numero_cliente || "");
+          if (motivoRef.current) {
+            motivoRef.current.value = data.motivo || "";
+          }
+          // Actualizar valores de los checkboxes basados en 'textosCheckbox'
+          const diagnosticoOrden = data.diagnostico || "";
+          const nuevosCheckboxValues = textosCheckbox.map(texto =>
+            diagnosticoOrden.includes(texto)
+          );
+          setCheckboxValues(nuevosCheckboxValues);
+        }
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
       }
     };
-
-    loadData();
-    fetchTiposFunciones();
+  
+ 
+    if (orden && textosCheckbox.length > 0) {
+      loadData();
+    }
   }, [orden, textosCheckbox]);
+  
+ 
+  useEffect(() => {
+    fetchTiposFunciones();
+  }, []);
 
   const handleConfirmarClick = async () => {
     const diagnostico = textosCheckbox
@@ -126,7 +141,7 @@ const Diagnostico: React.FC = () => {
       modelo,
       cliente,
       diagnostico,
-      motivo,
+      motivo: motivoRef.current?.value || "",
       checkboxValues,
     };
 
@@ -136,6 +151,7 @@ const Diagnostico: React.FC = () => {
     if (orden && orden.id) {
       const success = await modificarOrden(orden.id, dataToSend);
       if (success) {
+        alert("Presupuesto guardado con éxito");
         console.log("Orden guardada", dataToSend);
       } else {
         console.log("Error al guardar en la base de datos.");
@@ -239,19 +255,39 @@ const Diagnostico: React.FC = () => {
             <h2>Diagnostico</h2>
             <IonInput
               className="obs-input"
-              value={orden.motivo}
+              ref={motivoRef}
               onIonChange={(e) => setMotivo(e.detail.value!)}
-              placeholder="Ingrese diagnostico"
+              placeholder="Ingrese diagnóstico"
             />
           </div>
           <div className="section">
-            <IonButton
-              className="button"
-              style={{ "--border-radius": "20px" }}
-              onClick={handleConfirmarClick}
-            >
-              Confirmar
-            </IonButton>
+    
+                <IonButton         className="button"
+              style={{ "--border-radius": "20px" }} onClick={() => setShowConfirm(true)}>Confirmar</IonButton>
+           
+         
+            <IonAlert
+        isOpen={showConfirm}
+        onDidDismiss={() => setShowConfirm(false)}
+        header={'Confirmar acción'}
+        message={'¿Deseas confirmar este diagnostico?'}
+        buttons={[
+          {
+            text: 'Cancelar',
+            role: 'cancel',
+            handler: () => {
+              setShowConfirm(false);
+            }
+          },
+          {
+            text: 'Confirmar',
+            handler: () => {
+              handleConfirmarClick();
+              setShowConfirm(false);
+            }
+          }
+        ]}
+      />
           </div>
         </div>
       </IonContent>
