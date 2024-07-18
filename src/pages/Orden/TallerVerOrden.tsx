@@ -15,7 +15,7 @@ import '../Entrega/entrega.css';
 import HeaderGeneral from '../../components/Header/HeaderGeneral';
 import './orden.css';
 import { useLocation } from "react-router-dom";
-
+import { useOrden } from './ordenContext';
 interface Repuesto {
   id: any;
   descripcion: string;
@@ -27,26 +27,38 @@ const TallerVerOrden: React.FC = () => {
   interface LocationState {
     ordenSeleccionada: any;
   }
-
-  const [cierresExtendidosMap, setCierresExtendidosMap] = useState<{ [key: string]: number }>({});
-  const [producto, setProducto] = useState('');
-  const [marca, setMarca] = useState('');
-  const [modelo, setModelo] = useState('');
-  const [cliente, setCliente] = useState('');
+ 
   const [motivo, setMotivo] = useState('');
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
   const [limpiezaSalida, setLimpiezaSalida] = useState<string[]>([]);
   const [estadosPresupuestos, setEstadosPresupuestos] = useState<{ id: any; texto: any }[]>([]);
   const [checkboxValues, setCheckboxValues] = useState<boolean[]>([]);
   const location = useLocation<LocationState>();
-  const ordenSeleccionada = location.state?.ordenSeleccionada;
+  const { ordenSeleccionada, setOrdenSeleccionada } = useOrden();
   const [checkboxValuesFunciones, setCheckboxValuesFunciones] = useState<boolean[]>([]);
   const [checkboxValuesLimpieza, setCheckboxValuesLimpieza] = useState<boolean[]>([]);
   const [checkboxValuesCierresExtendidos, setCheckboxValuesCierresExtendidos] = useState<boolean[]>([]);
   const [cierresExtendidos, setCierresExtendidos] = useState<{ id: number, tipo_cierre_extendido: string }[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [idCierreExtendidoSeleccionado, setIdCierreExtendidoSeleccionado] = useState<number | null>(null);
-  const [estadoSeleccionado, setEstadoSeleccionado] = useState<any>(null); // Se inicializa con null
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState<any>(null); 
+  useEffect(() => {
+    // Intenta cargar la orden seleccionada desde localStorage
+    const savedOrden = localStorage.getItem('ordenSeleccionada');
+    if (savedOrden) {
+      setOrdenSeleccionada(JSON.parse(savedOrden));
+    } else {
+      setOrdenSeleccionada(location.state.ordenSeleccionada);
+    }
+  }, [location.state.ordenSeleccionada, setOrdenSeleccionada]);
+
+  useEffect(() => {
+    if (ordenSeleccionada) {
+      // Guardar la orden en localStorage cuando cambia
+      localStorage.setItem('ordenSeleccionada', JSON.stringify(ordenSeleccionada));
+      fetchEstadosPresupuestos();
+    }
+  }, [ordenSeleccionada]);
   useEffect(() => {
     fetchEstadosPresupuestos();
   }, []);
@@ -179,9 +191,7 @@ const TallerVerOrden: React.FC = () => {
   };
   const handleConfirmar = async () => {
     const ordenActualizada = {
-    
-      
- 
+     
       motivo,
       checkboxValuesFunciones,
       checkboxValuesLimpieza,
@@ -192,7 +202,11 @@ const TallerVerOrden: React.FC = () => {
 
     const resultado = await modificarOrden(ordenSeleccionada.id, ordenActualizada);
     if (resultado) {
+
       console.log("Orden actualizada con éxito.");
+
+      setOrdenSeleccionada({ ...ordenSeleccionada, ...ordenActualizada });
+      
     } else {
       console.log("Hubo un error al actualizar la orden.");
     }
@@ -204,6 +218,7 @@ const TallerVerOrden: React.FC = () => {
     const resultadoPresupuesto = await modificarPresupuesto(ordenSeleccionada.Presupuesto.id, presupuestoActualizado);
     if (resultadoPresupuesto) {
       console.log("Presupuesto actualizado con éxito.");
+      
     } else {
       console.log("Hubo un error al actualizar el presupuesto.");
     }
@@ -234,7 +249,7 @@ const TallerVerOrden: React.FC = () => {
   useEffect(() => {
     if (ordenSeleccionada) {
       setEstadoSeleccionado(ordenSeleccionada.id_tipo_estado);
-      setMotivo(ordenSeleccionada.motivo); // Asegúrate de actualizar el valor de motivo cuando la orden seleccionada cambie
+      setMotivo(ordenSeleccionada.motivo);  
     }
   }, [ordenSeleccionada]);
 

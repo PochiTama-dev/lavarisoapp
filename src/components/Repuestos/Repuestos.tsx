@@ -13,7 +13,7 @@ import {
 } from "@ionic/react";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./Repuestos.css";
-
+import { useOrden } from "../../pages/Orden/ordenContext";
 interface Repuesto {
   id: any;
   descripcion: string;
@@ -35,7 +35,7 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
   const [selectedRepuestos, setSelectedRepuestos] = useState<Repuesto[]>([]);
   const location = useLocation<LocationState>();
   
-  const ordenSeleccionada = location.state?.ordenSeleccionada;
+  const { ordenSeleccionada } = useOrden();
 console.log(ordenSeleccionada)
   useEffect(() => {
     const fetchRepuestos = async () => {

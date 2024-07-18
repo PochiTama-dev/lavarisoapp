@@ -41,11 +41,13 @@ import ConfirmacionOrden from "./pages/Orden/ConfirmacionOrden";
 import TecnicoDomicilio from "./pages/TecnicoDomicilio/TecnicoDomicilio";
 import TecnicoTaller from "./pages/TecnicoTaller/TecnicoTaller";
 import TallerVerOrden from "./pages/Orden/TallerVerOrden";
+import { OrdenProvider } from "./pages/Orden/ordenContext";
 setupIonicReact();
 
 const App: React.FC = () => {
   return (
     <IonApp>
+        <OrdenProvider>
       <IonReactRouter>
         <Route exact path="/">
           <Redirect to="/login" />
@@ -59,9 +61,7 @@ const App: React.FC = () => {
         <Route path="/domicilio" exact={true}>
           <TecnicoDomicilio />
         </Route>
-        <Route path="/taller" exact={true}>
-          <TecnicoTaller />
-        </Route>
+  
         <Route path="/alertas" exact={true}>
           <Alertas />
         </Route>
@@ -77,19 +77,25 @@ const App: React.FC = () => {
         <Route path="/facturacion" exact={true}>
           <Facturacion />
         </Route>
-        <Route path="/repuestos" exact={true}>
-          <Repuesto />
-        </Route>
+      
         <Route path="/chat" exact={true}>
           <Chat />
         </Route>
         <Route path="/verorden">
           <ConfirmacionOrden />
         </Route>
+       
         <Route path="/tallerorden">
           <TallerVerOrden />
         </Route>
+        <Route path="/taller" exact={true}>
+          <TecnicoTaller />
+        </Route>
+        <Route path="/repuestos" exact={true}>
+          <Repuesto />
+        </Route>
       </IonReactRouter>
+        </OrdenProvider>
     </IonApp>
   );
 };

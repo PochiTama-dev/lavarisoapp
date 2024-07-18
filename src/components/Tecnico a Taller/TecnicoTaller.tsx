@@ -3,19 +3,17 @@ import { useHistory } from "react-router";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./TecnicoTaller.css";
 import { IonAlert, IonButton, IonContent, IonHeader } from "@ionic/react";
+import { useOrden } from "../../pages/Orden/ordenContext";
 
 function TecnicoTallerComponent() {
   const history = useHistory();
   const [ordenes, setOrdenes] = useState<any>([]);
   const [ordenActiva, setOrdenActiva] = useState<any>(null);
   const [showAlert, setShowAlert] = useState(false);
-  const [ordenSeleccionada, setOrdenSeleccionada] = useState<any>(null);
+  const { ordenSeleccionada, setOrdenSeleccionada } = useOrden();
 
   const handleButtonClick = (path: any) => {
-    history.push({
-      pathname: path,
-      state: { ordenSeleccionada },
-    });
+    history.push(path);
   };
 
   const estadoPresupuestoMap: { [key: number]: string } = {
@@ -24,8 +22,7 @@ function TecnicoTallerComponent() {
     3: "Rechazado",
     4: "Para retirar",
   };
- 
-  
+
   useEffect(() => {
     const fetchOrdenes = async () => {
       const empleadoId = localStorage.getItem("empleadoId");
@@ -69,6 +66,7 @@ function TecnicoTallerComponent() {
     setOrdenSeleccionada(orden);
     setShowAlert(true);
   };
+
   return (
     <IonContent className="tecnico-taller-container">
       <IonHeader>
@@ -143,11 +141,8 @@ function TecnicoTallerComponent() {
             handler: () => {
               setOrdenActiva(ordenSeleccionada);
               localStorage.setItem("ordenActiva", JSON.stringify(ordenSeleccionada));
-
               localStorage.removeItem("diagnosticoData");
               localStorage.removeItem("presupuestoData");
-
-              console.log("Aceptar");
             },
           },
         ]}
