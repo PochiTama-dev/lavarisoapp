@@ -6,7 +6,7 @@ import Map from "./Map";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./ConfirmacionOrden.css";
 import { useLocation } from "react-router-dom";
-
+import { useOrden } from "../../pages/Orden/ordenContext"; 
 function ConfirmacionOrdenComponent() {
   const [position, setPosition] = useState({
     latitude: -33.9913,
@@ -119,7 +119,8 @@ function ConfirmacionOrdenComponent() {
             <div>{!loading && <Map position={position} zoom={13} />}</div>
             {orden &&
             orden.Presupuesto &&
-            orden.Presupuesto.id_estado_presupuesto === 4 ? (
+            orden.id_tipo_estado === 1  &&
+           ( orden.Presupuesto.id_estado_presupuesto === 5 || orden.Presupuesto.id_estado_presupuesto === 4) ? (
               <>
                 <IonButton onClick={() => handleButtonClick("/entrega", orden)}>
                   Entrega

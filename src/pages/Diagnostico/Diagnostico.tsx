@@ -151,7 +151,7 @@ const Diagnostico: React.FC = () => {
     if (orden && orden.id) {
       const success = await modificarOrden(orden.id, dataToSend);
       if (success) {
-        alert("Presupuesto guardado con éxito");
+        alert("Diagnostico guardado con éxito");
         console.log("Orden guardada", dataToSend);
       } else {
         console.log("Error al guardar en la base de datos.");

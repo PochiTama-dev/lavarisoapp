@@ -17,10 +17,10 @@ function TecnicoTallerComponent() {
   };
 
   const estadoPresupuestoMap: { [key: number]: string } = {
-    1: "Pendiente",
-    2: "Aprobado",
-    3: "Rechazado",
-    4: "Para retirar",
+    1: "Aprobada",
+    2: "Cancelada",
+    3: "Cerrada",
+    4: "Pendiente"
   };
 
   useEffect(() => {
@@ -47,7 +47,10 @@ function TecnicoTallerComponent() {
           const ordenesConClientes = ordenesData.map((orden: { cliente_id: any, Empleado: { id: any } }) => ({
             ...orden,
             cliente: clientesMap.get(orden.cliente_id),
-          })).filter((orden: { Empleado: { id: string | null; }; }) => orden.Empleado.id == empleadoId); 
+          })).filter((orden: {
+            Presupuesto: any;
+            id_tipo_estado: number; Empleado: { id: string | null; }; 
+}) => orden.Empleado.id == empleadoId && orden.id_tipo_estado == 1  && (orden.Presupuesto.id_estado_presupuesto === 2 || orden.Presupuesto.id_estado_presupuesto === 4 ) ); 
 
           setOrdenes(ordenesConClientes);
         } else {
@@ -100,10 +103,12 @@ function TecnicoTallerComponent() {
       </div>
       <h2>Ordenes activas en taller</h2>
       <div className="tecnico-taller-bottom-box">
-        {ordenes.map((orden: { numero_orden: any, Presupuesto: { id_estado_presupuesto: any } }) => (
+        {ordenes.map((orden: {
+          id_tipo_estado: any; numero_orden: any, orden: { id_tipo_estado: any } 
+}) => (
           <div key={orden.numero_orden} className="orden-item">
             <h4>
-              {`Orden #${orden.numero_orden}`} <span>{estadoPresupuestoMap[orden.Presupuesto?.id_estado_presupuesto]}</span>
+              {`Orden #${orden.numero_orden}`} <span>{estadoPresupuestoMap[orden.id_tipo_estado]}</span>
               <svg
                 width="18"
                 height="18"
