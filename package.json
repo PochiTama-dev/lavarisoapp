@@ -12,8 +12,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/android": "^6.1.1",
     "@capacitor/app": "^6.0.0",
-    "@capacitor/core": "^6.0.0",
+    "@capacitor/core": "^6.1.1",
     "@capacitor/geolocation": "^6.0.0",
     "@capacitor/haptics": "^6.0.0",
     "@capacitor/keyboard": "^6.0.0",
@@ -29,10 +30,12 @@
     "react-leaflet": "^4.2.1",
     "react-router": "^5.3.4",
     "react-router-dom": "^5.3.4",
-    "react-signature-canvas": "^1.0.6"
+    "react-signature-canvas": "^1.0.6",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
-    "@capacitor/cli": "5.7.1",
+    "@capacitor/cli": "^5.7.1",
     "@testing-library/dom": ">=7.21.4",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",

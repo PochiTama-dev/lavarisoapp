@@ -9,6 +9,7 @@ import {
   IonTitle,
 } from "@ionic/react";
 import { useEffect, useState } from "react";
+import socket from '../services/socketService'; 
 
 function TecnicoDomicilioComponent() {
   const [ordenesList, setOrdenesList] = useState([]);
@@ -27,28 +28,21 @@ function TecnicoDomicilioComponent() {
 
   const ordenes = async () => {
     try {
-      // Fetch empleadoId from localStorage
       const empleadoId = localStorage.getItem("empleadoId");
   
-      // Fetch orders and clients
       const ordenesResponse = await fetch("https://lv-back.online/ordenes");
       const clientesResponse = await fetch("https://lv-back.online/clientes/lista");
   
-      // Check if the responses are okay
       if (!ordenesResponse.ok || !clientesResponse.ok) {
         throw new Error('Error al obtener datos de las APIs');
       }
   
-      // Parse JSON responses
       const ordenes = await ordenesResponse.json();
       const clientes = await clientesResponse.json();
   
-      // Ensure orders and clients data are not empty
       if (ordenes.length > 0 && clientes.length > 0) {
-        // Map clients to their IDs
         const clientesMap = new Map(clientes.map((cliente: { id: any; }) => [cliente.id, cliente]));
   
-        // Map clients to orders and then filter by empleadoId
         const ordenesConClientes = ordenes.map((orden: { cliente_id: unknown; }) => ({
           ...orden,
           cliente: clientesMap.get(orden.cliente_id)
@@ -75,7 +69,6 @@ function TecnicoDomicilioComponent() {
           setOrdenesList(fetchedOrdenes);
         }
 
-        // Recuperar la orden activa desde localStorage
         const savedOrden = localStorage.getItem("ordenActiva");
         if (savedOrden) {
           setOrdenActiva(JSON.parse(savedOrden));
@@ -108,6 +101,23 @@ function TecnicoDomicilioComponent() {
     setShowAlert(true);  
   };
 
+  const activarOrden = (orden: any) => {
+    setOrdenActiva(orden);
+    localStorage.setItem("ordenActiva", JSON.stringify(orden)); 
+
+    localStorage.removeItem("diagnosticoData");
+    localStorage.removeItem("presupuestoData");
+
+    socket.emit("userStatus", { status: "ocupado", id: localStorage.getItem("empleadoId") });
+  };
+
+  const quitarOrdenActiva = () => {
+    setOrdenActiva(null);
+    localStorage.removeItem("ordenActiva");
+
+    socket.emit("userStatus", { status: "conectado", id: localStorage.getItem("empleadoId") });
+  };
+
   return (
     <>
       <IonContent className="tecnico-domicilio-container">
@@ -133,36 +143,36 @@ function TecnicoDomicilioComponent() {
               <div>
                 <IonButton style={{ borderRadius: "0" }} onClick={() => handleButtonClick('/verorden', ordenActiva)}>Ver orden</IonButton>
                 <IonButton onClick={() => handleButtonClick('/chat', ordenActiva.cliente)}>Chat</IonButton>
+                <IonButton onClick={quitarOrdenActiva}>Quitar Orden</IonButton>
               </div>
             </div>
           )}
         </div>
         <h2>Estado de las ordenes</h2>
         <div className="tecnico-domicilio-bottom-box">
-  {ordenesList.map((orden: any, index: number) => (
-    <h4 key={index}>
-      Orden #{orden.numero_orden} 
-      {orden.Presupuesto && (
-        <span>{estadoPresupuestoMap[orden.id_tipo_estado]}</span>
-      )}
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 18 18"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        onClick={() => handleVerOrden(orden)}
-        style={{ cursor: 'pointer' }}
-      >
-        <path
-          d="M9 6.75C8.40326 6.75 7.83097 6.98705 7.40901 7.40901C6.98705 7.83097 6.75 8.40326 6.75 9C6.75 9.59674 6.98705 10.169 7.40901 10.591C7.83097 11.0129 8.40326 11.25 9 11.25C9.59674 11.25 10.169 11.0129 10.591 10.591C11.0129 10.169 11.25 9.59674 11.25 9C11.25 8.40326 11.0129 7.83097 10.591 7.40901C10.169 6.98705 9.59674 6.75 9 6.75ZM9 12.75C8.00544 12.75 7.05161 12.3549 6.34835 11.6517C5.64509 10.9484 5.25 9.99456 5.25 9C5.25 8.00544 5.64509 7.05161 6.34835 6.34835C7.05161 5.64509 8.00544 5.25 9 5.25C9.99456 5.25 10.9484 5.64509 11.6517 6.34835C12.3549 7.05161 12.75 8.00544 12.75 9C12.75 9.99456 12.3549 10.9484 11.6517 11.6517C10.9484 12.3549 9.99456 12.75 9 12.75ZM9 3.375C5.25 3.375 2.0475 5.7075 0.75 9C2.0475 12.2925 5.25 14.625 9 14.625C12.75 14.625 15.9525 12.2925 17.25 9C15.9525 5.7075 12.75 3.375 9 3.375Z"
-          fill="#283959"
-        />
-      </svg>
-    </h4>
-  ))}
-</div>
-
+          {ordenesList.map((orden: any, index: number) => (
+            <h4 key={index}>
+              Orden #{orden.numero_orden} 
+              {orden.Presupuesto && (
+                <span>{estadoPresupuestoMap[orden.id_tipo_estado]}</span>
+              )}
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                onClick={() => handleVerOrden(orden)}
+                style={{ cursor: 'pointer' }}
+              >
+                <path
+                  d="M9 6.75C8.40326 6.75 7.83097 6.98705 7.40901 7.40901C6.98705 7.83097 6.75 8.40326 6.75 9C6.75 9.59674 6.98705 10.169 7.40901 10.591C7.83097 11.0129 8.40326 11.25 9 11.25C9.59674 11.25 10.169 11.0129 10.591 10.591C11.0129 10.169 11.25 9.59674 11.25 9C11.25 8.40326 11.0129 7.83097 10.591 7.40901C10.169 6.98705 9.59674 6.75 9 6.75ZM9 12.75C8.00544 12.75 7.05161 12.3549 6.34835 11.6517C5.64509 10.9484 5.25 9.99456 5.25 9C5.25 8.00544 5.64509 7.05161 6.34835 6.34835C7.05161 5.64509 8.00544 5.25 9 5.25C9.99456 5.25 10.9484 5.64509 11.6517 6.34835C12.3549 7.05161 12.75 8.00544 12.75 9C12.75 9.99456 12.3549 10.9484 11.6517 11.6517C10.9484 12.3549 9.99456 12.75 9 12.75ZM9 3.375C5.25 3.375 2.0475 5.7075 0.75 9C2.0475 12.2925 5.25 14.625 9 14.625C12.75 14.625 15.9525 12.2925 17.25 9C15.9525 5.7075 12.75 3.375 9 3.375Z"
+                  fill="#283959"
+                />
+              </svg>
+            </h4>
+          ))}
+        </div>
         <div className="tecnico-domicilio-bottom-button">
           <IonButton onClick={() => handleButtonClick("/repuestos")}>
             Repuestos
@@ -190,13 +200,7 @@ function TecnicoDomicilioComponent() {
           {
             text: "Aceptar",
             handler: () => {
-              setOrdenActiva(ordenSeleccionada);  
-              localStorage.setItem("ordenActiva", JSON.stringify(ordenSeleccionada)); 
-
-              // Borrar "diagnosticoData" y "presupuestoData" del localStorage
-              localStorage.removeItem("diagnosticoData");
-              localStorage.removeItem("presupuestoData");
-
+              activarOrden(ordenSeleccionada);
               console.log("Aceptar");
             },
           },
