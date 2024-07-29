@@ -6,8 +6,9 @@ import {
   IonPage,
 } from "@ionic/react";
 import "./Login.css";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
+import socket from '../services/socketService'; // Import the socket service
 
 const LoginComponent: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
@@ -15,6 +16,25 @@ const LoginComponent: React.FC = () => {
   const history = useHistory();
   const emailRef = useRef<HTMLIonInputElement>(null);
   const cuilRef = useRef<HTMLIonInputElement>(null);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]); // State for online users
+
+  useEffect(() => {
+    // Listen for user login event
+    socket.on('userLoggedIn', (data) => {
+      setOnlineUsers((prev) => [...prev, data.email]);
+    });
+
+    // Listen for user logout event if implemented
+    socket.on('userLoggedOut', (data) => {
+      setOnlineUsers((prev) => prev.filter(email => email !== data.email));
+    });
+
+    // Clean up the socket listeners on component unmount
+    return () => {
+      socket.off('userLoggedIn');
+      socket.off('userLoggedOut');
+    };
+  }, []);
 
   const handleSubmit = async (event: any) => {
     event.preventDefault();
@@ -54,6 +74,10 @@ const LoginComponent: React.FC = () => {
       localStorage.setItem("empleadoNombre", empleado.nombre);
       localStorage.setItem("empleadoId", empleado.id);
       localStorage.setItem("empleadoLegajo", empleado.legajo);
+
+      // Emit the login event through Socket.IO
+     /* socket.emit('userLoggedIn', { email, nombre: empleado.nombre }, { isLogged: "true"});*/
+      socket.emit("userStatus", { status: "conectado", id: localStorage.getItem("empleadoId") });
 
       history.push("/rol");
     } catch (error) {
