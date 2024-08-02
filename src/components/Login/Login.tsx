@@ -9,6 +9,7 @@ import "./Login.css";
 import { useRef, useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import socket from '../services/socketService'; // Import the socket service
+import { Geolocation } from '@capacitor/geolocation'; // Import Geolocation from Capacitor
 
 const LoginComponent: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
@@ -16,25 +17,44 @@ const LoginComponent: React.FC = () => {
   const history = useHistory();
   const emailRef = useRef<HTMLIonInputElement>(null);
   const cuilRef = useRef<HTMLIonInputElement>(null);
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([]); // State for online users
+  const locationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Listen for user login event
-    socket.on('userLoggedIn', (data) => {
-      setOnlineUsers((prev) => [...prev, data.email]);
-    });
-
-    // Listen for user logout event if implemented
-    socket.on('userLoggedOut', (data) => {
-      setOnlineUsers((prev) => prev.filter(email => email !== data.email));
-    });
-
-    // Clean up the socket listeners on component unmount
     return () => {
-      socket.off('userLoggedIn');
-      socket.off('userLoggedOut');
+      if (locationIntervalRef.current) {
+        clearInterval(locationIntervalRef.current);
+        locationIntervalRef.current = null;  
+      }
     };
   }, []);
+
+  const startGeolocation = async () => {
+    const logPosition = async () => {
+      if (localStorage.getItem("userStatus") !== 'desconectado') {
+        try {
+          const position = await Geolocation.getCurrentPosition();
+          const coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+
+          console.log("Enviando ubicación:", coords);  
+
+          socket.emit('locationUpdate', {
+            id: localStorage.getItem('empleadoId'),
+            nombre: localStorage.getItem('empleadoNombre'),
+            ...coords
+          });
+        } catch (error) {
+          console.error("Error al obtener ubicación:", error);
+        }
+      }
+    };
+ 
+    await logPosition();
+ 
+    locationIntervalRef.current = setInterval(logPosition, 2000);
+  };
 
   const handleSubmit = async (event: any) => {
     event.preventDefault();
@@ -49,9 +69,7 @@ const LoginComponent: React.FC = () => {
     try {
       const response = await fetch("https://lv-back.online/empleados");
       const empleados = await response.json();
-      const empleado =
-        empleados.find((empleado: any) => empleado.email === email) &&
-        empleados.find((empleado: any) => empleado.cuil === cuil);
+      const empleado = empleados.find((empleado: any) => empleado.email === email && empleado.cuil === cuil);
 
       if (!empleado) {
         setAlertMessage(
@@ -75,9 +93,12 @@ const LoginComponent: React.FC = () => {
       localStorage.setItem("empleadoId", empleado.id);
       localStorage.setItem("empleadoLegajo", empleado.legajo);
 
-      // Emit the login event through Socket.IO
-     /* socket.emit('userLoggedIn', { email, nombre: empleado.nombre }, { isLogged: "true"});*/
-      socket.emit("userStatus", { status: "conectado", id: localStorage.getItem("empleadoId") });
+      // Emitir el estado del usuario como conectado
+      socket.emit("userStatus", { status: "conectado", id: empleado.id, nombre: empleado.nombre });
+      localStorage.setItem("userStatus", "conectado");
+
+      // Iniciar el seguimiento de la geolocalización
+      startGeolocation();
 
       history.push("/rol");
     } catch (error) {

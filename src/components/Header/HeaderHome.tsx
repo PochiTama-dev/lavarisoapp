@@ -3,37 +3,55 @@ import './Header.css';
 import logOut from '../../images/log-out.webp';
 import { useHistory } from 'react-router-dom';
 import socket from '../services/socketService';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
+
 const HeaderHome: React.FC = () => {
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([]); // State for online users
+  const history = useHistory();
+  const locationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    // Listen for user login event
-    socket.on('userLoggedIn', (data) => {
-      setOnlineUsers((prev) => [...prev, data.email]);
-    });
-
-    // Listen for user logout event if implemented
-    socket.on('userLoggedOut', (data) => {
-      setOnlineUsers((prev) => prev.filter(email => email !== data.email));
-    });
-
-    // Clean up the socket listeners on component unmount
+    // Limpiar los listeners de socket al desmontar el componente
     return () => {
       socket.off('userLoggedIn');
       socket.off('userLoggedOut');
+      socket.off('userStatus');
     };
   }, []);
 
-  const history = useHistory();
-  const handleNavigate = (text: string) => {
-    history.push(`${text}`);
-    socket.emit("userStatus", { status: "desconectado", id: localStorage.getItem("empleadoId") });
-  /*  socket.emit('userLoggedIn', { isLogged: "false"});*/
+  const stopGeolocation = () => {
+    // Clear the interval that sends location updates
+    if (locationIntervalRef.current) {
+      clearInterval(locationIntervalRef.current);
+      locationIntervalRef.current = null;
+    }
   };
+
+  const handleLogout = () => {
+    // Stop sending location data
+    stopGeolocation();
+
+    // Emit user status as disconnected
+    const empleadoId = localStorage.getItem("empleadoId");
+    if (empleadoId) {
+      socket.emit("userStatus", { status: "desconectado", id: empleadoId });
+    }
+
+    // Clear localStorage
+    localStorage.removeItem('empleadoNombre');
+    localStorage.removeItem('empleadoLegajo');
+    localStorage.removeItem('empleadoId');
+    localStorage.removeItem('ordenSeleccionada');
+    localStorage.removeItem('empleadoEmail');
+
+    // Redirect to login page
+    history.push('/login');
+    window.location.reload();
+  };
+
   return (
     <header className='azulMorado headerHome'>
       <strong className='headerTitle'>LavaRiso</strong>
-      <img onClick={() => handleNavigate('/login')} src={logOut} alt='cerrar sesión' />
+      <img onClick={handleLogout} src={logOut} alt='cerrar sesión' />
     </header>
   );
 };
