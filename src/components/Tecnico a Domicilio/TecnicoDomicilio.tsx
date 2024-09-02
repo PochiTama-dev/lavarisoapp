@@ -117,7 +117,15 @@ function TecnicoDomicilioComponent() {
 
     socket.emit("userStatus", { status: "conectado", id: localStorage.getItem("empleadoId") });
   };
-
+  const handleFeedbackClick = (orden: any) => {
+    if (orden) {
+      history.push({
+        pathname: "/feedback",
+        state: { id_orden: orden.id },
+      });
+    }
+  };
+ 
   return (
     <>
       <IonContent className="tecnico-domicilio-container">
@@ -132,7 +140,7 @@ function TecnicoDomicilioComponent() {
         <div className="tecnico-domicilio-top-box">
           {ordenActiva && (
             <div>
-              <h3><strong>Orden Activa</strong> #{ordenActiva.numero_orden}</h3>
+              <h3><strong>Orden Activa</strong> #{ordenActiva.id}</h3>
               <h3>{ordenActiva.Cliente.nombre} {ordenActiva.Cliente.apellido}</h3>
               <h3>
                 <svg width="14" height="20" viewBox="0 0 14 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -143,7 +151,8 @@ function TecnicoDomicilioComponent() {
               <div>
                 <IonButton style={{ borderRadius: "0" }} onClick={() => handleButtonClick('/verorden', ordenActiva)}>Ver orden</IonButton>
                 <IonButton onClick={() => handleButtonClick('/chat', ordenActiva.cliente)}>Chat</IonButton>
-                <IonButton onClick={quitarOrdenActiva}>Quitar Orden</IonButton>
+                <IonButton onClick={quitarOrdenActiva}>Quitar</IonButton>
+                <IonButton onClick={() => handleFeedbackClick(ordenActiva)}>Feedback</IonButton>
               </div>
             </div>
           )}
@@ -152,7 +161,7 @@ function TecnicoDomicilioComponent() {
         <div className="tecnico-domicilio-bottom-box">
           {ordenesList.map((orden: any, index: number) => (
             <h4 key={index}>
-              Orden #{orden.numero_orden} 
+              Orden #{orden.id} 
               {orden.Presupuesto && (
                 <span>{estadoPresupuestoMap[orden.id_tipo_estado]}</span>
               )}
@@ -186,7 +195,7 @@ function TecnicoDomicilioComponent() {
       <IonAlert
         isOpen={showAlert}
         onDidDismiss={() => setShowAlert(false)}
-        header={`Orden #${ordenSeleccionada?.numero_orden}`}
+        header={`Orden #${ordenSeleccionada?.id}`}
         message={`Cliente: ${ordenSeleccionada?.Cliente.nombre}\nDirección: ${ordenSeleccionada?.Cliente.direccion}`}
         buttons={[
           {

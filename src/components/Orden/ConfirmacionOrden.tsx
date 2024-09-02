@@ -96,7 +96,7 @@ function ConfirmacionOrdenComponent() {
             <h1>
               <strong>Orden activa</strong>
             </h1>
-            <h3>#{orden.numero_orden}</h3>
+            <h3>#{orden.id}</h3>
           </div>
           <div className="confirmacion-orden-medium-box">
             <h3>

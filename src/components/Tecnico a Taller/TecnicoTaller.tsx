@@ -78,7 +78,7 @@ function TecnicoTallerComponent() {
       <div className="tecnico-taller-top-box">
         {ordenActiva && (
           <div>
-            <h3><strong>Orden Activa</strong> #{ordenActiva.numero_orden}</h3>
+            <h3><strong>Orden Activa</strong> #{ordenActiva.id}</h3>
             <div>
               <h4>
                 <strong>Equipo:</strong> {ordenActiva.equipo}
@@ -104,11 +104,11 @@ function TecnicoTallerComponent() {
       <h2>Ordenes activas en taller</h2>
       <div className="tecnico-taller-bottom-box">
         {ordenes.map((orden: {
-          id_tipo_estado: any; numero_orden: any, orden: { id_tipo_estado: any } 
+          id_tipo_estado: any; id: any, orden: { id_tipo_estado: any } 
 }) => (
-          <div key={orden.numero_orden} className="orden-item">
+          <div key={orden.id} className="orden-item">
             <h4>
-              {`Orden #${orden.numero_orden}`} <span>{estadoPresupuestoMap[orden.id_tipo_estado]}</span>
+              {`Orden #${orden.id}`} <span>{estadoPresupuestoMap[orden.id_tipo_estado]}</span>
               <svg
                 width="18"
                 height="18"
@@ -130,7 +130,7 @@ function TecnicoTallerComponent() {
       <IonAlert
         isOpen={showAlert}
         onDidDismiss={() => setShowAlert(false)}
-        header={`Orden #${ordenSeleccionada?.numero_orden}`}
+        header={`Orden #${ordenSeleccionada?.id}`}
         message={`¿Desea cambiar a la orden seleccionada?`}
         buttons={[
           {
