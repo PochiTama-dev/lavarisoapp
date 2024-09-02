@@ -42,6 +42,7 @@ import TecnicoDomicilio from "./pages/TecnicoDomicilio/TecnicoDomicilio";
 import TecnicoTaller from "./pages/TecnicoTaller/TecnicoTaller";
 import TallerVerOrden from "./pages/Orden/TallerVerOrden";
 import { OrdenProvider } from "./pages/Orden/ordenContext";
+import Feedback from "./pages/Feedback/Feedback";
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -64,6 +65,10 @@ const App: React.FC = () => {
   
         <Route path="/alertas" exact={true}>
           <Alertas />
+        </Route>
+        
+        <Route path="/feedback" exact={true}>
+          <Feedback />
         </Route>
         <Route path="/diagnostico" exact={true}>
           <Diagnostico />
