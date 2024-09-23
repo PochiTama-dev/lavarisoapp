@@ -17,7 +17,7 @@ import './orden.css';
 import { useLocation } from "react-router-dom";
 import { useOrden } from './ordenContext';
 import { fetchEstadosPresupuestos, fetchTiposFunciones, tiposLimpieza, tiposCierresExtendidos,   modificarOrden, 
-  modificarPresupuesto  } from './FetchsOrden';  
+  modificarPresupuesto, createRepuestoOrden, modificarStockPrincipal, getRepuestosOrdenById } from './FetchsOrden';  
 import { useHistory } from 'react-router-dom';  
 
 interface Repuesto {
@@ -43,9 +43,20 @@ const TallerVerOrden: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [idCierreExtendidoSeleccionado, setIdCierreExtendidoSeleccionado] = useState<number | null>(null);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState<any>(null);
+  const [repuestosOrden, setRepuestosOrden] = useState<Repuesto[]>([]); // Estado para repuestos de la orden
 
   const { ordenSeleccionada, setOrdenSeleccionada, selectedRepuestosTaller } = useOrden();
-  console.log("ESTADO",ordenSeleccionada)
+ 
+  useEffect(() => {
+    if (ordenSeleccionada) {
+      const loadRepuestos = async () => {
+        const repuestos = await getRepuestosOrdenById(ordenSeleccionada.id);
+        setRepuestosOrden(repuestos);
+        console.log("REPUESTO ORDEN", repuestosOrden)
+      };
+      loadRepuestos();
+    }
+  }, [ordenSeleccionada]);
  
   useEffect(() => {
     if (ordenSeleccionada) {
@@ -92,37 +103,57 @@ const TallerVerOrden: React.FC = () => {
     const handleConfirmarClick = () => {
       setShowAlert(true);
     };
-
+ 
     const handleConfirmar = async () => {
       const ordenActualizada = {
         motivo,
         checkboxValuesFunciones,
         checkboxValuesLimpieza,
-        id_tipo_cierre_extendido: idCierreExtendidoSeleccionado
+        id_tipo_cierre_extendido: idCierreExtendidoSeleccionado,
       };
-  
+    
       const resultado = await modificarOrden(ordenSeleccionada.id, ordenActualizada);
       if (resultado) {
         setOrdenSeleccionada({ ...ordenSeleccionada, ...ordenActualizada });
       }
-  
+    
       const presupuestoActualizado = {
-        id_estado_presupuesto: estadoSeleccionado
+        id_estado_presupuesto: estadoSeleccionado,
       };
-  
+    
       const resultadoPresupuesto = await modificarPresupuesto(ordenSeleccionada.Presupuesto.id, presupuestoActualizado);
       if (resultadoPresupuesto) {
         console.log("Presupuesto actualizado con éxito.");
       }
-  
-      setShowAlert(false);
-      
+ console.log("SELECTED REPUESTO",selectedRepuestosTaller)
+      // Agregar repuestos a la orden
+      if (ordenSeleccionada.id) { // Asegúrate de que id_orden no sea null
+        try {
+          await Promise.all(selectedRepuestosTaller.map(async (repuesto) => {
+        
+            const repuestoOrdenData = {
+              id_orden: ordenSeleccionada.id,
+              id_repuesto_taller: repuesto.id_repuesto,
+              id_repuesto_camioneta: null, // Este valor es null
+              nombre : repuesto.nombre,
+              cantidad:  repuesto.cantidad
+            };
+            await createRepuestoOrden(repuestoOrdenData);
+         
+         
+          }));
+          console.log("Repuestos agregados a la orden con éxito.");
+        } catch (error) {
+          console.error("Error al agregar repuestos a la orden:", error);
+        }
+      } else {
+        console.error("El id de la orden es null, no se pueden agregar repuestos.");
+      }
     
+      setShowAlert(false);
       history.push('/taller');
-      window.location.reload(); 
     };
- 
-
+console.log("ORDEN SELECCIONADA", ordenSeleccionada)
     return (
       <IonPage>
         <IonContent>
@@ -145,19 +176,24 @@ const TallerVerOrden: React.FC = () => {
             </div>
 
             <div className='section'>
-              <h2>Repuestos Seleccionados</h2>
-              {selectedRepuestosTaller.length > 0 ? (
-                <ul>
-                  {selectedRepuestosTaller.map((repuesto) => (
-                    <li key={repuesto.id}>
-                      {repuesto.nombre} - Cantidad: {repuesto.cantidad}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No hay repuestos seleccionados.</p>
-              )}
-            </div>
+            <h2>Repuestos Seleccionados</h2>
+            {selectedRepuestosTaller.length > 0 || repuestosOrden.length > 0 ? (
+              <ul>
+                {selectedRepuestosTaller.map((repuesto) => (
+                  <li key={repuesto.id}>
+                    {repuesto.nombre} - Cantidad: {repuesto.cantidad}
+                  </li>
+                ))}
+                {repuestosOrden.map((repuesto) => (
+                  <li key={repuesto.id}>
+                    {repuesto.nombre} - Cantidad: {repuesto.cantidad}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No hay repuestos seleccionados.</p>
+            )}
+          </div>
 
             <div className='section'>
               <h2>Chequeo de funcionamiento</h2>

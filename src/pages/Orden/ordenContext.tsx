@@ -30,7 +30,6 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
 
   const handleSetOrdenSeleccionada = (orden: any) => {
     setOrdenSeleccionada(orden);
-    // Limpiar los repuestos seleccionados al cambiar de orden
     setSelectedRepuestos([]);
     setSelectedRepuestosTaller([]);
   };
@@ -56,3 +55,6 @@ export const useOrden = () => {
   }
   return context;
 };
+
+
+ 

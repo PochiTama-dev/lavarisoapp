@@ -74,6 +74,7 @@ const Presupuesto: React.FC = () => {
   "Comisión rep. a domicilio": "comision_reparacion_domicilio",
   "Gasto impositivo": "gasto_impositivo",
  };
+ 
 
  const handleMontoChange = (index: number, value: any) => {
   const newMontos = [...montos];
