@@ -192,7 +192,7 @@ const Diagnostico: React.FC = () => {
           <div className="section">
             <h2>Diagnosticar</h2>
 
-            <div className="item">
+            <div className="item2">
               <span>
                 <strong>Equipo:</strong>
               </span>
@@ -208,7 +208,7 @@ const Diagnostico: React.FC = () => {
                 style={{ fontSize: "22px" }}
               />
             </div>
-            <div className="item">
+            <div className="item2">
               <span>
                 <strong>Marca:</strong>
               </span>
@@ -224,7 +224,7 @@ const Diagnostico: React.FC = () => {
                 style={{ fontSize: "22px" }}
               />
             </div>
-            <div className="item">
+            <div className="item2">
               <span>
                 <strong>Modelo:</strong>
               </span>
@@ -240,7 +240,7 @@ const Diagnostico: React.FC = () => {
                 style={{ fontSize: "22px" }}
               />
             </div>
-            <div className="item">
+            <div className="item2">
               <span>
                 <strong>N° de cliente:</strong>
               </span>

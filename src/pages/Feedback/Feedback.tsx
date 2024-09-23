@@ -14,7 +14,7 @@ import {
   IonAlert,
   IonLoading,
 } from '@ionic/react';
-
+import HeaderGeneral from '../../components/Header/HeaderGeneral';
 interface Empleado {
   id: number;
   nombre: string;
@@ -27,13 +27,14 @@ interface LocationState {
 const Feedback: React.FC = () => {
   const location = useLocation<LocationState>();
   const id_orden = location.state?.id_orden ?? null;
-  const empleadoId = Number(localStorage.getItem('empleadoId')); // Obtener el id_empleado del localStorage
- 
+  const empleadoId = Number(localStorage.getItem('empleadoId')); 
+
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
   const [selectedEmpleado, setSelectedEmpleado] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [showConfirmAlert, setShowConfirmAlert] = useState<boolean>(false); 
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
@@ -60,12 +61,12 @@ const Feedback: React.FC = () => {
   const handleFeedbackSubmit = async () => {
     const feedbackData = {
       id_empleado: empleadoId, 
-      to_id_employee: id_orden ? null : selectedEmpleado, // Si no hay id_orden, se usa selectedEmpleado
-      id_orden: id_orden ?? null, // Enviar id_orden o null
+      to_id_employee: id_orden ? null : selectedEmpleado,  
+      id_orden: id_orden ?? null,  
       feedback: feedback.trim(),
     };
 
-    console.log('Feedback data:', feedbackData); // Verifica los datos aquí
+    console.log('Feedback data:', feedbackData); 
 
     try {
       setLoading(true);
@@ -93,12 +94,14 @@ const Feedback: React.FC = () => {
     }
   };
 
+  const handleConfirmSubmit = () => {
+    setShowConfirmAlert(true);  
+  };
+
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
-          <IonTitle>Feedback</IonTitle>
-        </IonToolbar>
+        <HeaderGeneral />
       </IonHeader>
 
       <IonContent className="ion-padding">
@@ -141,17 +144,41 @@ const Feedback: React.FC = () => {
               marginBottom: '20px',
               borderRadius: '4px',
               fontSize: '16px',
-              outline: 'none', // Evita el borde de enfoque predeterminado
+              outline: 'none',  
               backgroundColor: 'transparent',
-              resize: 'none', // Opcional: desactiva el redimensionamiento
+              resize: 'none',  
             }}
           />
         </IonItem>
 
-        <IonButton expand="full" onClick={handleFeedbackSubmit} className="ion-margin-top">
+        <IonButton expand="full" onClick={handleConfirmSubmit} className="ion-margin-top">
           Enviar Feedback
         </IonButton>
 
+      
+        <IonAlert
+          isOpen={showConfirmAlert}
+          onDidDismiss={() => setShowConfirmAlert(false)}
+          header="Confirmar"
+          message="¿Estás seguro de que deseas enviar el feedback?"
+          buttons={[
+            {
+              text: 'Cancelar',
+              role: 'cancel',
+              handler: () => {
+                console.log('Envío cancelado.');
+              }
+            },
+            {
+              text: 'Confirmar',
+              handler: () => {
+                handleFeedbackSubmit();  
+              }
+            }
+          ]}
+        />
+
+     
         <IonAlert
           isOpen={showAlert}
           onDidDismiss={() => setShowAlert(false)}
@@ -159,7 +186,6 @@ const Feedback: React.FC = () => {
           message={error}
           buttons={['OK']}
         />
- 
       </IonContent>
     </IonPage>
   );

@@ -16,6 +16,7 @@ import {
   IonAlert,
 } from "@ionic/react";
 import "./presupuesto.css";
+import { useOrden } from "../../pages/Orden/ordenContext";
 import SignatureCanvas from "react-signature-canvas";
 import HeaderGeneral from "../../components/Header/HeaderGeneral";
 import { useHistory, useLocation } from "react-router-dom";
@@ -86,16 +87,7 @@ const Presupuesto: React.FC = () => {
 
   const location = useLocation();
   const { orden } = location.state as { orden: any };
-
-  useEffect(() => {
-    const loadData = async () => {
-      setPlazos(await fetchPlazosReparacion());
-      setEstados(await estadosPresupuestos());
-      setRepuestos(await listaRepuestos());
-      setMedioPago(await mediosDePago());
-    };
-    loadData();
-  }, []);
+  const { selectedRepuestos } = useOrden();
 
   const servicios = [
     "Viaticos",
@@ -121,28 +113,43 @@ const Presupuesto: React.FC = () => {
 
   const handleMontoChange = (index: number, value: any) => {
     const newMontos = [...montos];
-    newMontos[index] = Number(value); // Ensure value is parsed to number
+    newMontos[index] = Number(value);
     setMontos(newMontos);
   };
 
-  const total = montos.reduce((a, b) => a + parseFloat(b), 0); // Calculate total based on montos array
+  const totalRepuestos =
+    Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0
+      ? selectedRepuestos.reduce(
+          (
+            accumulator: number,
+            repuesto: { StockPrincipal: { precio: string }; cantidad: any }
+          ) => {
+            return (
+              accumulator +
+              parseFloat(repuesto.StockPrincipal.precio) * repuesto.cantidad
+            );
+          },
+          0
+        )
+      : 0;
+
+  const totalMontos = montos.reduce((a, b) => a + parseFloat(b), 0);
+  const total = totalMontos + totalRepuestos;
+
   useEffect(() => {
     if (orden && !orden.Presupuesto) {
-      // Aquí estás tratando de crear un nuevo presupuesto cuando orden.Presupuesto es null
       setProducto(orden.producto || "");
       setMarca(orden.marca || "");
       setModelo(orden.modelo || "");
       setCliente(orden.cliente || "");
-      setFormaPago([]); // Puedes inicializar la forma de pago como una lista vacía o algún valor por defecto
-      setEstado([]); // Puedes inicializar el estado como una lista vacía o algún valor por defecto
-      setSelectedList([]); // Puedes inicializar la lista seleccionada como una lista vacía o algún valor por defecto
-      setAcceptedPolicies(false); // Puedes inicializar las políticas aceptadas como false o algún valor por defecto
+      setFormaPago([]);
+      setEstado([]);
+      setSelectedList([]);
+      setAcceptedPolicies(false);
 
-      // Inicializar montos según la cantidad de servicios
       const initialMontos = servicios.map(() => 0);
       setMontos(initialMontos);
 
-      // Inicializar plazosCheckboxValues y otros estados según sea necesario
       setPlazosCheckboxValues([]);
       setSelectedMedioPago(null);
       setSelectedEstadoPresupuesto(null);
@@ -160,7 +167,7 @@ const Presupuesto: React.FC = () => {
         setFormaPago(orden.Presupuesto.formaPago || null);
         setEstado(orden.Presupuesto.estado || "");
         setSelectedList(orden.Presupuesto.selectedList || []);
-        setAcceptedPolicies(orden.Presupuesto.acceptedPolicies || false);
+        setAcceptedPolicies(orden.Presupuesto.acceptedPolicies || true);
         setPlazosCheckboxValues([orden.Presupuesto.id_plazo_reparacion] || []);
         setSelectedMedioPago(orden.Presupuesto.id_medio_de_pago || null);
         setSelectedEstadoPresupuesto(
@@ -190,7 +197,7 @@ const Presupuesto: React.FC = () => {
         const savedData = JSON.parse(
           localStorage.getItem("presupuestoData") || "{}"
         );
-        setMontos(savedData.montos || Array(7).fill(0)); // Ensure montos is parsed correctly as an array
+        setMontos(savedData.montos || Array(7).fill(0));
         setProducto(savedData.producto || "");
         setFormaPago(savedData.formaPago || null);
         setEstado(savedData.estado || "");
@@ -226,15 +233,18 @@ const Presupuesto: React.FC = () => {
 
   const handleConfirmarClick = async () => {
     if (!acceptedPolicies) {
-      setShowAlert2(true); // Mostrar alerta de políticas de privacidad si no están aceptadas
+      setShowAlert2(true);
     } else {
-      setShowConfirmAlert(true); // Mostrar alerta de confirmación si las políticas están aceptadas
+      setShowConfirmAlert(true);
     }
   };
 
   const handleConfirmAlert = async () => {
-    setShowConfirmAlert(false); // Ocultar la alerta de confirmación
-
+    setShowConfirmAlert(false);
+    if (!orden) {
+      console.error("La orden no está definida");
+      return;
+    }
     let presupuestoId = orden.Presupuesto ? orden.Presupuesto.id : null;
 
     const serviciosMontos: Record<string, number> = {};
@@ -271,7 +281,6 @@ const Presupuesto: React.FC = () => {
       let response;
 
       if (presupuestoId) {
-        // Presupuesto existente, modificar
         response = await fetch(
           `https://lv-back.online/presupuestos/modificar/${presupuestoId}`,
           {
@@ -283,7 +292,6 @@ const Presupuesto: React.FC = () => {
           }
         );
       } else {
-        // Presupuesto no existe, crear nuevo
         response = await fetch("https://lv-back.online/presupuestos/guardar", {
           method: "POST",
           headers: {
@@ -298,7 +306,7 @@ const Presupuesto: React.FC = () => {
         console.log("Presupuesto guardado/modificado con éxito!!!");
         console.log(result);
         localStorage.removeItem("ordenActiva");
-        window.history.back();
+        history.push("/domicilio");
 
         localStorage.setItem(
           "presupuestoData",
@@ -413,10 +421,41 @@ const Presupuesto: React.FC = () => {
         <div className="diagnostico-ctn">
           <div className="section">
             <h2>Presupuestar</h2>
-            <IonButton onClick={() => setShowModal(true)}>
+            <IonButton onClick={() => history.push("/repuestos")}>
               Seleccionar repuesto
             </IonButton>
-
+            <IonList>
+              {Array.isArray(selectedRepuestos) &&
+              selectedRepuestos.length > 0 ? (
+                selectedRepuestos.map((repuesto: any) => (
+                  <IonItem key={repuesto.id_repuesto}>
+                    <IonLabel
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        width: "100%",
+                        fontSize: "16px",
+                      }}
+                    >
+                      <span>
+                        {repuesto.StockPrincipal.nombre} x{repuesto.cantidad}
+                      </span>
+                      <span>
+                        $
+                        {(
+                          parseFloat(repuesto.StockPrincipal.precio) *
+                          repuesto.cantidad
+                        ).toFixed(2)}
+                      </span>
+                    </IonLabel>
+                  </IonItem>
+                ))
+              ) : (
+                <IonItem>
+                  <IonLabel>No hay repuestos seleccionados.</IonLabel>
+                </IonItem>
+              )}
+            </IonList>
             <IonModal isOpen={showModal}>
               <IonSearchbar
                 value={searchText || ""}
