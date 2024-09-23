@@ -55,11 +55,18 @@ function TecnicoTallerComponent() {
           const clientesMap = new Map(
             clientesData.map((cliente: { id: any }) => [cliente.id, cliente])
           );
+
           const ordenesConClientes = ordenesData
-            .map((orden: { cliente_id: any; Empleado: { id: any } }) => ({
-              ...orden,
-              cliente: clientesMap.get(orden.cliente_id),
-            }))
+            .map(
+              (orden: {
+                cliente_id: any;
+                Empleado: { id: any };
+                updated_at: string;
+              }) => ({
+                ...orden,
+                cliente: clientesMap.get(orden.cliente_id),
+              })
+            )
             .filter(
               (orden: {
                 Presupuesto: any;
@@ -72,7 +79,28 @@ function TecnicoTallerComponent() {
                   orden.Presupuesto.id_estado_presupuesto === 4)
             );
 
-          setOrdenes(ordenesConClientes);
+          const today = new Date().toISOString().split("T")[0];
+
+          const ordenesOrdenadas = ordenesConClientes.sort(
+            (a: { updated_at: string }, b: { updated_at: string }) => {
+              const updatedAtA = new Date(a.updated_at)
+                .toISOString()
+                .split("T")[0];
+              const updatedAtB = new Date(b.updated_at)
+                .toISOString()
+                .split("T")[0];
+
+              if (updatedAtA === today && updatedAtB !== today) {
+                return -1;
+              } else if (updatedAtA !== today && updatedAtB === today) {
+                return 1;
+              } else {
+                return 0;
+              }
+            }
+          );
+
+          setOrdenes(ordenesOrdenadas);
         } else {
           console.log(
             "No se encontraron ordenes o clientes en la base de datos."
@@ -137,34 +165,101 @@ function TecnicoTallerComponent() {
       </div>
       <h2>Ordenes activas en taller</h2>
       <div className="tecnico-taller-bottom-box">
-        {ordenes.map(
-          (orden: {
-            id_tipo_estado: any;
-            id: any;
-            orden: { id_tipo_estado: any };
-          }) => (
-            <div key={orden.id} className="orden-item">
-              <h4>
-                {`Orden #${orden.id}`}{" "}
-                <span>{estadoPresupuestoMap[orden.id_tipo_estado]}</span>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  onClick={() => handleVerOrden(orden)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <path
-                    d="M9 6.75C8.40326 6.75 7.83097 6.98705 7.40901 7.40901C6.98705 7.83097 6.75 8.40326 6.75 9C6.75 9.59674 6.98705 10.169 7.40901 10.591C7.83097 11.0129 8.40326 11.25 9 11.25C9.59674 11.25 10.169 11.0129 10.591 10.591C11.0129 10.169 11.25 9.59674 11.25 9C11.25 8.40326 11.0129 7.83097 10.591 7.40901C10.169 6.98705 9.59674 6.75 9 6.75ZM9 12.75C8.00544 12.75 7.05161 12.3549 6.34835 11.6517C5.64509 10.9484 5.25 9.99456 5.25 9C5.25 8.00544 5.64509 7.05161 6.34835 6.34835C7.05161 5.64509 8.00544 5.25 9 5.25C9.99456 5.25 10.9484 5.64509 11.6517 6.34835C12.3549 7.05161 12.75 8.00544 12.75 9C12.75 9.99456 12.3549 10.9484 11.6517 11.6517C10.9484 12.3549 9.99456 12.75 9 12.75ZM9 3.375C5.25 3.375 2.0475 5.7075 0.75 9C2.0475 12.2925 5.25 14.625 9 14.625C12.75 14.625 15.9525 12.2925 17.25 9C15.9525 5.7075 12.75 3.375 9 3.375Z"
-                    fill="#283959"
-                  />
-                </svg>
-              </h4>
-            </div>
-          )
-        )}
+        {(() => {
+          const today = new Date().toISOString().split("T")[0];
+
+          const ordenesHoy = ordenes.filter((orden: { updated_at: string }) => {
+            const updatedAt = new Date(orden.updated_at)
+              .toISOString()
+              .split("T")[0];
+            return updatedAt === today;
+          });
+
+          const ordenesDiasAnteriores = ordenes.filter(
+            (orden: { updated_at: string }) => {
+              const updatedAt = new Date(orden.updated_at)
+                .toISOString()
+                .split("T")[0];
+              return updatedAt !== today;
+            }
+          );
+
+          return (
+            <>
+              {ordenesHoy.length > 0 && (
+                <>
+                  <h3 style={{ marginLeft: "5px" }}>Hoy</h3>
+                  {ordenesHoy.map(
+                    (orden: {
+                      id_tipo_estado: any;
+                      id: any;
+                      updated_at: string;
+                    }) => (
+                      <div key={orden.id} className="orden-item">
+                        <h4>
+                          {`Orden #${orden.id}`}{" "}
+                          <span>
+                            {estadoPresupuestoMap[orden.id_tipo_estado]}
+                          </span>
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            onClick={() => handleVerOrden(orden)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <path
+                              d="M9 6.75C8.40326 6.75 7.83097 6.98705 7.40901 7.40901C6.98705 7.83097 6.75 8.40326 6.75 9C6.75 9.59674 6.98705 10.169 7.40901 10.591C7.83097 11.0129 8.40326 11.25 9 11.25C9.59674 11.25 10.169 11.0129 10.591 10.591C11.0129 10.169 11.25 9.59674 11.25 9C11.25 8.40326 11.0129 7.83097 10.591 7.40901C10.169 6.98705 9.59674 6.75 9 6.75ZM9 12.75C8.00544 12.75 7.05161 12.3549 6.34835 11.6517C5.64509 10.9484 5.25 9.99456 5.25 9C5.25 8.00544 5.64509 7.05161 6.34835 6.34835C7.05161 5.64509 8.00544 5.25 9 5.25C9.99456 5.25 10.9484 5.64509 11.6517 6.34835C12.3549 7.05161 12.75 8.00544 12.75 9C12.75 9.99456 12.3549 10.9484 11.6517 11.6517C10.9484 12.3549 9.99456 12.75 9 12.75ZM9 3.375C5.25 3.375 2.0475 5.7075 0.75 9C2.0475 12.2925 5.25 14.625 9 14.625C12.75 14.625 15.9525 12.2925 17.25 9C15.9525 5.7075 12.75 3.375 9 3.375Z"
+                              fill="#283959"
+                            />
+                          </svg>
+                        </h4>
+                      </div>
+                    )
+                  )}
+                </>
+              )}
+
+              {ordenesDiasAnteriores.length > 0 && (
+                <>
+                  <h3 style={{ marginLeft: "5px" }}>Días anteriores</h3>
+                  {ordenesDiasAnteriores.map(
+                    (orden: {
+                      id_tipo_estado: any;
+                      id: any;
+                      updated_at: string;
+                    }) => (
+                      <div key={orden.id} className="orden-item">
+                        <h4>
+                          {`Orden #${orden.id}`}{" "}
+                          <span>
+                            {estadoPresupuestoMap[orden.id_tipo_estado]}
+                          </span>
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            onClick={() => handleVerOrden(orden)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <path
+                              d="M9 6.75C8.40326 6.75 7.83097 6.98705 7.40901 7.40901C6.98705 7.83097 6.75 8.40326 6.75 9C6.75 9.59674 6.98705 10.169 7.40901 10.591C7.83097 11.0129 8.40326 11.25 9 11.25C9.59674 11.25 10.169 11.0129 10.591 10.591C11.0129 10.169 11.25 9.59674 11.25 9C11.25 8.40326 11.0129 7.83097 10.591 7.40901C10.169 6.98705 9.59674 6.75 9 6.75ZM9 12.75C8.00544 12.75 7.05161 12.3549 6.34835 11.6517C5.64509 10.9484 5.25 9.99456 5.25 9C5.25 8.00544 5.64509 7.05161 6.34835 6.34835C7.05161 5.64509 8.00544 5.25 9 5.25C9.99456 5.25 10.9484 5.64509 11.6517 6.34835C12.3549 7.05161 12.75 8.00544 12.75 9C12.75 9.99456 12.3549 10.9484 11.6517 11.6517C10.9484 12.3549 9.99456 12.75 9 12.75ZM9 3.375C5.25 3.375 2.0475 5.7075 0.75 9C2.0475 12.2925 5.25 14.625 9 14.625C12.75 14.625 15.9525 12.2925 17.25 9C15.9525 5.7075 12.75 3.375 9 3.375Z"
+                              fill="#283959"
+                            />
+                          </svg>
+                        </h4>
+                      </div>
+                    )
+                  )}
+                </>
+              )}
+            </>
+          );
+        })()}
       </div>
       <IonAlert
         isOpen={showAlert}
