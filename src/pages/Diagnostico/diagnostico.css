@@ -19,7 +19,7 @@
 }
 
  
-.diagnostico-ctn .item {
+.diagnostico-ctn .item2{
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
