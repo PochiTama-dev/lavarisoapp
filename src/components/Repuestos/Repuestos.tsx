@@ -1,5 +1,5 @@
 // Repuestos.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ReactNode } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { IonContent, IonHeader, IonList, IonItem, IonLabel, IonButton, IonButtons, IonToast } from "@ionic/react";
 import HeaderGeneral from "../Header/HeaderGeneral";
@@ -8,13 +8,13 @@ import { useOrden } from "../../pages/Orden/ordenContext";
 import { fetchRepuestos, getRepuestosOrdenById, modificarStockPrincipal, modificarStockCamioneta } from "./FetchsRepuestos";
 
 interface Repuesto {
- id_repuesto: any;
- StockPrincipal: any;
- id: any;
- descripcion: string;
- nombre: string;
- cantidad: number;
-}
+    id: any;
+    nombre: ReactNode;
+    cantidad: number;
+    StockPrincipal: any;
+    id_repuesto: any;
+    
+  }
 
 interface RepuestosProps {
  estadoOrden?: "taller" | "visita";
@@ -42,24 +42,19 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden }) => {
   }
  }, [location.state]);
 
- useEffect(() => {
+useEffect(() => {
   const fetchRepuestosData = async () => {
-   const idEmpleado = localStorage.getItem("empleadoId");
-   try {
-    const repuestosData = await fetchRepuestos(currentEstadoOrden, idEmpleado);
-    if (repuestosData.length > 0) {
-     console.log(`Se encontró una lista de repuestos para ${currentEstadoOrden}`);
-     setRepuestos(repuestosData);
-    } else {
-     console.log(`No se encontró ningún repuesto para ${currentEstadoOrden}`);
+    const idEmpleado = localStorage.getItem("empleadoId") || "";  
+    try {
+      const repuestosData = await fetchRepuestos(currentEstadoOrden, idEmpleado);
+      setRepuestos(repuestosData);
+    } catch (error) {
+      console.error("Error al obtener repuestos:", error);
     }
-   } catch (error) {
-    console.error("Error al consultar el stock de repuestos.", error);
-   }
   };
 
   fetchRepuestosData();
- }, [currentEstadoOrden]);
+}, [currentEstadoOrden]);
 
  const updateRepuestoCantidad = async (id: number, nuevaCantidad: number) => {
   const repuestoActualizado = { cantidad: nuevaCantidad };
@@ -90,8 +85,10 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden }) => {
   const updatedSelectedRepuestos = currentEstadoOrden === "taller" ? setSelectedRepuestosTaller : setSelectedRepuestos;
 
   if (!exists) {
+    // @ts-ignore
    updatedSelectedRepuestos((prev) => [...prev, { ...repuestoToAdd, cantidad: 1 }]);
   } else {
+    // @ts-ignore
    updatedSelectedRepuestos((prev) => prev.map((repuesto) => (repuesto.id_repuesto === repuestoToAdd.id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad + 1 } : repuesto)));
   }
 
@@ -99,6 +96,12 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden }) => {
 
   setRepuestos((prevState) => prevState.map((repuesto) => (repuesto.id_repuesto === repuestoToAdd.id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad - 1 } : repuesto)));
  };
+
+
+
+
+
+
 
  const handleRemoveRepuesto = (id_repuesto: number) => {
   const repuestoToRemove =
@@ -122,11 +125,24 @@ const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden }) => {
   setRepuestos((prevState) => prevState.map((repuesto) => (repuesto.id_repuesto === id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad + 1 } : repuesto)));
 
   if (repuestoToRemove.cantidad > 1) {
+    // @ts-ignore
    updatedSelectedRepuestos((prev) => prev.map((repuesto) => (repuesto.id_repuesto === repuestoToRemove.id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad - 1 } : repuesto)));
   } else {
+    // @ts-ignore
    updatedSelectedRepuestos((prev) => prev.filter((repuesto) => repuesto.id_repuesto !== repuestoToRemove.id_repuesto));
   }
  };
+
+
+
+
+
+
+
+
+
+
+
 
  const handleConfirm = () => {
   if (currentEstadoOrden === "taller") {

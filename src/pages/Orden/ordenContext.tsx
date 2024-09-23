@@ -1,11 +1,12 @@
 import React, { createContext, useState, useContext, ReactNode, Key } from 'react';
 
 interface Repuesto {
-  id: Key | null | undefined;
+  id: any;
   nombre: ReactNode;
   cantidad: number;
   StockPrincipal: any;
-  id_repuesto: number;
+  id_repuesto: any;
+  
 }
 
 interface OrdenContextProps {

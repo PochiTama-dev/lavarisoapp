@@ -14,7 +14,6 @@ import '../Diagnostico/diagnostico.css';
 import '../Entrega/entrega.css';
 import HeaderGeneral from '../../components/Header/HeaderGeneral';
 import './orden.css';
-import { useLocation } from "react-router-dom";
 import { useOrden } from './ordenContext';
 import { fetchEstadosPresupuestos, fetchTiposFunciones, tiposLimpieza, tiposCierresExtendidos,   modificarOrden, 
   modificarPresupuesto, createRepuestoOrden, modificarStockPrincipal, getRepuestosOrdenById } from './FetchsOrden';  
@@ -43,7 +42,7 @@ const TallerVerOrden: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [idCierreExtendidoSeleccionado, setIdCierreExtendidoSeleccionado] = useState<number | null>(null);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState<any>(null);
-  const [repuestosOrden, setRepuestosOrden] = useState<Repuesto[]>([]); // Estado para repuestos de la orden
+  const [repuestosOrden, setRepuestosOrden] = useState<Repuesto[]>([]); 
 
   const { ordenSeleccionada, setOrdenSeleccionada, selectedRepuestosTaller } = useOrden();
  
@@ -126,15 +125,15 @@ const TallerVerOrden: React.FC = () => {
         console.log("Presupuesto actualizado con éxito.");
       }
  console.log("SELECTED REPUESTO",selectedRepuestosTaller)
-      // Agregar repuestos a la orden
-      if (ordenSeleccionada.id) { // Asegúrate de que id_orden no sea null
+ 
+      if (ordenSeleccionada.id) {  
         try {
           await Promise.all(selectedRepuestosTaller.map(async (repuesto) => {
         
             const repuestoOrdenData = {
               id_orden: ordenSeleccionada.id,
               id_repuesto_taller: repuesto.id_repuesto,
-              id_repuesto_camioneta: null, // Este valor es null
+              id_repuesto_camioneta: null, 
               nombre : repuesto.nombre,
               cantidad:  repuesto.cantidad
             };
@@ -153,6 +152,8 @@ const TallerVerOrden: React.FC = () => {
       setShowAlert(false);
       history.push('/taller');
     };
+
+    
 console.log("ORDEN SELECCIONADA", ordenSeleccionada)
     return (
       <IonPage>
