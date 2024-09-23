@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import {
   IonContent,
@@ -44,16 +43,16 @@ const Entrega: React.FC = () => {
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
   const [ordenSelected, setOrdenSelected] = useState<any>(null);
   const [showAlert, setShowAlert] = useState(false);
+  const [showConfirmEntregaAlert, setShowConfirmEntregaAlert] = useState(false);
 
-  const [firmaCliente, setFirmaCliente] = useState<string>('');
-  const [firmaTecnico, setFirmaTecnico] = useState<string>('');
+  const [firmaCliente, setFirmaCliente] = useState<string>("");
+  const [firmaTecnico, setFirmaTecnico] = useState<string>("");
 
   const sigCanvasCliente = useRef<SignatureCanvas | null>(null);
   const sigCanvasTecnico = useRef<SignatureCanvas | null>(null);
 
-  const [showConfirmation, setShowConfirmation] = useState(false);  
-  const history = useHistory();  
-
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const history = useHistory();
 
   useEffect(() => {
     fetchTiposFunciones();
@@ -62,39 +61,44 @@ const Entrega: React.FC = () => {
       obtenerEntrega(orden.id);
     }
   }, [orden]);
- 
+
   const obtenerEntrega = async (id: any) => {
     try {
-      const response = await fetch(`https://lv-back.online/entregas/orden/${id}`);
+      const response = await fetch(
+        `https://lv-back.online/entregas/orden/${id}`
+      );
       const entrega = await response.json();
-  
+
       if (entrega && entrega.firma_cliente && entrega.firma_empleado) {
         console.log(`Se encontró una entrega asociada al id ${id}`);
         console.log(entrega);
         setFirmaCliente(entrega.firma_cliente);
         setFirmaTecnico(entrega.firma_empleado);
-        setSelectedOption(entrega.recomienda === 1 ? 'si' : 'no');
+        setSelectedOption(entrega.recomienda === 1 ? "si" : "no");
       } else {
-  
-        console.log(`No se encontró ninguna entrega con el id ${id}, usando las firmas del presupuesto.`);
+        console.log(
+          `No se encontró ninguna entrega con el id ${id}, usando las firmas del presupuesto.`
+        );
         if (orden && orden.Presupuesto) {
-          setFirmaCliente(orden.Presupuesto.firma_cliente || '');
-          setFirmaTecnico(orden.Presupuesto.firma_empleado || '');
+          setFirmaCliente(orden.Presupuesto.firma_cliente || "");
+          setFirmaTecnico(orden.Presupuesto.firma_empleado || "");
         } else {
           console.log("No se encontraron las firmas en el presupuesto.");
         }
       }
     } catch (error) {
-      console.error("Error al obtener la entrega, mostrando las firmas del presupuesto.", error);
- 
+      console.error(
+        "Error al obtener la entrega, mostrando las firmas del presupuesto.",
+        error
+      );
+
       if (orden && orden.Presupuesto) {
-        setFirmaCliente(orden.Presupuesto.firma_cliente || '');
-        setFirmaTecnico(orden.Presupuesto.firma_empleado || '');
+        setFirmaCliente(orden.Presupuesto.firma_cliente || "");
+        setFirmaTecnico(orden.Presupuesto.firma_empleado || "");
       }
     }
   };
-  
- 
+
   const fetchOrden = async (id: any) => {
     try {
       const ordenResponse = await fetch(`https://lv-back.online/ordenes/${id}`);
@@ -155,7 +159,7 @@ const Entrega: React.FC = () => {
       setCheckboxValues(updatedCheckboxValues);
     }
   }, [ordenSelected, textosCheckbox]);
- 
+
   useEffect(() => {
     if (firmaCliente && sigCanvasCliente.current) {
       // Convertir la firma de base64 a URL de datos
@@ -167,29 +171,26 @@ const Entrega: React.FC = () => {
     }
   }, [firmaCliente, firmaTecnico]);
 
- 
-
   const guardarEntrega = async () => {
     // Obtener las firmas en formato base64 desde los SignatureCanvas
     const firma_cliente = sigCanvasCliente.current?.toDataURL();
     const firma_empleado = sigCanvasTecnico.current?.toDataURL();
-  
+
     const entrega = {
       id_orden: ordenSelected?.id || 0,
- 
+
       firma_cliente: firma_cliente,
       firma_empleado: firma_empleado,
-      recomienda: selectedOption === 'si' ? 1 : 0
- 
+      recomienda: selectedOption === "si" ? 1 : 0,
     };
-  
+
     try {
       const response = await fetch("https://lv-back.online/entregas/guardar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entrega),
       });
-  
+
       const result = await response.json();
       if (result) {
         console.log("Entrega registrada con éxito!!!");
@@ -206,29 +207,13 @@ const Entrega: React.FC = () => {
   };
 
   const handleConfirmarClick = async () => {
-    const userConfirmed = window.confirm("¿Estás seguro de que deseas confirmar la entrega?");
-    
-    if (userConfirmed) {
-      const dataToSend = {
-        checkboxValues,
-        observaciones,
-        firmaCliente,
-        firmaTecnico
-      };
-      console.log(dataToSend);
-  
-      const entregaGuardada = await guardarEntrega();
-      if (entregaGuardada) {
-        console.log("Entrega concretada con éxito.");
-        history.push("/domicilio"); // Redirige a "/verorden" después de la confirmación
-      } else {
-        console.log("Error al concretar la entrega.");
-      }
+    const entregaGuardada = await guardarEntrega();
+    if (entregaGuardada) {
+      history.push("/domicilio");
     } else {
-      console.log("Confirmación cancelada por el usuario.");
+      console.log("Error al concretar la entrega.");
     }
   };
-  
 
   const handleModal = () => {
     setModal(!modal);
@@ -284,11 +269,9 @@ const Entrega: React.FC = () => {
               </span>
               <IonInput
                 disabled
-
-                style={{ marginLeft: '10px' }}
-                value={ordenSelected?.equipo || ''}
-                placeholder='Ingrese producto'
-
+                style={{ marginLeft: "10px" }}
+                value={ordenSelected?.equipo || ""}
+                placeholder="Ingrese producto"
                 onIonChange={(e) => setProducto(e.detail.value!)}
               />
             </div>
@@ -298,11 +281,9 @@ const Entrega: React.FC = () => {
               </span>
               <IonInput
                 disabled
-
-                style={{ marginLeft: '10px' }}
-                value={ordenSelected?.marca || ''}
-                placeholder='Ingrese marca'
-
+                style={{ marginLeft: "10px" }}
+                value={ordenSelected?.marca || ""}
+                placeholder="Ingrese marca"
                 onIonChange={(e) => setMarca(e.detail.value!)}
               />
             </div>
@@ -312,11 +293,9 @@ const Entrega: React.FC = () => {
               </span>
               <IonInput
                 disabled
-
-                style={{ marginLeft: '10px' }}
-                value={ordenSelected?.modelo || ''}
-                placeholder='Ingrese modelo'
-
+                style={{ marginLeft: "10px" }}
+                value={ordenSelected?.modelo || ""}
+                placeholder="Ingrese modelo"
                 onIonChange={(e) => setModelo(e.detail.value!)}
               />
             </div>
@@ -326,11 +305,9 @@ const Entrega: React.FC = () => {
               </span>
               <IonInput
                 disabled
-
-                style={{ marginLeft: '10px' }}
-                value={ordenSelected?.id_cliente || ''}
-                placeholder='Ingrese N° de cliente'
-
+                style={{ marginLeft: "10px" }}
+                value={ordenSelected?.id_cliente || ""}
+                placeholder="Ingrese N° de cliente"
                 onIonChange={(e) => setCliente(e.detail.value!)}
               />
             </div>
@@ -341,8 +318,7 @@ const Entrega: React.FC = () => {
               {textosCheckbox.map((texto, index) => (
                 <div key={index} className="checkbox-item">
                   <IonCheckbox
-                                  disabled
-
+                    disabled
                     checked={checkboxValues[index]}
                     onIonChange={(e) => {
                       const newCheckboxValues = [...checkboxValues];
@@ -371,10 +347,8 @@ const Entrega: React.FC = () => {
           <div className="section">
             <h2>Observaciones</h2>
             <IonInput
-
-              className='obs-input'
+              className="obs-input"
               value={orden.motivo}
-
               onIonChange={(e) => setObservaciones(e.detail.value!)}
               placeholder="Ingrese observaciones"
             />
@@ -384,31 +358,35 @@ const Entrega: React.FC = () => {
             <span>Firma del cliente</span>
 
             <div>
-
-            <SignatureCanvas
-              ref={sigCanvasCliente}
-              penColor='black'
-              canvasProps={{ width: 500, height: 200, className: 'sigCanvas' }}
-            />
-                  <IonButton onClick={() => sigCanvasCliente.current?.clear()}>
-                  Borrar
-                </IonButton>
+              <SignatureCanvas
+                ref={sigCanvasCliente}
+                penColor="black"
+                canvasProps={{
+                  width: 500,
+                  height: 200,
+                  className: "sigCanvas",
+                }}
+              />
+              <IonButton onClick={() => sigCanvasCliente.current?.clear()}>
+                Borrar
+              </IonButton>
             </div>
 
             <span>Firma del técnico</span>
             <div>
-
-            <SignatureCanvas
-              ref={sigCanvasTecnico}
-              penColor='black'
-              canvasProps={{ width: 500, height: 200, className: 'sigCanvas' }}
-            />
-             <IonButton onClick={() => sigCanvasTecnico.current?.clear()}>
-                  Borrar
-                </IonButton>
-
+              <SignatureCanvas
+                ref={sigCanvasTecnico}
+                penColor="black"
+                canvasProps={{
+                  width: 500,
+                  height: 200,
+                  className: "sigCanvas",
+                }}
+              />
+              <IonButton onClick={() => sigCanvasTecnico.current?.clear()}>
+                Borrar
+              </IonButton>
             </div>
-
           </div>
           <div className="section">
             <h2>¿Nos recomendarías? </h2>
@@ -436,10 +414,30 @@ const Entrega: React.FC = () => {
             <IonButton
               className="button"
               style={{ "--border-radius": "20px" }}
-              onClick={handleConfirmarClick}
+              onClick={() => setShowConfirmEntregaAlert(true)}
             >
               Concretar entrega
             </IonButton>
+            <IonAlert
+              isOpen={showConfirmEntregaAlert}
+              onDidDismiss={() => setShowConfirmEntregaAlert(false)}
+              header={"Confirmar entrega"}
+              message={"¿Estás seguro de que deseas concretar la entrega?"}
+              buttons={[
+                {
+                  text: "No",
+                  role: "cancel",
+                  cssClass: "secondary",
+                  handler: () => {
+                    setShowConfirmEntregaAlert(false);
+                  },
+                },
+                {
+                  text: "Sí",
+                  handler: handleConfirmarClick,
+                },
+              ]}
+            />
             <IonButton
               className="button"
               style={{
