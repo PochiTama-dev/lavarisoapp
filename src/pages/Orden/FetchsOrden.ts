@@ -75,3 +75,77 @@ export const fetchEstadosPresupuestos = async () => {
       console.error("Error al modificar el presupuesto:", error);
     }
   };
+
+  export const createRepuestoOrden = async (repuestoOrdenData: any) => {
+    const API_URL = 'https://lv-back.online/orden/repuestos';  
+    try {
+      const response = await fetch(`${API_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(repuestoOrdenData),
+      });
+      if (!response.ok) throw new Error('Error al agregar repuestos a la orden');
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
+
+  export const modificarStockPrincipal = async (id: any, repuesto: any) => {
+    try {
+      const response = await fetch(`https://lv-back.online/stock/principal/modificar/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(repuesto)
+      });
+      const result = await response.json();
+      console.log(result)
+      if (result[0] === 1) {
+        console.log("Stock principal modificado con éxito!!!");
+        return true;
+      } else {
+        console.log("Se produjo un error, el stock principal no pudo ser modificado...");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error al modificar el el stock principal.", error);
+    }
+  };
+
+
+  export const obtenerRepuestosStock = async (idRepuesto: any) => {
+    try {
+      const response = await fetch(`https://lv-back.online/stock/principal/repuestos/${idRepuesto}`);
+      const repuestos = await response.json();
+      if (repuestos[0] !== undefined) {
+        console.log(`Se encontró una lista de repuestos con el id ${idRepuesto}`);
+        return repuestos;
+      } else {
+        console.log(`No se encontró ningún repuesto con el id ${idRepuesto}`);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error, al consultar el stock de repuestos.", error);
+    }
+  };
+  
+
+  export const getRepuestosOrdenById = async (id: any) => {
+    const API_URL = 'https://lv-back.online/orden/repuestos';   
+
+    try {
+      const response = await fetch(`${API_URL}/${id}`);
+      if (!response.ok) throw new Error('Error al obtener los repuestos de la orden');
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+  
