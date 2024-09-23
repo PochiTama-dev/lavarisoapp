@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
- 
+import { useHistory } from "react-router-dom";
 import {
   IonContent,
   IonPage,
@@ -37,6 +37,8 @@ const Entrega: React.FC = () => {
   const [checkboxValues, setCheckboxValues] = useState<boolean[]>([]);
   const [observaciones, setObservaciones] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
+  const [selectedEntrega, setSelectedEntrega] = useState("");
+
   const [signature1, setSignature1] = useState("");
   const [signature2, setSignature2] = useState("");
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
@@ -49,6 +51,10 @@ const Entrega: React.FC = () => {
   const sigCanvasCliente = useRef<SignatureCanvas | null>(null);
   const sigCanvasTecnico = useRef<SignatureCanvas | null>(null);
 
+  const [showConfirmation, setShowConfirmation] = useState(false);  
+  const history = useHistory();  
+
+
   useEffect(() => {
     fetchTiposFunciones();
     if (orden && orden.id) {
@@ -56,34 +62,39 @@ const Entrega: React.FC = () => {
       obtenerEntrega(orden.id);
     }
   }, [orden]);
-
+ 
   const obtenerEntrega = async (id: any) => {
     try {
       const response = await fetch(`https://lv-back.online/entregas/orden/${id}`);
       const entrega = await response.json();
-      if (entrega) {
+  
+      if (entrega && entrega.firma_cliente && entrega.firma_empleado) {
         console.log(`Se encontró una entrega asociada al id ${id}`);
         console.log(entrega);
         setFirmaCliente(entrega.firma_cliente);
         setFirmaTecnico(entrega.firma_empleado);
         setSelectedOption(entrega.recomienda === 1 ? 'si' : 'no');
       } else {
-        console.log(`No se encontró ninguna entrega con el id ${id}`);
+  
+        console.log(`No se encontró ninguna entrega con el id ${id}, usando las firmas del presupuesto.`);
+        if (orden && orden.Presupuesto) {
+          setFirmaCliente(orden.Presupuesto.firma_cliente || '');
+          setFirmaTecnico(orden.Presupuesto.firma_empleado || '');
+        } else {
+          console.log("No se encontraron las firmas en el presupuesto.");
+        }
       }
     } catch (error) {
-      console.error("Error, entrega no encontrada.", error);
+      console.error("Error al obtener la entrega, mostrando las firmas del presupuesto.", error);
+ 
+      if (orden && orden.Presupuesto) {
+        setFirmaCliente(orden.Presupuesto.firma_cliente || '');
+        setFirmaTecnico(orden.Presupuesto.firma_empleado || '');
+      }
     }
   };
+  
  
-
-  useEffect(() => {
-    fetchTiposFunciones();
-    if (orden && orden.id) {
-      fetchOrden(orden.id);
-      obtenerEntrega(orden.id); 
-    }
-  }, [orden]);
-
   const fetchOrden = async (id: any) => {
     try {
       const ordenResponse = await fetch(`https://lv-back.online/ordenes/${id}`);
@@ -144,7 +155,7 @@ const Entrega: React.FC = () => {
       setCheckboxValues(updatedCheckboxValues);
     }
   }, [ordenSelected, textosCheckbox]);
-console.log(firmaCliente)
+ 
   useEffect(() => {
     if (firmaCliente && sigCanvasCliente.current) {
       // Convertir la firma de base64 a URL de datos
@@ -156,7 +167,7 @@ console.log(firmaCliente)
     }
   }, [firmaCliente, firmaTecnico]);
 
-
+ 
 
   const guardarEntrega = async () => {
     // Obtener las firmas en formato base64 desde los SignatureCanvas
@@ -195,21 +206,29 @@ console.log(firmaCliente)
   };
 
   const handleConfirmarClick = async () => {
-    const dataToSend = {
-      checkboxValues,
-      observaciones,
-      firmaCliente,
-      firmaTecnico
-    };
-    console.log(dataToSend);
-
-    const entregaGuardada = await guardarEntrega();
-    if (entregaGuardada) {
-      console.log("Entrega concretada con éxito.");
+    const userConfirmed = window.confirm("¿Estás seguro de que deseas confirmar la entrega?");
+    
+    if (userConfirmed) {
+      const dataToSend = {
+        checkboxValues,
+        observaciones,
+        firmaCliente,
+        firmaTecnico
+      };
+      console.log(dataToSend);
+  
+      const entregaGuardada = await guardarEntrega();
+      if (entregaGuardada) {
+        console.log("Entrega concretada con éxito.");
+        history.push("/domicilio"); // Redirige a "/verorden" después de la confirmación
+      } else {
+        console.log("Error al concretar la entrega.");
+      }
     } else {
-      console.log("Error al concretar la entrega.");
+      console.log("Confirmación cancelada por el usuario.");
     }
   };
+  
 
   const handleModal = () => {
     setModal(!modal);
@@ -322,6 +341,8 @@ console.log(firmaCliente)
               {textosCheckbox.map((texto, index) => (
                 <div key={index} className="checkbox-item">
                   <IonCheckbox
+                                  disabled
+
                     checked={checkboxValues[index]}
                     onIonChange={(e) => {
                       const newCheckboxValues = [...checkboxValues];
@@ -338,9 +359,9 @@ console.log(firmaCliente)
           <div className="section">
             <h2>Tipo de entrega</h2>
             <IonSelect
-              value={selectedOption}
+              value={selectedEntrega}
               placeholder="Seleccionar"
-              onIonChange={(e) => setSelectedOption(e.detail.value)}
+              onIonChange={(e) => setSelectedEntrega(e.detail.value)}
             >
               <IonSelectOption value="option1">Option 1</IonSelectOption>
               <IonSelectOption value="option2">Option 2</IonSelectOption>

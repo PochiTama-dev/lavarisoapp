@@ -23,9 +23,8 @@
       const empleadoId = localStorage.getItem("empleadoId");
       if (!empleadoId) {
         throw new Error("Error: No se encontró el ID del empleado.");
-        return;
       }
-
+    
       try {
         const response = await fetch(
           `https://lv-back.online/empleados/modificar/${empleadoId}`,
@@ -37,15 +36,18 @@
             body: JSON.stringify({ estado }),
           }
         );
-
+    
         if (!response.ok) {
           throw new Error("Error al actualizar el rol del empleado");
         }
-
+    
+        // Almacenar el estado en localStorage
+        localStorage.setItem("estadoOrden", estado === 1 ? "visita" : "taller");
+    
         // Redirigir a la página correspondiente después de la actualización
         history.push(estado === 1 ? "/domicilio" : "/taller");
       } catch (error) {
-        throw new Error("Error al actualizar el rol del empleado");
+        console.error("Error al actualizar el rol del empleado", error);
       }
     };
     const handleFeedbackClick = () => {

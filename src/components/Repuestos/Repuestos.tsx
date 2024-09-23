@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import {
-  IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonButton,
-  IonButtons,
-} from "@ionic/react";
+import { IonContent, IonHeader, IonList, IonItem, IonLabel, IonButton, IonButtons, IonToast } from "@ionic/react";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./Repuestos.css";
 import { useOrden } from "../../pages/Orden/ordenContext";
+
 interface Repuesto {
+  id_repuesto: any;
+  StockPrincipal: any;
   id: any;
   descripcion: string;
   nombre: string;
@@ -26,156 +19,178 @@ interface RepuestosProps {
 }
 
 interface LocationState {
-  ordenSeleccionada: any; 
+  ordenSeleccionada: any;
 }
 
-const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden = "taller" }) => {
+const Repuestos: React.FC<RepuestosProps> = ({ estadoOrden }) => {
   const history = useHistory();
   const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
-  const [selectedRepuestos, setSelectedRepuestos] = useState<Repuesto[]>([]);
+  const [showToast, setShowToast] = useState(false);
+  const { selectedRepuestos, setSelectedRepuestos, selectedRepuestosTaller, setSelectedRepuestosTaller } = useOrden();
   const location = useLocation<LocationState>();
-  
-  const { ordenSeleccionada } = useOrden();
-console.log(ordenSeleccionada)
+
+  const currentEstadoOrden = estadoOrden || localStorage.getItem("estadoOrden") || "taller";
+  const [ordenId, setOrdenId] = useState<number | null>(null); // ID de la orden actual
+
+  useEffect(() => {
+    // Restablecer los repuestos seleccionados al cambiar de orden
+    if (location.state?.ordenSeleccionada) {
+      setOrdenId(location.state.ordenSeleccionada.id);
+      setSelectedRepuestos([]);
+      setSelectedRepuestosTaller([]);
+    }
+  }, [location.state]);
+
   useEffect(() => {
     const fetchRepuestos = async () => {
-      try {
-        const responseRepuestos = await fetch("https://lv-back.online/repuestos/lista");
-        const repuestosData: Repuesto[] = await responseRepuestos.json();
-        
-        const responseStock = await fetch("https://lv-back.online/stock/taller/lista");
-        const stockData = await responseStock.json();
-        
-        if (repuestosData.length > 0 && stockData.length > 0) {
-          // Combina los datos de repuestos con el stock
-          const combinedData = repuestosData.map(repuesto => {
-            const stockItem = stockData.find((item: { id: any; }) => item.id === repuesto.id);
-            return {
-              ...repuesto,
-              cantidad: stockItem ? stockItem.cantidad : 0
-            };
-          });
+      const idEmpleado = localStorage.getItem("empleadoId");
+      let url = "";
 
-          setRepuestos(combinedData);
-          console.log(combinedData)
+      if (currentEstadoOrden === "visita") {
+        url = `https://lv-back.online/stock/camioneta/empleados/${idEmpleado}`;
+      } else {
+        url = `https://lv-back.online/stock/principal/lista`;
+      }
+
+      try {
+        const response = await fetch(url);
+        const repuestosData = await response.json();
+        if (repuestosData.length > 0) {
+          console.log(`Se encontró una lista de repuestos para ${currentEstadoOrden}`);
+          setRepuestos(repuestosData);
         } else {
-          console.log("No se encontraron repuestos o stock en la base de datos.");
+          console.log(`No se encontró ningún repuesto para ${currentEstadoOrden}`);
         }
       } catch (error) {
-        console.error("Error al cargar repuestos o stock:", error);
+        console.error("Error al consultar el stock de repuestos.", error);
       }
     };
 
     fetchRepuestos();
-  }, []);
-  const handleAddRepuesto = (index: number) => {
-    const newRepuestos = [...repuestos];
-    newRepuestos[index].cantidad -= 1;
-    setRepuestos(newRepuestos);
+  }, [currentEstadoOrden]);
 
-    const nombre = newRepuestos[index].descripcion;
-    const foundIndex = selectedRepuestos.findIndex((r) => r.descripcion === nombre);
-    if (foundIndex !== -1) {
-      const updatedRepuesto = { ...selectedRepuestos[foundIndex] };
-      updatedRepuesto.cantidad += 1;
-      const updatedSelected = [...selectedRepuestos];
-      updatedSelected[foundIndex] = updatedRepuesto;
-      setSelectedRepuestos(updatedSelected);
+  const handleAddRepuesto = (index: number) => {
+    const repuestoToAdd = repuestos[index];
+    console.log("TO ADD", repuestoToAdd);
+
+    if (repuestoToAdd.cantidad <= 0) {
+      console.log("No se puede agregar, la cantidad es cero.");
+      return;
+    }
+
+    const exists = currentEstadoOrden === "taller"
+      ? selectedRepuestosTaller.find((repuesto) => repuesto.id_repuesto === repuestoToAdd.id_repuesto)
+      : selectedRepuestos.find((repuesto) => repuesto.id_repuesto === repuestoToAdd.id_repuesto);
+
+    const updatedSelectedRepuestos = currentEstadoOrden === "taller" ? setSelectedRepuestosTaller : setSelectedRepuestos;
+
+    if (!exists) {
+      updatedSelectedRepuestos(prev => [...prev, { ...repuestoToAdd, cantidad: 1 }]);
     } else {
-      setSelectedRepuestos([
-        ...selectedRepuestos,
-        { ...newRepuestos[index], cantidad: 1 },
-      ]);
+      updatedSelectedRepuestos(prev => prev.map(repuesto => 
+        repuesto.id_repuesto === repuestoToAdd.id_repuesto 
+          ? { ...repuesto, cantidad: repuesto.cantidad + 1 } 
+          : repuesto
+      ));
+    }
+
+    setRepuestos(prevState => 
+      prevState.map(repuesto => 
+        repuesto.id_repuesto === repuestoToAdd.id_repuesto 
+          ? { ...repuesto, cantidad: repuesto.cantidad - 1 } 
+          : repuesto
+      )
+    );
+  };
+
+  const handleRemoveRepuesto = (id_repuesto: number) => {
+    const repuestoToRemove = currentEstadoOrden === "taller"
+      ? selectedRepuestosTaller.find((repuesto) => repuesto.id_repuesto === id_repuesto)
+      : selectedRepuestos.find((repuesto) => repuesto.id_repuesto === id_repuesto);
+
+    if (!repuestoToRemove) {
+      console.error("Repuesto no encontrado.");
+      return;
+    }
+
+    console.log("TO REMOVE", repuestoToRemove);
+
+    const updatedSelectedRepuestos = currentEstadoOrden === "taller" ? setSelectedRepuestosTaller : setSelectedRepuestos;
+
+    if (repuestoToRemove.cantidad > 1) {
+      updatedSelectedRepuestos(prev => prev.map(repuesto => 
+        repuesto.id_repuesto === repuestoToRemove.id_repuesto 
+          ? { ...repuesto, cantidad: repuesto.cantidad - 1 } 
+          : repuesto
+      ));
+    } else {
+      updatedSelectedRepuestos(prev => prev.filter(repuesto => repuesto.id_repuesto !== repuestoToRemove.id_repuesto));
+    }
+
+    setRepuestos(prevState => 
+      prevState.map(repuesto => 
+        repuesto.id_repuesto === repuestoToRemove.id_repuesto 
+          ? { ...repuesto, cantidad: repuesto.cantidad + 1 } 
+          : repuesto
+      )
+    );
+  };
+
+  const handleConfirm = () => {
+    if (currentEstadoOrden === "taller") {
+      history.push("/tallerorden");
+    } else {
+      history.goBack();
     }
   };
-  const handleRemoveRepuesto = (index: number) => {
-    const newRepuestos = [...repuestos];
-    const nombre = newRepuestos[index].nombre;
-  
-  
-    let updatedSelected = [...selectedRepuestos];
-    const foundIndex = selectedRepuestos.findIndex((r) => r.nombre === nombre);
-    if (foundIndex !== -1) {
-      const updatedRepuesto = { ...selectedRepuestos[foundIndex] };
-      updatedRepuesto.cantidad -= 1;
-      if (updatedRepuesto.cantidad === 0) {
-        updatedSelected.splice(foundIndex, 1);
-      } else {
-        updatedSelected[foundIndex] = updatedRepuesto;
-      }
-      setSelectedRepuestos(updatedSelected);
-    }
-  
-    // Decrement quantity in repuestos after updating selectedRepuestos
-    if (newRepuestos[index].cantidad > 0) {
-      newRepuestos[index].cantidad += 1;
-      setRepuestos(newRepuestos);
-    }
-  };
-  
 
   const renderRepuestos = () => (
     <>
-      <div className="container-listado-respuestos">
-        <IonList className="listado-respuestos">
+      <div className='container-listado-respuestos'>
+        <IonList className='listado-respuestos'>
           {repuestos.map((repuesto, index) => (
             <IonItem key={index}>
-              <IonLabel>{repuesto.descripcion}</IonLabel>
-              <IonButtons slot="end">
-                <IonLabel
-                  className={repuesto.cantidad > 0 ? "repuesto-incrementado" : ""}
-                >
+              <IonLabel>
+                {currentEstadoOrden === "visita" ? repuesto.StockPrincipal.nombre : repuesto.nombre}
+              </IonLabel>
+              <IonButtons slot='end'>
+                <IonLabel className={repuesto.cantidad > 0 ? "repuesto-incrementado" : ""}>
                   {repuesto.cantidad}
                 </IonLabel>
                 <IonButton onClick={() => handleAddRepuesto(index)}>+</IonButton>
-                <IonButton onClick={() => handleRemoveRepuesto(index)}>-</IonButton>
+                <IonButton onClick={() => handleRemoveRepuesto(repuesto.id_repuesto)}>-</IonButton>
               </IonButtons>
             </IonItem>
           ))}
         </IonList>
       </div>
-      <IonItem className="listado-seleccionados">
-        <IonLabel className="subtitle-listado-seleccionados">Seleccionado:</IonLabel>
+      <IonItem className='listado-seleccionados'>
+        <IonLabel className='subtitle-listado-seleccionados'>Seleccionado:</IonLabel>
       </IonItem>
       <IonList>
-        {selectedRepuestos.map((repuesto, index) => (
+        {(currentEstadoOrden === "taller" ? selectedRepuestosTaller : selectedRepuestos).map((repuesto, index) => (
           <IonItem key={index}>
-            <IonLabel>{repuesto.descripcion}</IonLabel>
+            <IonLabel>{currentEstadoOrden === "visita" ? repuesto.StockPrincipal.nombre : repuesto.nombre}</IonLabel>
             <IonLabel>{repuesto.cantidad}</IonLabel>
           </IonItem>
         ))}
       </IonList>
+      <IonButton onClick={handleConfirm}>Confirmar Selección</IonButton>
+      <IonToast
+        isOpen={showToast}
+        onDidDismiss={() => setShowToast(false)}
+        message="Repuestos confirmados con éxito."
+        duration={2000}
+      />
     </>
   );
 
-const handleConfirm = () => {
-  history.push({
-    pathname: "/tallerOrden",
-    state: { selectedRepuestos,ordenSeleccionada }
-  });
-};
-console.log(selectedRepuestos)
-
   return (
-    <IonContent className="repuestos-container">
+    <IonContent>
       <IonHeader>
         <HeaderGeneral />
       </IonHeader>
-      <div>
-        <h1 className="title-repuestos">Gestión de repuestos</h1>
-        <h2 className="subtitle-repuestos">
-          {estadoOrden === "visita" ? "Repuestos en camioneta" : "Repuestos en taller"}
-        </h2>
-      </div>
-
       {renderRepuestos()}
-      {estadoOrden === "taller" && (
-        <div className="container-confirm-button">
-          <IonButton className="confirm-button" onClick={handleConfirm}>
-            Confirmar
-          </IonButton>
-        </div>
-      )}
     </IonContent>
   );
 };
