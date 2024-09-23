@@ -1,6 +1,5 @@
+import React, { useState, useEffect, useRef } from "react";
 
-import React, { useState, useEffect, useRef } from 'react';
- 
 import {
   IonContent,
   IonPage,
@@ -18,7 +17,7 @@ import {
   IonHeader,
   IonAlert,
 } from "@ionic/react";
-import { useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import "../Diagnostico/diagnostico.css";
 import SignatureCanvas from "react-signature-canvas";
 import "./entrega.css";
@@ -28,6 +27,7 @@ import HeaderGeneral from "../../components/Header/HeaderGeneral";
 const Entrega: React.FC = () => {
   const location = useLocation();
   const { orden } = location.state as { orden: any };
+  const history = useHistory();
 
   const [modal, setModal] = useState(false);
   const [producto, setProducto] = useState("");
@@ -42,9 +42,10 @@ const Entrega: React.FC = () => {
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
   const [ordenSelected, setOrdenSelected] = useState<any>(null);
   const [showAlert, setShowAlert] = useState(false);
+  const [showConfirmEntregaAlert, setShowConfirmEntregaAlert] = useState(false);
 
-  const [firmaCliente, setFirmaCliente] = useState<string>('');
-  const [firmaTecnico, setFirmaTecnico] = useState<string>('');
+  const [firmaCliente, setFirmaCliente] = useState<string>("");
+  const [firmaTecnico, setFirmaTecnico] = useState<string>("");
 
   const sigCanvasCliente = useRef<SignatureCanvas | null>(null);
   const sigCanvasTecnico = useRef<SignatureCanvas | null>(null);
@@ -59,14 +60,16 @@ const Entrega: React.FC = () => {
 
   const obtenerEntrega = async (id: any) => {
     try {
-      const response = await fetch(`https://lv-back.online/entregas/orden/${id}`);
+      const response = await fetch(
+        `https://lv-back.online/entregas/orden/${id}`
+      );
       const entrega = await response.json();
       if (entrega) {
         console.log(`Se encontró una entrega asociada al id ${id}`);
         console.log(entrega);
         setFirmaCliente(entrega.firma_cliente);
         setFirmaTecnico(entrega.firma_empleado);
-        setSelectedOption(entrega.recomienda === 1 ? 'si' : 'no');
+        setSelectedOption(entrega.recomienda === 1 ? "si" : "no");
       } else {
         console.log(`No se encontró ninguna entrega con el id ${id}`);
       }
@@ -74,13 +77,12 @@ const Entrega: React.FC = () => {
       console.error("Error, entrega no encontrada.", error);
     }
   };
- 
 
   useEffect(() => {
     fetchTiposFunciones();
     if (orden && orden.id) {
       fetchOrden(orden.id);
-      obtenerEntrega(orden.id); 
+      obtenerEntrega(orden.id);
     }
   }, [orden]);
 
@@ -144,7 +146,7 @@ const Entrega: React.FC = () => {
       setCheckboxValues(updatedCheckboxValues);
     }
   }, [ordenSelected, textosCheckbox]);
-console.log(firmaCliente)
+  console.log(firmaCliente);
   useEffect(() => {
     if (firmaCliente && sigCanvasCliente.current) {
       // Convertir la firma de base64 a URL de datos
@@ -156,29 +158,26 @@ console.log(firmaCliente)
     }
   }, [firmaCliente, firmaTecnico]);
 
-
-
   const guardarEntrega = async () => {
     // Obtener las firmas en formato base64 desde los SignatureCanvas
     const firma_cliente = sigCanvasCliente.current?.toDataURL();
     const firma_empleado = sigCanvasTecnico.current?.toDataURL();
-  
+
     const entrega = {
       id_orden: ordenSelected?.id || 0,
- 
+
       firma_cliente: firma_cliente,
       firma_empleado: firma_empleado,
-      recomienda: selectedOption === 'si' ? 1 : 0
- 
+      recomienda: selectedOption === "si" ? 1 : 0,
     };
-  
+
     try {
       const response = await fetch("https://lv-back.online/entregas/guardar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entrega),
       });
-  
+
       const result = await response.json();
       if (result) {
         console.log("Entrega registrada con éxito!!!");
@@ -199,13 +198,14 @@ console.log(firmaCliente)
       checkboxValues,
       observaciones,
       firmaCliente,
-      firmaTecnico
+      firmaTecnico,
     };
     console.log(dataToSend);
 
     const entregaGuardada = await guardarEntrega();
     if (entregaGuardada) {
       console.log("Entrega concretada con éxito.");
+      window.history.back();
     } else {
       console.log("Error al concretar la entrega.");
     }
@@ -265,11 +265,9 @@ console.log(firmaCliente)
               </span>
               <IonInput
                 disabled
-
-                style={{ marginLeft: '10px' }}
-                value={ordenSelected?.equipo || ''}
-                placeholder='Ingrese producto'
-
+                style={{ marginLeft: "10px" }}
+                value={ordenSelected?.equipo || ""}
+                placeholder="Ingrese producto"
                 onIonChange={(e) => setProducto(e.detail.value!)}
               />
             </div>
@@ -279,11 +277,9 @@ console.log(firmaCliente)
               </span>
               <IonInput
                 disabled
-
-                style={{ marginLeft: '10px' }}
-                value={ordenSelected?.marca || ''}
-                placeholder='Ingrese marca'
-
+                style={{ marginLeft: "10px" }}
+                value={ordenSelected?.marca || ""}
+                placeholder="Ingrese marca"
                 onIonChange={(e) => setMarca(e.detail.value!)}
               />
             </div>
@@ -293,11 +289,9 @@ console.log(firmaCliente)
               </span>
               <IonInput
                 disabled
-
-                style={{ marginLeft: '10px' }}
-                value={ordenSelected?.modelo || ''}
-                placeholder='Ingrese modelo'
-
+                style={{ marginLeft: "10px" }}
+                value={ordenSelected?.modelo || ""}
+                placeholder="Ingrese modelo"
                 onIonChange={(e) => setModelo(e.detail.value!)}
               />
             </div>
@@ -307,11 +301,9 @@ console.log(firmaCliente)
               </span>
               <IonInput
                 disabled
-
-                style={{ marginLeft: '10px' }}
-                value={ordenSelected?.id_cliente || ''}
-                placeholder='Ingrese N° de cliente'
-
+                style={{ marginLeft: "10px" }}
+                value={ordenSelected?.id_cliente || ""}
+                placeholder="Ingrese N° de cliente"
                 onIonChange={(e) => setCliente(e.detail.value!)}
               />
             </div>
@@ -350,10 +342,8 @@ console.log(firmaCliente)
           <div className="section">
             <h2>Observaciones</h2>
             <IonInput
-
-              className='obs-input'
+              className="obs-input"
               value={orden.motivo}
-
               onIonChange={(e) => setObservaciones(e.detail.value!)}
               placeholder="Ingrese observaciones"
             />
@@ -363,31 +353,35 @@ console.log(firmaCliente)
             <span>Firma del cliente</span>
 
             <div>
-
-            <SignatureCanvas
-              ref={sigCanvasCliente}
-              penColor='black'
-              canvasProps={{ width: 500, height: 200, className: 'sigCanvas' }}
-            />
-                  <IonButton onClick={() => sigCanvasCliente.current?.clear()}>
-                  Borrar
-                </IonButton>
+              <SignatureCanvas
+                ref={sigCanvasCliente}
+                penColor="black"
+                canvasProps={{
+                  width: 500,
+                  height: 200,
+                  className: "sigCanvas",
+                }}
+              />
+              <IonButton onClick={() => sigCanvasCliente.current?.clear()}>
+                Borrar
+              </IonButton>
             </div>
 
             <span>Firma del técnico</span>
             <div>
-
-            <SignatureCanvas
-              ref={sigCanvasTecnico}
-              penColor='black'
-              canvasProps={{ width: 500, height: 200, className: 'sigCanvas' }}
-            />
-             <IonButton onClick={() => sigCanvasTecnico.current?.clear()}>
-                  Borrar
-                </IonButton>
-
+              <SignatureCanvas
+                ref={sigCanvasTecnico}
+                penColor="black"
+                canvasProps={{
+                  width: 500,
+                  height: 200,
+                  className: "sigCanvas",
+                }}
+              />
+              <IonButton onClick={() => sigCanvasTecnico.current?.clear()}>
+                Borrar
+              </IonButton>
             </div>
-
           </div>
           <div className="section">
             <h2>¿Nos recomendarías? </h2>
@@ -412,13 +406,42 @@ console.log(firmaCliente)
             </IonRadioGroup>
           </div>
           <div className="section">
-            <IonButton
+            {/* <IonButton
               className="button"
               style={{ "--border-radius": "20px" }}
               onClick={handleConfirmarClick}
             >
               Concretar entrega
+            </IonButton> */}
+            <IonButton
+              className="button"
+              style={{ "--border-radius": "20px" }}
+              onClick={() => setShowConfirmEntregaAlert(true)}
+            >
+              Concretar entrega
             </IonButton>
+
+            <IonAlert
+              isOpen={showConfirmEntregaAlert}
+              onDidDismiss={() => setShowConfirmEntregaAlert(false)}
+              header={"Confirmar entrega"}
+              message={"¿Estás seguro de que deseas concretar la entrega?"}
+              buttons={[
+                {
+                  text: "No",
+                  role: "cancel",
+                  cssClass: "secondary",
+                  handler: () => {
+                    setShowConfirmEntregaAlert(false);
+                  },
+                },
+                {
+                  text: "Sí",
+                  handler: handleConfirmarClick,
+                },
+              ]}
+            />
+
             <IonButton
               className="button"
               style={{

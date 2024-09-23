@@ -83,7 +83,7 @@ const Presupuesto: React.FC = () => {
   const [selectedEstadoPresupuesto, setSelectedEstadoPresupuesto] = useState<
     number | null
   >(null);
- 
+
   const location = useLocation();
   const { orden } = location.state as { orden: any };
 
@@ -110,8 +110,8 @@ const Presupuesto: React.FC = () => {
   type Servicio = (typeof servicios)[number];
 
   const servicioToDBFieldMap: Record<Servicio, string> = {
-    "Viaticos": "viaticos",
-    "Descuentos": "descuentos_referidos",
+    Viaticos: "viaticos",
+    Descuentos: "descuentos_referidos",
     "Comisión visita": "comision_visita",
     "Comisión reparación": "comision_reparacion",
     "Comisión entrega": "comision_entrega",
@@ -154,7 +154,7 @@ const Presupuesto: React.FC = () => {
       setEstados(await estadosPresupuestos());
       setRepuestos(await listaRepuestos());
       setMedioPago(await mediosDePago());
-  
+
       if (orden && orden.Presupuesto) {
         setProducto(orden.Presupuesto.producto || "");
         setFormaPago(orden.Presupuesto.formaPago || null);
@@ -163,8 +163,10 @@ const Presupuesto: React.FC = () => {
         setAcceptedPolicies(orden.Presupuesto.acceptedPolicies || false);
         setPlazosCheckboxValues([orden.Presupuesto.id_plazo_reparacion] || []);
         setSelectedMedioPago(orden.Presupuesto.id_medio_de_pago || null);
-        setSelectedEstadoPresupuesto(orden.Presupuesto.id_estado_presupuesto || null);
-  
+        setSelectedEstadoPresupuesto(
+          orden.Presupuesto.id_estado_presupuesto || null
+        );
+
         setMontos([
           orden.Presupuesto.viaticos || 0,
           orden.Presupuesto.descuentos_referidos || 0,
@@ -174,10 +176,10 @@ const Presupuesto: React.FC = () => {
           orden.Presupuesto.comision_reparacion_domicilio || 0,
           orden.Presupuesto.gasto_impositivo || 0,
         ]);
-  
+
         const firmaClienteDataURL = orden.Presupuesto.firma_cliente;
         const firmaEmpleadoDataURL = orden.Presupuesto.firma_empleado;
-  
+
         if (sigCanvas1.current) {
           sigCanvas1.current.fromDataURL(firmaClienteDataURL);
         }
@@ -185,7 +187,9 @@ const Presupuesto: React.FC = () => {
           sigCanvas2.current.fromDataURL(firmaEmpleadoDataURL);
         }
       } else {
-        const savedData = JSON.parse(localStorage.getItem("presupuestoData") || "{}");
+        const savedData = JSON.parse(
+          localStorage.getItem("presupuestoData") || "{}"
+        );
         setMontos(savedData.montos || Array(7).fill(0)); // Ensure montos is parsed correctly as an array
         setProducto(savedData.producto || "");
         setFormaPago(savedData.formaPago || null);
@@ -196,8 +200,10 @@ const Presupuesto: React.FC = () => {
         setSignature2(savedData.signature2 || "");
         setPlazosCheckboxValues(savedData.plazosCheckboxValues || []);
         setSelectedMedioPago(savedData.selectedMedioPago || null);
-        setSelectedEstadoPresupuesto(savedData.selectedEstadoPresupuesto || null);
-  
+        setSelectedEstadoPresupuesto(
+          savedData.selectedEstadoPresupuesto || null
+        );
+
         if (sigCanvas1.current) {
           sigCanvas1.current.fromDataURL(savedData.signature1 || "");
         }
@@ -206,12 +212,9 @@ const Presupuesto: React.FC = () => {
         }
       }
     };
-  
+
     loadData();
   }, [orden]);
-  
-
- 
 
   const handleMedioPagoChange = (event: CustomEvent) => {
     setSelectedMedioPago(event.detail.value);
@@ -221,10 +224,6 @@ const Presupuesto: React.FC = () => {
     setSelectedEstadoPresupuesto(event.detail.value);
   };
 
-
-
-  
-
   const handleConfirmarClick = async () => {
     if (!acceptedPolicies) {
       setShowAlert2(true); // Mostrar alerta de políticas de privacidad si no están aceptadas
@@ -232,12 +231,12 @@ const Presupuesto: React.FC = () => {
       setShowConfirmAlert(true); // Mostrar alerta de confirmación si las políticas están aceptadas
     }
   };
-  
+
   const handleConfirmAlert = async () => {
     setShowConfirmAlert(false); // Ocultar la alerta de confirmación
-  
+
     let presupuestoId = orden.Presupuesto ? orden.Presupuesto.id : null;
-  
+
     const serviciosMontos: Record<string, number> = {};
     montos.forEach((monto, index) => {
       const servicio = servicios[index];
@@ -246,13 +245,13 @@ const Presupuesto: React.FC = () => {
         serviciosMontos[dbField] = monto;
       }
     });
-  
+
     const firma_cliente = sigCanvas1.current?.toDataURL();
     const firma_empleado = sigCanvas2.current?.toDataURL();
-  
+
     const id_plazo_reparacion =
       plazosCheckboxValues.length > 0 ? plazosCheckboxValues[0] : null;
-  
+
     const dataToSend = {
       id_orden: orden.id,
       id_plazo_reparacion,
@@ -265,12 +264,12 @@ const Presupuesto: React.FC = () => {
       ...serviciosMontos,
       total,
     };
-  
+
     console.log("Datos a enviar:", dataToSend);
-  
+
     try {
       let response;
-  
+
       if (presupuestoId) {
         // Presupuesto existente, modificar
         response = await fetch(
@@ -285,24 +284,21 @@ const Presupuesto: React.FC = () => {
         );
       } else {
         // Presupuesto no existe, crear nuevo
-        response = await fetch(
-          "https://lv-back.online/presupuestos/guardar",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(dataToSend),
-          }
-        );
+        response = await fetch("https://lv-back.online/presupuestos/guardar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToSend),
+        });
       }
-  
+
       if (response.ok) {
         const result = await response.json();
         console.log("Presupuesto guardado/modificado con éxito!!!");
         console.log(result);
-        localStorage.removeItem('ordenActiva');
-        history.push('/domicilio')
+        localStorage.removeItem("ordenActiva");
+        window.history.back();
 
         localStorage.setItem(
           "presupuestoData",
@@ -351,7 +347,6 @@ const Presupuesto: React.FC = () => {
       setShowAlert(true);
     }
   };
-  
 
   const handleSelect = (selectedValue: string) => {
     setSelectedOptions((prevOptions) => {
@@ -405,7 +400,6 @@ const Presupuesto: React.FC = () => {
       );
     }
   };
-
 
   const handleConfirmAlertCancel = () => {
     setShowConfirmAlert(false);
@@ -534,17 +528,17 @@ const Presupuesto: React.FC = () => {
                   justifyContent: "space-between",
                 }}
               >
-             <IonSelect
-  value={selectedMedioPago}
-  placeholder="Seleccione medio de pago"
-  onIonChange={handleMedioPagoChange}
->
-  {medioPago.map((medio) => (
-    <IonSelectOption key={medio.id} value={medio.id}>
-      {medio.medio_de_pago}
-    </IonSelectOption>
-  ))}
-</IonSelect>
+                <IonSelect
+                  value={selectedMedioPago}
+                  placeholder="Seleccione medio de pago"
+                  onIonChange={handleMedioPagoChange}
+                >
+                  {medioPago.map((medio) => (
+                    <IonSelectOption key={medio.id} value={medio.id}>
+                      {medio.medio_de_pago}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
               </div>
             </div>
             <div className="section">
@@ -575,17 +569,17 @@ const Presupuesto: React.FC = () => {
               </div>
 
               <div>
-              <IonSelect
-  value={selectedEstadoPresupuesto}
-  placeholder="Seleccione estado"
-  onIonChange={handleEstadoPresupuestoChange}
->
-  {estados.map((estado) => (
-    <IonSelectOption key={estado.id} value={estado.id}>
-      {estado.texto}
-    </IonSelectOption>
-  ))}
-</IonSelect>
+                <IonSelect
+                  value={selectedEstadoPresupuesto}
+                  placeholder="Seleccione estado"
+                  onIonChange={handleEstadoPresupuestoChange}
+                >
+                  {estados.map((estado) => (
+                    <IonSelectOption key={estado.id} value={estado.id}>
+                      {estado.texto}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
               </div>
             </div>
 
@@ -617,8 +611,8 @@ const Presupuesto: React.FC = () => {
                 </div>
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <IonCheckbox
-            checked={acceptedPolicies}
-            onIonChange={handleAcceptPoliciesChange}
+                    checked={acceptedPolicies}
+                    onIonChange={handleAcceptPoliciesChange}
                   />
                   <span
                     style={{
@@ -628,12 +622,12 @@ const Presupuesto: React.FC = () => {
                     Acepto las políticas de garantía
                   </span>
                   <IonAlert
-          isOpen={showAlert2}
-          onDidDismiss={() => setShowAlert2(false)}
-          header="Error"
-          message="Debe aceptar las políticas de privacidad para continuar."
-          buttons={["OK"]}
-        />
+                    isOpen={showAlert2}
+                    onDidDismiss={() => setShowAlert2(false)}
+                    header="Error"
+                    message="Debe aceptar las políticas de privacidad para continuar."
+                    buttons={["OK"]}
+                  />
                 </div>
               </div>
               <h2>Firmas</h2>
@@ -684,22 +678,22 @@ const Presupuesto: React.FC = () => {
                 Confirmar
               </IonButton>
               <IonAlert
-          isOpen={showConfirmAlert}
-          onDidDismiss={handleConfirmAlertCancel}
-          header="Confirmar"
-          message="¿Desea confirmar la operación?"
-          buttons={[
-            {
-              text: "Cancelar",
-              role: "cancel",
-              handler: handleConfirmAlertCancel,
-            },
-            {
-              text: "Confirmar",
-              handler: handleConfirmAlert,
-            },
-          ]}
-        />
+                isOpen={showConfirmAlert}
+                onDidDismiss={handleConfirmAlertCancel}
+                header="Confirmar"
+                message="¿Desea confirmar la operación?"
+                buttons={[
+                  {
+                    text: "Cancelar",
+                    role: "cancel",
+                    handler: handleConfirmAlertCancel,
+                  },
+                  {
+                    text: "Confirmar",
+                    handler: handleConfirmAlert,
+                  },
+                ]}
+              />
               <IonButton
                 className="button"
                 style={{

@@ -12,27 +12,35 @@ import {
 import { pencilOutline } from "ionicons/icons";
 import "./diagnostico.css";
 import HeaderGeneral from "../../components/Header/HeaderGeneral";
-import { useLocation } from 'react-router-dom';
+import { useHistory, useLocation } from "react-router-dom";
 
 const Diagnostico: React.FC = () => {
   const [equipo, setEquipo] = useState("");
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
   const [cliente, setCliente] = useState("");
-  const [checkboxValues, setCheckboxValues] = useState<boolean[]>(Array(10).fill(false));
+  const [checkboxValues, setCheckboxValues] = useState<boolean[]>(
+    Array(10).fill(false)
+  );
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
   const location = useLocation<any>();
   const { orden } = location.state;
   const [motivo, setMotivo] = useState("");
   const motivoRef = useRef<HTMLIonInputElement>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showApprovalAlert, setShowApprovalAlert] = useState(false); // Estado para mostrar alerta de aprobación
+  const history = useHistory();
+
   const modificarOrden = async (id: any, orden: any) => {
     try {
-      const response = await fetch(`https://lv-back.online/ordenes/modificar/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orden)
-      });
+      const response = await fetch(
+        `https://lv-back.online/ordenes/modificar/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orden),
+        }
+      );
       const result = await response.json();
       if (result[0] === 1) {
         console.log("Orden modificada con éxito");
@@ -51,12 +59,19 @@ const Diagnostico: React.FC = () => {
       const response = await fetch("https://lv-back.online/opciones/funcion");
       const funciones = await response.json();
       if (funciones && funciones.length > 0) {
-        setTextosCheckbox(funciones.map((funcion: { tipo_funcion: string }) => funcion.tipo_funcion));
+        setTextosCheckbox(
+          funciones.map(
+            (funcion: { tipo_funcion: string }) => funcion.tipo_funcion
+          )
+        );
       } else {
-        console.log('Aún no se registra ningún tipo de funcion...');
+        console.log("Aún no se registra ningún tipo de funcion...");
       }
     } catch (error) {
-      console.error("Error, no se encontraron tipos de funciones en la base de datos....", error);
+      console.error(
+        "Error, no se encontraron tipos de funciones en la base de datos....",
+        error
+      );
     }
   };
 
@@ -64,12 +79,14 @@ const Diagnostico: React.FC = () => {
     try {
       const ordenResponse = await fetch(`https://lv-back.online/ordenes/${id}`);
       if (!ordenResponse.ok) {
-        throw new Error('Error al obtener datos de la API');
+        throw new Error("Error al obtener datos de la API");
       }
 
       const orden = await ordenResponse.json();
       if (orden) {
-        const clienteResponse = await fetch(`https://lv-back.online/clientes/${orden.id_cliente}`);
+        const clienteResponse = await fetch(
+          `https://lv-back.online/clientes/${orden.id_cliente}`
+        );
         const cliente = await clienteResponse.json();
         return { ...orden, cliente };
       } else {
@@ -86,18 +103,18 @@ const Diagnostico: React.FC = () => {
     const loadData = async () => {
       try {
         let data = null;
-  
+
         if (orden) {
           data = await fetchOrden(orden.id);
         }
-  
+
         if (!data) {
           const localStorageData = localStorage.getItem("diagnosticoData");
           if (localStorageData) {
             data = JSON.parse(localStorageData);
           }
         }
-  
+
         if (data) {
           // Actualizar estados solo si los datos están disponibles
           setEquipo(data.equipo || "");
@@ -109,7 +126,7 @@ const Diagnostico: React.FC = () => {
           }
           // Actualizar valores de los checkboxes basados en 'textosCheckbox'
           const diagnosticoOrden = data.diagnostico || "";
-          const nuevosCheckboxValues = textosCheckbox.map(texto =>
+          const nuevosCheckboxValues = textosCheckbox.map((texto) =>
             diagnosticoOrden.includes(texto)
           );
           setCheckboxValues(nuevosCheckboxValues);
@@ -118,22 +135,25 @@ const Diagnostico: React.FC = () => {
         console.error("Error al cargar datos:", error);
       }
     };
-  
- 
+
     if (orden && textosCheckbox.length > 0) {
       loadData();
     }
   }, [orden, textosCheckbox]);
-  
- 
+
   useEffect(() => {
     fetchTiposFunciones();
   }, []);
 
   const handleConfirmarClick = async () => {
+    // Verifica si la orden está aprobada
+    if (!orden.aprobada) {
+      setShowApprovalAlert(true); // Mostrar alerta si no está aprobada
+      return;
+    }
     const diagnostico = textosCheckbox
       .filter((texto, index) => checkboxValues[index])
-      .join(', ');
+      .join(", ");
 
     const dataToSend = {
       equipo,
@@ -151,7 +171,7 @@ const Diagnostico: React.FC = () => {
     if (orden && orden.id) {
       const success = await modificarOrden(orden.id, dataToSend);
       if (success) {
-        alert("Diagnostico guardado con éxito");
+        // alert("Diagnostico guardado con éxito");
         console.log("Orden guardada", dataToSend);
       } else {
         console.log("Error al guardar en la base de datos.");
@@ -261,34 +281,85 @@ const Diagnostico: React.FC = () => {
             />
           </div>
           <div className="section">
-    
-                <IonButton         className="button"
-              style={{ "--border-radius": "20px" }} onClick={() => setShowConfirm(true)}>Confirmar</IonButton>
-           
-         
+            <IonButton
+              className="button"
+              style={{ "--border-radius": "20px" }}
+              onClick={() => setShowConfirm(true)}
+            >
+              Confirmar
+            </IonButton>
+
             <IonAlert
-        isOpen={showConfirm}
-        onDidDismiss={() => setShowConfirm(false)}
-        header={'Confirmar acción'}
-        message={'¿Deseas confirmar este diagnostico?'}
-        buttons={[
-          {
-            text: 'Cancelar',
-            role: 'cancel',
-            handler: () => {
-              setShowConfirm(false);
-            }
-          },
-          {
-            text: 'Confirmar',
-            handler: () => {
-              handleConfirmarClick();
-              setShowConfirm(false);
-            }
-          }
-        ]}
-      />
+              isOpen={showConfirm}
+              onDidDismiss={() => setShowConfirm(false)}
+              header={"Confirmar acción"}
+              message={"¿Deseas confirmar este diagnóstico?"}
+              buttons={[
+                {
+                  text: "Cancelar",
+                  role: "cancel",
+                  handler: () => {
+                    setShowConfirm(false);
+                  },
+                },
+                {
+                  text: "Confirmar",
+                  handler: () => {
+                    handleConfirmarClick();
+                    setShowConfirm(false);
+                  },
+                },
+              ]}
+            />
+
+            {/* Alerta si la orden no está aprobada */}
+            <IonAlert
+              isOpen={showApprovalAlert}
+              onDidDismiss={() => setShowApprovalAlert(false)}
+              header={"Orden no aprobada"}
+              message={"Esta orden debe ser aprobada antes de proceder."}
+              buttons={[
+                {
+                  text: "Ir a Domicilio",
+                  handler: () => {
+                    history.push("/domicilio"); // Redirigir a la página de domicilio
+                  },
+                },
+              ]}
+            />
           </div>
+          {/* <div className="section">
+            <IonButton
+              className="button"
+              style={{ "--border-radius": "20px" }}
+              onClick={() => setShowConfirm(true)}
+            >
+              Confirmar
+            </IonButton>
+
+            <IonAlert
+              isOpen={showConfirm}
+              onDidDismiss={() => setShowConfirm(false)}
+              header={"Confirmar acción"}
+              message={"¿Deseas confirmar este diagnostico?"}
+              buttons={[
+                {
+                  text: "Cancelar",
+                  role: "cancel",
+                  handler: () => {
+                    setShowConfirm(false);
+                  },
+                },
+                {
+                  text: "Confirmar",
+                  handler: () => {
+                    handleConfirmarClick();
+                    setShowConfirm(false);
+                  },
+                },
+              ]}
+            />
+          </div> */}
         </div>
       </IonContent>
     </IonPage>
