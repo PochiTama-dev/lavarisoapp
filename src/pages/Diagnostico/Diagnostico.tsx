@@ -64,6 +64,7 @@ const Diagnostico: React.FC = () => {
             (funcion: { tipo_funcion: string }) => funcion.tipo_funcion
           )
         );
+        
       } else {
         console.log("Aún no se registra ningún tipo de funcion...");
       }
@@ -130,6 +131,7 @@ const Diagnostico: React.FC = () => {
             diagnosticoOrden.includes(texto)
           );
           setCheckboxValues(nuevosCheckboxValues);
+          console.log("CHECKBOXES", nuevosCheckboxValues)
         }
       } catch (error) {
         console.error("Error al cargar datos:", error);
@@ -176,7 +178,7 @@ const Diagnostico: React.FC = () => {
       console.error("No se pudo obtener el ID de la orden.");
     }
   };
-
+ 
   return (
     <IonPage>
       <IonContent>
