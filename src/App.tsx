@@ -45,11 +45,13 @@ import TecnicoTaller from "./pages/TecnicoTaller/TecnicoTaller";
 import TallerVerOrden from "./pages/Orden/TallerVerOrden";
 import { OrdenProvider } from "./pages/Orden/ordenContext";
 import Feedback from "./pages/Feedback/Feedback";
+import RemitoOrden from "./components/Facturacion/Remito";
 setupIonicReact();
 
 const App: React.FC = () => {
   return (
     <IonApp>
+ 
         <OrdenProvider>
       <IonReactRouter>
         <Route exact path="/">
@@ -110,9 +112,12 @@ const App: React.FC = () => {
         <Route path="/repuestosDomicilio" exact={true}>
           <RepuestosDomicilio />
         </Route>
-
+      <Route path="/remito" exact={true}>
+            <RemitoOrden />
+          </Route>
       </IonReactRouter>
         </OrdenProvider>
+ 
     </IonApp>
   );
 };
