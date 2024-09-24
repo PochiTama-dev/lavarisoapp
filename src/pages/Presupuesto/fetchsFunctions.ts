@@ -100,4 +100,36 @@ export const fetchPlazosReparacion = async () => {
     }
   };
   
- 
+  export const createRepuestoOrden = async (repuestoOrdenData: any) => {
+    const API_URL = 'https://lv-back.online/orden/repuestos';  
+    try {
+      const response = await fetch(`${API_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(repuestoOrdenData),
+      });
+      if (!response.ok) throw new Error('Error al agregar repuestos a la orden');
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+  
+  
+  export const getRepuestosOrdenById = async (id: any) => {
+    const API_URL = 'https://lv-back.online/orden/repuestos';
+  
+    try {
+      const response = await fetch(`${API_URL}/${id}`);
+      if (!response.ok) throw new Error('Error al obtener los repuestos de la orden');
+      const data = await response.json();
+      return data; // Solo devuelve los repuestos
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };

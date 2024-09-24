@@ -31,6 +31,21 @@ export const getRepuestosOrdenById = async (id: any) => {
       throw error;
     }
   };
+
+  export const fetchRepuestosDomicilio = async ( idEmpleado: string) => {
+    let url = "";
+ 
+      url = `https://lv-back.online/stock/camioneta/empleados/${idEmpleado}`;
+  
+    try {
+      const response = await fetch(url);
+      const repuestosData = await response.json();
+      return repuestosData;
+    } catch (error) {
+      console.error("Error al consultar el stock de repuestos.", error);
+      throw error;
+    }
+  };
   
   export const modificarStockPrincipal = async (id: number, repuesto: { cantidad: number; }) => {
     try {

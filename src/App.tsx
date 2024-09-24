@@ -16,6 +16,8 @@ import Entrega from "./pages/Entrega/Entrega";
 import Presupuesto from "./pages/Presupuesto/Presupuesto";
 import Facturacion from "./pages/Facturacion/Facturacion";
 import Repuesto from "./pages/Repuesto/Repuesto";
+import RepuestosTaller from "./components/Repuestos/RepuestosTaller";
+import RepuestosDomicilio from "./components/Repuestos/RepuestosDomicilio";
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
 
@@ -49,62 +51,73 @@ setupIonicReact();
 const App: React.FC = () => {
   return (
     <IonApp>
-      <OrdenProvider>
-        <IonReactRouter>
-          <Route exact path="/">
-            <Redirect to="/login" />
-          </Route>
-          <Route path="/login" exact={true}>
-            <Login />
-          </Route>
-          <Route path="/rol" exact={true}>
-            <LoginRol />
-          </Route>
-          <Route path="/domicilio" exact={true}>
-            <TecnicoDomicilio />
-          </Route>
+ 
+        <OrdenProvider>
+      <IonReactRouter>
+        <Route exact path="/">
+          <Redirect to="/login" />
+        </Route>
+        <Route path="/login" exact={true}>
+          <Login />
+        </Route>
+        <Route path="/rol" exact={true}>
+          <LoginRol />
+        </Route>
+        <Route path="/domicilio" exact={true}>
+          <TecnicoDomicilio />
+        </Route>
+  
+        <Route path="/alertas" exact={true}>
+          <Alertas />
+        </Route>
+        
+        <Route path="/feedback" exact={true}>
+          <Feedback />
+        </Route>
+        <Route path="/diagnostico" exact={true}>
+          <Diagnostico />
+        </Route>
+        <Route path="/entrega" exact={true}>
+          <Entrega />
+        </Route>
+        <Route path="/presupuesto" exact={true}>
+          <Presupuesto />
+        </Route>
+        <Route path="/facturacion" exact={true}>
+          <Facturacion />
+        </Route>
+      
+        <Route path="/chat" exact={true}>
+          <Chat />
+        </Route>
+        <Route path="/verorden">
+          <ConfirmacionOrden />
+        </Route>
+       
+        <Route path="/tallerorden">
+          <TallerVerOrden />
+        </Route>
+        <Route path="/taller" exact={true}>
+          <TecnicoTaller />
+        </Route>
+        <Route path="/repuestos" exact={true}>
+          <Repuesto />
+        </Route>
 
-          <Route path="/alertas" exact={true}>
-            <Alertas />
-          </Route>
+        <Route path="/repuestosTaller" exact={true}>
+          <RepuestosTaller />
+        </Route>
 
-          <Route path="/feedback" exact={true}>
-            <Feedback />
-          </Route>
-          <Route path="/diagnostico" exact={true}>
-            <Diagnostico />
-          </Route>
-          <Route path="/entrega" exact={true}>
-            <Entrega />
-          </Route>
-          <Route path="/presupuesto" exact={true}>
-            <Presupuesto />
-          </Route>
-          <Route path="/facturacion" exact={true}>
-            <Facturacion />
-          </Route>
 
-          <Route path="/chat" exact={true}>
-            <Chat />
-          </Route>
-          <Route path="/verorden">
-            <ConfirmacionOrden />
-          </Route>
-
-          <Route path="/tallerorden">
-            <TallerVerOrden />
-          </Route>
-          <Route path="/taller" exact={true}>
-            <TecnicoTaller />
-          </Route>
-          <Route path="/repuestos" exact={true}>
-            <Repuesto />
-          </Route>
-          <Route path="/remito" exact={true}>
+        <Route path="/repuestosDomicilio" exact={true}>
+          <RepuestosDomicilio />
+        </Route>
+      <Route path="/remito" exact={true}>
             <RemitoOrden />
           </Route>
-        </IonReactRouter>
-      </OrdenProvider>
+      </IonReactRouter>
+        </OrdenProvider>
+ 
     </IonApp>
   );
 };
