@@ -104,7 +104,7 @@ function TecnicoDomicilioComponent() {
       } catch (error) {
         setError(error);
       }
-    }, 5000); // Cada 3 segundos
+    }, 5000); // Cada 5 segundos
 
     return () => clearInterval(intervalId); // Limpiar el intervalo cuando el componente se desmonte
   }, []);
