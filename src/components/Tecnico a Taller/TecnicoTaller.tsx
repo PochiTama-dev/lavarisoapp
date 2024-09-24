@@ -19,7 +19,8 @@ function TecnicoTallerComponent() {
       state: { ordenSeleccionada: { id: ordenSeleccionada.id } }
     });
  
-
+  }
+  
   const handleButtonClick2 = (path: any, orden = null) => {
     if (orden) {
       history.push({
