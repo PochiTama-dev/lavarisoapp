@@ -43,64 +43,68 @@ import TecnicoTaller from "./pages/TecnicoTaller/TecnicoTaller";
 import TallerVerOrden from "./pages/Orden/TallerVerOrden";
 import { OrdenProvider } from "./pages/Orden/ordenContext";
 import Feedback from "./pages/Feedback/Feedback";
+import RemitoOrden from "./components/Facturacion/Remito";
 setupIonicReact();
 
 const App: React.FC = () => {
   return (
     <IonApp>
-        <OrdenProvider>
-      <IonReactRouter>
-        <Route exact path="/">
-          <Redirect to="/login" />
-        </Route>
-        <Route path="/login" exact={true}>
-          <Login />
-        </Route>
-        <Route path="/rol" exact={true}>
-          <LoginRol />
-        </Route>
-        <Route path="/domicilio" exact={true}>
-          <TecnicoDomicilio />
-        </Route>
-  
-        <Route path="/alertas" exact={true}>
-          <Alertas />
-        </Route>
-        
-        <Route path="/feedback" exact={true}>
-          <Feedback />
-        </Route>
-        <Route path="/diagnostico" exact={true}>
-          <Diagnostico />
-        </Route>
-        <Route path="/entrega" exact={true}>
-          <Entrega />
-        </Route>
-        <Route path="/presupuesto" exact={true}>
-          <Presupuesto />
-        </Route>
-        <Route path="/facturacion" exact={true}>
-          <Facturacion />
-        </Route>
-      
-        <Route path="/chat" exact={true}>
-          <Chat />
-        </Route>
-        <Route path="/verorden">
-          <ConfirmacionOrden />
-        </Route>
-       
-        <Route path="/tallerorden">
-          <TallerVerOrden />
-        </Route>
-        <Route path="/taller" exact={true}>
-          <TecnicoTaller />
-        </Route>
-        <Route path="/repuestos" exact={true}>
-          <Repuesto />
-        </Route>
-      </IonReactRouter>
-        </OrdenProvider>
+      <OrdenProvider>
+        <IonReactRouter>
+          <Route exact path="/">
+            <Redirect to="/login" />
+          </Route>
+          <Route path="/login" exact={true}>
+            <Login />
+          </Route>
+          <Route path="/rol" exact={true}>
+            <LoginRol />
+          </Route>
+          <Route path="/domicilio" exact={true}>
+            <TecnicoDomicilio />
+          </Route>
+
+          <Route path="/alertas" exact={true}>
+            <Alertas />
+          </Route>
+
+          <Route path="/feedback" exact={true}>
+            <Feedback />
+          </Route>
+          <Route path="/diagnostico" exact={true}>
+            <Diagnostico />
+          </Route>
+          <Route path="/entrega" exact={true}>
+            <Entrega />
+          </Route>
+          <Route path="/presupuesto" exact={true}>
+            <Presupuesto />
+          </Route>
+          <Route path="/facturacion" exact={true}>
+            <Facturacion />
+          </Route>
+
+          <Route path="/chat" exact={true}>
+            <Chat />
+          </Route>
+          <Route path="/verorden">
+            <ConfirmacionOrden />
+          </Route>
+
+          <Route path="/tallerorden">
+            <TallerVerOrden />
+          </Route>
+          <Route path="/taller" exact={true}>
+            <TecnicoTaller />
+          </Route>
+          <Route path="/repuestos" exact={true}>
+            <Repuesto />
+          </Route>
+          <Route path="/remito" exact={true}>
+            <RemitoOrden />
+          </Route>
+        </IonReactRouter>
+      </OrdenProvider>
     </IonApp>
   );
 };

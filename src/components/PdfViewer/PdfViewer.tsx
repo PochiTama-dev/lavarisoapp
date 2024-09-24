@@ -3,8 +3,6 @@ import * as pdfjsLib from "pdfjs-dist/";
 import pdfjsWorker from "pdfjs-dist";
 import { IonContent } from "@ionic/react";
 
-// pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-
 interface PdfViewerProps {
   url: string | null;
 }
@@ -18,7 +16,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ url }) => {
 
       const loadingTask = pdfjsLib.getDocument(url);
       const pdf = await loadingTask.promise;
-      const page = await pdf.getPage(1); // Cargar la primera página
+      const page = await pdf.getPage(1);
 
       const viewport = page.getViewport({ scale: 1 });
       const canvas = canvasRef.current;

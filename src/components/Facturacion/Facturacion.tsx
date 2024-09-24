@@ -8,11 +8,12 @@ import {
   IonButton,
   IonLabel,
   IonIcon,
+  IonAlert,
 } from "@ionic/react";
 import { addOutline, cameraOutline } from "ionicons/icons";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./Facturacion.css";
-import { useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 
 interface MedioDePago {
   id: number;
@@ -22,6 +23,7 @@ interface MedioDePago {
 
 const FacturacionComponent = () => {
   const location = useLocation();
+  const history = useHistory();
   const { orden } = location.state as { orden: any };
   const [mediosPago, setMediosPago] = useState<MedioDePago[]>([]);
   const [selectedMedioPago, setSelectedMedioPago] = useState<number | null>(
@@ -31,6 +33,8 @@ const FacturacionComponent = () => {
   const [estadoPago, setEstadoPago] = useState<string>("pendiente");
   const [imagenComprobante, setImagenComprobante] = useState<string>("");
   const [entregaId, setEntregaId] = useState<number | null>(null);
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+
   const entregaPago = async (idEntrega: number) => {
     try {
       const response = await fetch(
@@ -55,13 +59,8 @@ const FacturacionComponent = () => {
   };
 
   const guardarPago = async () => {
-    if (selectedMedioPago === null) {
-      console.error("No se ha seleccionado un medio de pago.");
-      return;
-    }
-
-    if (entregaId === null) {
-      console.error("No se ha encontrado una entrega asociada.");
+    if (selectedMedioPago === null || entregaId === null) {
+      console.error("No se ha seleccionado un medio de pago o no hay entrega.");
       return;
     }
 
@@ -74,12 +73,9 @@ const FacturacionComponent = () => {
 
     try {
       const pagoExistente = await entregaPago(entregaId);
-      console.log(`Pago existente: ${pagoExistente}`);
-
       const url = pagoExistente
         ? `https://lv-back.online/pagos/modificar/${pagoExistente.id}`
         : "https://lv-back.online/pagos/guardar";
-
       const method = pagoExistente ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -88,24 +84,13 @@ const FacturacionComponent = () => {
         body: JSON.stringify(pago),
       });
 
-      const result = await response.json();
       if (response.ok) {
-        console.log(
-          `Medio de pago ${
-            pagoExistente ? "modificado" : "registrado"
-          } con éxito!!!`
-        );
-        return true;
+        setShowAlert(true);
       } else {
-        console.log(
-          `Se produjo un error, el medio de pago no pudo ser ${
-            pagoExistente ? "modificado" : "registrado"
-          }...`
-        );
-        return false;
+        console.log("Error al procesar el pago.");
       }
     } catch (error) {
-      console.error(`Error al  modificar/crear el pago.`, error);
+      console.error("Error al guardar el pago.", error);
     }
   };
 
@@ -164,6 +149,27 @@ const FacturacionComponent = () => {
     }
   };
 
+  const handleOptionSelection = (option: string) => {
+    if (option === "ver") {
+      console.log("Orden al navegar:", orden);
+      history.push("/remito", { orden });
+      // } else if (option === "descargar") {
+      //   window.print();
+    } else if (option === "enviar") {
+      console.log("Enviando remito al cliente...");
+    } else if (option === "inicio") {
+      history.push("/domicilio");
+    }
+  };
+
+  useEffect(() => {
+    if (orden && orden.id) {
+      ordenEntrega(orden.id);
+    } else {
+      console.error("No se encontró la orden.");
+    }
+  }, [orden]);
+
   return (
     <IonContent className="facturacion-container">
       <IonHeader>
@@ -205,15 +211,6 @@ const FacturacionComponent = () => {
 
           <IonInput value={`$${orden.Presupuesto?.total || 0}`} />
         </div>
-        {/* <div className="add-payment-method">
-          <IonIcon icon={addOutline} />
-        </div> */}
-        {/* <div className="adjuntar-foto">
-          <IonButton className="custom-button">
-            <IonIcon icon={cameraOutline} className="custom-icon" />
-          </IonButton>
-          <IonLabel>Adjuntar foto de comprobante</IonLabel>
-        </div> */}
         <div className="adjuntar-foto">
           <input
             type="file"
@@ -237,6 +234,30 @@ const FacturacionComponent = () => {
         >
           Finalizar
         </IonButton>
+        <IonAlert
+          isOpen={showAlert}
+          onDidDismiss={() => setShowAlert(false)}
+          header={"Opciones de remito"}
+          message={"¿Qué desea hacer con el remito?"}
+          buttons={[
+            {
+              text: "Ver remito",
+              handler: () => handleOptionSelection("ver"),
+            },
+            // {
+            //   text: "Descargar remito",
+            //   handler: () => handleOptionSelection("descargar"),
+            // },
+            {
+              text: "Enviar remito al cliente",
+              handler: () => handleOptionSelection("enviar"),
+            },
+            {
+              text: "Ir al inicio",
+              handler: () => handleOptionSelection("inicio"),
+            },
+          ]}
+        />
       </div>
     </IonContent>
   );

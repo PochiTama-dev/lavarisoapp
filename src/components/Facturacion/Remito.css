@@ -1,0 +1,116 @@
+.remito {
+  background-color: white;
+}
+
+.remito-container {
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.remito-container svg {
+  max-width: 100%;
+}
+
+.remito-container-content {
+  display: flex;
+  flex-direction: column;
+  margin-left: 5%;
+  margin-top: 7.5%;
+  color: #283959;
+}
+
+.remito-container-content h2 {
+  font-weight: bold;
+}
+
+.remito-container-top {
+  margin-bottom: 1%;
+}
+
+.remito-container-top div {
+  display: flex;
+  flex-direction: row;
+  gap: 5%;
+}
+
+.remito-container-bottom {
+  margin-bottom: 1%;
+}
+
+.remito-container-bottom div {
+  display: flex;
+  flex-direction: row;
+  gap: 15%;
+}
+
+.remito-container-table {
+  margin-top: 1%;
+}
+
+.remito-container-table table {
+  width: 80%;
+  margin-left: 2%;
+  margin-top: 1%;
+}
+
+.remito-container-table th {
+  font-weight: 800;
+  font-size: larger;
+}
+
+.remito-container-table td {
+  font-weight: 500;
+  margin-left: 1%;
+  font-size: large;
+}
+
+.remito-container-total {
+  display: flex;
+  justify-content: flex-end;
+  margin-right: 25%;
+  margin-top: 2%;
+  gap: 5%;
+}
+
+.remito-button-container {
+  background-color: #69688c;
+  width: 10%;
+  margin-left: 45%;
+  border-radius: 20px;
+  text-align: center;
+  margin-top: 2%;
+}
+
+.remito-button-container button {
+  background-color: #69688c;
+  color: white;
+  border-radius: 20px;
+  border: none;
+}
+
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .remito-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    background-color: white;
+  }
+
+  .remito-container-content {
+    width: 100%;
+    padding: 0;
+  }
+
+  .remito-button-container,
+  .logout {
+    display: none;
+  }
+}

@@ -146,11 +146,6 @@ const Diagnostico: React.FC = () => {
   }, []);
 
   const handleConfirmarClick = async () => {
-    // Verifica si la orden está aprobada
-    if (!orden.aprobada) {
-      setShowApprovalAlert(true); // Mostrar alerta si no está aprobada
-      return;
-    }
     const diagnostico = textosCheckbox
       .filter((texto, index) => checkboxValues[index])
       .join(", ");
@@ -173,6 +168,7 @@ const Diagnostico: React.FC = () => {
       if (success) {
         // alert("Diagnostico guardado con éxito");
         console.log("Orden guardada", dataToSend);
+        window.history.back();
       } else {
         console.log("Error al guardar en la base de datos.");
       }
@@ -311,55 +307,7 @@ const Diagnostico: React.FC = () => {
                 },
               ]}
             />
-
-            {/* Alerta si la orden no está aprobada */}
-            <IonAlert
-              isOpen={showApprovalAlert}
-              onDidDismiss={() => setShowApprovalAlert(false)}
-              header={"Orden no aprobada"}
-              message={"Esta orden debe ser aprobada antes de proceder."}
-              buttons={[
-                {
-                  text: "Ir a Domicilio",
-                  handler: () => {
-                    history.push("/domicilio"); // Redirigir a la página de domicilio
-                  },
-                },
-              ]}
-            />
           </div>
-          {/* <div className="section">
-            <IonButton
-              className="button"
-              style={{ "--border-radius": "20px" }}
-              onClick={() => setShowConfirm(true)}
-            >
-              Confirmar
-            </IonButton>
-
-            <IonAlert
-              isOpen={showConfirm}
-              onDidDismiss={() => setShowConfirm(false)}
-              header={"Confirmar acción"}
-              message={"¿Deseas confirmar este diagnostico?"}
-              buttons={[
-                {
-                  text: "Cancelar",
-                  role: "cancel",
-                  handler: () => {
-                    setShowConfirm(false);
-                  },
-                },
-                {
-                  text: "Confirmar",
-                  handler: () => {
-                    handleConfirmarClick();
-                    setShowConfirm(false);
-                  },
-                },
-              ]}
-            />
-          </div> */}
         </div>
       </IonContent>
     </IonPage>
