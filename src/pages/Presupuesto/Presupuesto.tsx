@@ -5,7 +5,7 @@ import { useOrden } from "../../pages/Orden/ordenContext";
 import SignatureCanvas from "react-signature-canvas";
 import HeaderGeneral from "../../components/Header/HeaderGeneral";
 import { useHistory, useLocation } from "react-router-dom";
-import { fetchPlazosReparacion, estadosPresupuestos, listaRepuestos, mediosDePago } from "./fetchsFunctions";
+import { fetchPlazosReparacion, estadosPresupuestos, listaRepuestos, mediosDePago, createRepuestoOrden, getRepuestosOrdenById } from "./fetchsFunctions";
 
 interface Repuesto {
  id: number;
@@ -59,8 +59,9 @@ const Presupuesto: React.FC = () => {
 
  const location = useLocation();
  const { orden } = location.state as { orden: any };
- const { selectedRepuestos } = useOrden();
-
+ const ordenId = orden.id; 
+ const { ordenSeleccionada, setOrdenSeleccionada, selectedRepuestos} = useOrden();
+console.log("SELECTED REPUESTOS", selectedRepuestos)
  const servicios = ["Viaticos", "Descuentos", "Comisión visita", "Comisión reparación", "Comisión entrega", "Comisión rep. a domicilio", "Gasto impositivo"] as const;
 
  type Servicio = (typeof servicios)[number];
@@ -82,15 +83,105 @@ const Presupuesto: React.FC = () => {
   setMontos(newMontos);
  };
 
+/*
+
+ const [repuestos2, setRepuestos2] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+ 
+  useEffect(() => {
+    const fetchRepuestos = async () => {
+      try {
+        const data = await getRepuestosOrdenById(ordenId);
+        setRepuestos2(data);
+        console.log("REPEUSTO:", repuestos2)
+        // Calcular el total
+        const calculatedTotal = data.reduce((acc, repuesto) => acc + repuesto.precio * repuesto.cantidad, 0);
+        setTotal(calculatedTotal);
+    
+        console.log("TOTAL:", total)
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (ordenId) {
+      fetchRepuestos();
+    }
+  }, []); 
+  
+
+
+*/
+
+
+
+
+
+
+
+
  const totalRepuestos =
-  Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0
-   ? selectedRepuestos.reduce((accumulator: number, repuesto: { StockPrincipal: { precio: string }; cantidad: any }) => {
-      return accumulator + parseFloat(repuesto.StockPrincipal.precio) * repuesto.cantidad;
+ Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0
+ ? selectedRepuestos.reduce((accumulator: number, repuesto) => {
+   const precio = parseFloat(repuesto.StockPrincipal.precio) || 0;
+       // @ts-ignore
+   const cantidad = parseFloat(repuesto.cantidad) || 0;
+ 
+   return accumulator + precio * cantidad;
      }, 0)
    : 0;
 
- const totalMontos = montos.reduce((a, b) => a + parseFloat(b), 0);
- const total = totalMontos + totalRepuestos;
+const totalMontos = montos.reduce((a, b) => a + parseFloat(b), 0);
+const total = totalMontos + totalRepuestos;
+ 
+
+
+const agregarRepuestos = async () => {
+  try {
+    // Log para asegurarse de que se están seleccionando los repuestos
+    console.log("Repuestos seleccionados:", selectedRepuestos);
+
+    await Promise.all(
+      selectedRepuestos.map(async (repuesto) => {
+        // Log de cada repuesto individual antes de enviar los datos
+        console.log("Procesando repuesto:", repuesto);
+
+        const repuestoOrdenData = {
+          id_orden: orden.id,
+          id_repuesto_taller: null,
+          id_repuesto_camioneta: repuesto.id_repuesto,
+          nombre: repuesto.StockPrincipal.nombre,
+          cantidad: repuesto.cantidad,
+        };
+
+        // Log del objeto que se va a enviar a createRepuestoOrden
+        console.log("Datos a enviar a createRepuestoOrden:", repuestoOrdenData);
+
+        await createRepuestoOrden(repuestoOrdenData);
+        
+        // Log de confirmación de que el repuesto se ha agregado
+        console.log("Repuesto agregado:", repuestoOrdenData);
+      })
+    );
+
+    console.log('Todos los repuestos se han agregado correctamente.');
+  } catch (error) {
+    // Log en caso de error
+    console.error('Error al agregar repuestos:', error);
+  }
+};
+
+
+
+
+
+
+
+
 
  useEffect(() => {
   if (orden && !orden.Presupuesto) {
@@ -181,6 +272,7 @@ const Presupuesto: React.FC = () => {
   setSelectedEstadoPresupuesto(event.detail.value);
  };
 
+ 
  const handleConfirmarClick = async () => {
   if (!acceptedPolicies) {
    setShowAlert2(true);
@@ -253,7 +345,7 @@ const Presupuesto: React.FC = () => {
     console.log(result);
     localStorage.removeItem("ordenActiva");
     history.push("/domicilio");
-
+    agregarRepuestos()
     localStorage.setItem(
      "presupuestoData",
      JSON.stringify({
@@ -353,6 +445,15 @@ const Presupuesto: React.FC = () => {
  const handleConfirmAlertCancel = () => {
   setShowConfirmAlert(false);
  };
+
+ const handleRepuestos = () => {
+  history.push({
+    pathname: "/repuestosDomicilio",
+    state: { orden }  // Pasas la orden como parte del estado
+  });
+};
+
+
  return (
   <IonPage>
    <IonHeader>
@@ -362,7 +463,7 @@ const Presupuesto: React.FC = () => {
     <div className='diagnostico-ctn'>
      <div className='section'>
       <h2>Presupuestar</h2>
-      <IonButton onClick={() => history.push("/repuestos")}>Seleccionar repuesto</IonButton>
+      <IonButton onClick={handleRepuestos}>Seleccionar repuesto</IonButton>
       <IonList>
        {Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0 ? (
         selectedRepuestos.map((repuesto: any) => (

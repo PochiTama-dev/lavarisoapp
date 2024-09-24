@@ -16,6 +16,8 @@ import Entrega from "./pages/Entrega/Entrega";
 import Presupuesto from "./pages/Presupuesto/Presupuesto";
 import Facturacion from "./pages/Facturacion/Facturacion";
 import Repuesto from "./pages/Repuesto/Repuesto";
+import RepuestosTaller from "./components/Repuestos/RepuestosTaller";
+import RepuestosDomicilio from "./components/Repuestos/RepuestosDomicilio";
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
 
@@ -99,6 +101,16 @@ const App: React.FC = () => {
         <Route path="/repuestos" exact={true}>
           <Repuesto />
         </Route>
+
+        <Route path="/repuestosTaller" exact={true}>
+          <RepuestosTaller />
+        </Route>
+
+
+        <Route path="/repuestosDomicilio" exact={true}>
+          <RepuestosDomicilio />
+        </Route>
+
       </IonReactRouter>
         </OrdenProvider>
     </IonApp>

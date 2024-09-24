@@ -43,3 +43,6 @@
 .listado-respuestos .repuesto-incrementado {
   --color: #40a63d;
 }
+.subtitle-listado-orden{
+  font-size: 18px;
+}

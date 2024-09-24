@@ -11,9 +11,12 @@ function TecnicoTallerComponent() {
   const [ordenActiva, setOrdenActiva] = useState<any>(null);
   const [showAlert, setShowAlert] = useState(false);
   const { ordenSeleccionada, setOrdenSeleccionada } = useOrden();
-
-  const handleButtonClick = (path: any) => {
-    history.push(path);
+ 
+  const handleButtonClick = ( ) => {
+    history.push({
+      pathname: '/repuestosTaller',
+      state: { ordenSeleccionada: { id: ordenSeleccionada.id } }
+    });
   };
 
   const estadoPresupuestoMap: { [key: number]: string } = {
@@ -22,7 +25,9 @@ function TecnicoTallerComponent() {
     3: "Cerrada",
     4: "Pendiente"
   };
-
+  const handleInicioClick = () => {
+    history.push("/rol");
+  };
   useEffect(() => {
     const fetchOrdenes = async () => {
       const empleadoId = localStorage.getItem("empleadoId");
@@ -96,7 +101,7 @@ function TecnicoTallerComponent() {
           </div>
         )}
         <div className="tecnico-taller-repuestos-button">
-          <IonButton onClick={() => handleButtonClick("/repuestos")}>
+          <IonButton onClick={() => handleButtonClick()}>
             Repuestos
           </IonButton>
         </div>
@@ -153,7 +158,7 @@ function TecnicoTallerComponent() {
         ]}
       />
       <div className="tecnico-taller-bottom-button">
-        <IonButton onClick={() => handleButtonClick("/rol")}>Inicio</IonButton>
+        <IonButton onClick={() => handleInicioClick()}>Inicio</IonButton>
       </div>
     </IonContent>
   );

@@ -56,6 +56,11 @@ useEffect(() => {
   fetchRepuestosData();
 }, [currentEstadoOrden]);
 
+
+
+
+
+
  const updateRepuestoCantidad = async (id: number, nuevaCantidad: number) => {
   const repuestoActualizado = { cantidad: nuevaCantidad };
 
@@ -103,6 +108,10 @@ useEffect(() => {
 
 
 
+ 
+
+
+
  const handleRemoveRepuesto = (id_repuesto: number) => {
   const repuestoToRemove =
    currentEstadoOrden === "taller" ? selectedRepuestosTaller.find((repuesto) => repuesto.id_repuesto == id_repuesto) : selectedRepuestos.find((repuesto) => repuesto.id_repuesto == id_repuesto);
@@ -132,15 +141,6 @@ useEffect(() => {
    updatedSelectedRepuestos((prev) => prev.filter((repuesto) => repuesto.id_repuesto !== repuestoToRemove.id_repuesto));
   }
  };
-
-
-
-
-
-
-
-
-
 
 
 
