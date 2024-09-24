@@ -83,46 +83,56 @@ console.log("SELECTED REPUESTOS", selectedRepuestos)
   setMontos(newMontos);
  };
 
-/*
-
- const [repuestos2, setRepuestos2] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
  
-  useEffect(() => {
-    const fetchRepuestos = async () => {
-      try {
-        const data = await getRepuestosOrdenById(ordenId);
-        setRepuestos2(data);
-        console.log("REPEUSTO:", repuestos2)
-        // Calcular el total
-        const calculatedTotal = data.reduce((acc, repuesto) => acc + repuesto.precio * repuesto.cantidad, 0);
-        setTotal(calculatedTotal);
-    
-        console.log("TOTAL:", total)
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    if (ordenId) {
-      fetchRepuestos();
+ const [repuestosOrden, setRepuestosOrden] = useState([]);
+ ///////////////// MODIFICAR ACA
+ useEffect(() => {
+  const fetchRepuestos = async () => {
+    try {
+      const data = await getRepuestosOrdenById(ordenId);
+      const lista = await listaRepuestos();   
+      console.log('Datos de listaRepuestos:', lista);  
+      console.log("Datos de repuestos:", data);
+
+      const repuestosConPrecio = data.map((repuesto: { id_repuesto: any; }) => {
+        // Encontrar el repuesto en lista que coincida con el id
+        const repuestoEncontrado = lista.find((r: { id_repuesto_camioneta: any; id_repuesto_taller: any; }) => 
+          r.id_repuesto_camioneta === repuesto.id_repuesto || 
+          r.id_repuesto_taller === repuesto.id_repuesto
+        );
+
+        // Obtener el precio correspondiente o null si no se encontró
+        const precio = repuestoEncontrado ? repuestoEncontrado.precio : null;
+
+        console.log("Repuesto encontrado:", repuestoEncontrado); 
+        return {
+          ...repuesto,
+          precio: precio, // Asignar el precio del repuesto encontrado
+        };
+      });
+
+      console.log("Repuestos con precios:", repuestosConPrecio);  
+      setRepuestosOrden(repuestosConPrecio);
+    } catch (error) {
+      console.error('Error al obtener repuestos:', error);
     }
-  }, []); 
+  };
+
+  if (ordenId) {
+    fetchRepuestos();
+  }
+}, [ordenId]);
+
+
+
+
+///////////////////////////
+
+
+
+
   
-
-
-*/
-
-
-
-
-
-
-
 
  const totalRepuestos =
  Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0
@@ -465,30 +475,51 @@ const agregarRepuestos = async () => {
       <h2>Presupuestar</h2>
       <IonButton onClick={handleRepuestos}>Seleccionar repuesto</IonButton>
       <IonList>
-       {Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0 ? (
-        selectedRepuestos.map((repuesto: any) => (
-         <IonItem key={repuesto.id_repuesto}>
-          <IonLabel
-           style={{
+  {Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0 ? (
+    selectedRepuestos.map((repuesto: any) => (
+      <IonItem key={repuesto.id_repuesto}>
+        <IonLabel
+          style={{
             display: "flex",
             justifyContent: "space-between",
             width: "100%",
             fontSize: "16px",
-           }}
-          >
-           <span>
+          }}
+        >
+          <span>
             {repuesto.StockPrincipal.nombre} x{repuesto.cantidad}
-           </span>
-           <span>${(parseFloat(repuesto.StockPrincipal.precio) * repuesto.cantidad).toFixed(2)}</span>
-          </IonLabel>
-         </IonItem>
-        ))
-       ) : (
-        <IonItem>
-         <IonLabel>No hay repuestos seleccionados.</IonLabel>
-        </IonItem>
-       )}
-      </IonList>
+          </span>
+          <span>${(parseFloat(repuesto.StockPrincipal.precio) * repuesto.cantidad).toFixed(2)}</span>
+        </IonLabel>
+      </IonItem>
+    ))
+  ) : null /* O simplemente puedes no renderizar nada aquí */ }
+  
+  {Array.isArray(repuestosOrden) && repuestosOrden.length > 0 ? (
+    repuestosOrden.map((repuesto: any) => (
+      <IonItem key={repuesto.id_repuesto}>
+        <IonLabel
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            width: "100%",
+            fontSize: "16px",
+          }}
+        >
+          <span>
+            {repuesto.nombre} x{repuesto.cantidad}
+          </span>
+          <span>${(repuesto.precio) * (repuesto.cantidad)}</span>
+        </IonLabel>
+      </IonItem>
+    ))
+  ) : (
+    <IonItem>
+      <IonLabel>No hay repuestos disponibles.</IonLabel>
+    </IonItem>
+  )}
+</IonList>
+
       <IonModal isOpen={showModal}>
        <IonSearchbar value={searchText || ""} onIonChange={(e) => setSearchText(e.detail.value || "")}></IonSearchbar>
 

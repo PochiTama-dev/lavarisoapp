@@ -38,7 +38,7 @@ export const fetchPlazosReparacion = async () => {
   
   export const listaRepuestos = async () => {
     try {
-      const response = await fetch("https://lv-back.online/repuestos/lista");
+      const response = await fetch("https://lv-back.online/stock/principal/lista");
       const repuestosData = await response.json();
       return repuestosData.length > 0 ? repuestosData : [];
     } catch (error) {
