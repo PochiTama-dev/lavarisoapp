@@ -6,7 +6,7 @@ import Map from "./Map";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./ConfirmacionOrden.css";
 import { useLocation } from "react-router-dom";
-import { useOrden } from "../../pages/Orden/ordenContext"; 
+import { useOrden } from "../../pages/Orden/ordenContext";
 function ConfirmacionOrdenComponent() {
   const [position, setPosition] = useState({
     latitude: -33.9913,
@@ -45,21 +45,13 @@ function ConfirmacionOrdenComponent() {
   };
 
   useEffect(() => {
-    async function initialize() {
-      try {
-        const coordenadas = await Geolocation.getCurrentPosition();
-        setPosition({
-          latitude: coordenadas.coords.latitude,
-          longitude: coordenadas.coords.longitude,
-        });
-        setLoading(false);
-      } catch (error) {
-        console.error("Error obteniendo la ubicación", error);
-        setLoading(false);
-      }
+    if (orden && orden.Cliente) {
+      setPosition({
+        latitude: orden.Cliente.latitud,
+        longitude: orden.Cliente.longitud,
+      });
     }
-
-    initialize();
+    setLoading(false);
 
     const fetchData = async () => {
       const presupuesto = await obtenerPresupuesto(orden.id);
@@ -71,7 +63,7 @@ function ConfirmacionOrdenComponent() {
     };
 
     fetchData();
-  }, [orden.id]);
+  }, [orden]);
 
   const handleButtonClick = (path: any, orden = null) => {
     if (orden) {
@@ -119,8 +111,9 @@ function ConfirmacionOrdenComponent() {
             <div>{!loading && <Map position={position} zoom={13} />}</div>
             {orden &&
             orden.Presupuesto &&
-            orden.id_tipo_estado === 1  &&
-           ( orden.Presupuesto.id_estado_presupuesto === 5 || orden.Presupuesto.id_estado_presupuesto === 4) ? (
+            orden.id_tipo_estado === 1 &&
+            (orden.Presupuesto.id_estado_presupuesto === 5 ||
+              orden.Presupuesto.id_estado_presupuesto === 4) ? (
               <>
                 <IonButton onClick={() => handleButtonClick("/entrega", orden)}>
                   Entrega
