@@ -1,5 +1,4 @@
-import ConfirmacionOrdenComponent from "../../components/Orden/ConfirmacionOrden";
-
+import ConfirmacionOrdenComponent from '../../components/Orden/ConfirmacionOrden';
 const ConfirmacionOrden: React.FC = () => {
   return <ConfirmacionOrdenComponent />;
 };

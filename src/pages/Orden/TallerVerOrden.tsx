@@ -1,30 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import {
-  IonContent,
-  IonPage,
-  IonCheckbox,
-  IonInput,
-  IonButton,
-  IonSelect,
-  IonSelectOption,
-  IonHeader,
-  IonAlert,
-} from '@ionic/react';
+import { IonContent, IonPage, IonCheckbox, IonInput, IonButton, IonSelect, IonSelectOption, IonHeader, IonAlert } from '@ionic/react';
 import '../Diagnostico/diagnostico.css';
 import '../Entrega/entrega.css';
 import HeaderGeneral from '../../components/Header/HeaderGeneral';
 import './orden.css';
 import { useOrden } from './ordenContext';
-import {
-  fetchEstadosPresupuestos,
-  fetchTiposFunciones,
-  tiposLimpieza,
-  tiposCierresExtendidos,
-  modificarOrden,
-  modificarPresupuesto,
-  createRepuestoOrden,
-  getRepuestosOrdenById,
-} from './FetchsOrden';
+import { fetchEstadosPresupuestos, fetchTiposFunciones, tiposLimpieza, tiposCierresExtendidos, modificarOrden, modificarPresupuesto, createRepuestoOrden, getRepuestosOrdenById } from './FetchsOrden';
 import { useHistory } from 'react-router-dom';
 
 interface Repuesto {
@@ -32,7 +13,7 @@ interface Repuesto {
   descripcion: string;
   nombre: string;
   cantidad: number;
-  diagnostico?: string;  
+  diagnostico?: string;
 }
 
 const TallerVerOrden: React.FC = () => {
@@ -54,25 +35,22 @@ const TallerVerOrden: React.FC = () => {
   const [repuestosOrden, setRepuestosOrden] = useState<Repuesto[]>([]);
 
   const { ordenSeleccionada, setOrdenSeleccionada, selectedRepuestosTaller } = useOrden();
- 
+
   useEffect(() => {
     const loadRepuestos = async () => {
       if (ordenSeleccionada) {
         const repuestos = await getRepuestosOrdenById(ordenSeleccionada.id);
         setRepuestosOrden(repuestos);
-    
-   
+
         const diagnosticoOrden = ordenSeleccionada.diagnostico || '';
-        const nuevosCheckboxValues = textosCheckbox.map(texto => diagnosticoOrden.includes(texto));
-  
+        const nuevosCheckboxValues = textosCheckbox.map((texto) => diagnosticoOrden.includes(texto));
+
         setCheckboxValuesFunciones(nuevosCheckboxValues);
       }
     };
-  
+
     loadRepuestos();
   }, [ordenSeleccionada, textosCheckbox]);
-
-
 
   useEffect(() => {
     if (ordenSeleccionada) {
@@ -95,7 +73,7 @@ const TallerVerOrden: React.FC = () => {
         setCheckboxValuesFunciones(new Array(funciones.length).fill(false));
       }
     };
- 
+
     const loadLimpieza = async () => {
       const limpieza = await tiposLimpieza();
       if (limpieza.length > 0) {
@@ -127,7 +105,7 @@ const TallerVerOrden: React.FC = () => {
       checkboxValuesLimpieza,
       id_tipo_cierre_extendido: idCierreExtendidoSeleccionado,
     };
-console.log(checkboxValuesFunciones)
+    console.log(checkboxValuesFunciones);
     const resultado = await modificarOrden(ordenSeleccionada.id, ordenActualizada);
     if (resultado) {
       setOrdenSeleccionada({ ...ordenSeleccionada, ...ordenActualizada });
@@ -139,35 +117,34 @@ console.log(checkboxValuesFunciones)
 
     const resultadoPresupuesto = await modificarPresupuesto(ordenSeleccionada.Presupuesto.id, presupuestoActualizado);
     if (resultadoPresupuesto) {
-      console.log("Presupuesto actualizado con éxito.");
+      console.log('Presupuesto actualizado con éxito.');
     }
- 
 
     if (ordenSeleccionada.id) {
       try {
-        await Promise.all(selectedRepuestosTaller.map(async (repuesto) => {
-          const repuestoOrdenData = {
-            id_orden: ordenSeleccionada.id,
-            id_repuesto_taller: repuesto.id_repuesto,
-            id_repuesto_camioneta: null,
-            nombre: repuesto.nombre,
-            cantidad: repuesto.cantidad
-          };
-          await createRepuestoOrden(repuestoOrdenData);
-        }));
-        console.log("Repuestos agregados a la orden con éxito.");
+        await Promise.all(
+          selectedRepuestosTaller.map(async (repuesto) => {
+            const repuestoOrdenData = {
+              id_orden: ordenSeleccionada.id,
+              id_repuesto_taller: repuesto.id_repuesto,
+              id_repuesto_camioneta: null,
+              nombre: repuesto.nombre,
+              cantidad: repuesto.cantidad,
+            };
+            await createRepuestoOrden(repuestoOrdenData);
+          })
+        );
+        console.log('Repuestos agregados a la orden con éxito.');
       } catch (error) {
-        console.error("Error al agregar repuestos a la orden:", error);
+        console.error('Error al agregar repuestos a la orden:', error);
       }
     } else {
-      console.error("El id de la orden es null, no se pueden agregar repuestos.");
+      console.error('El id de la orden es null, no se pueden agregar repuestos.');
     }
 
     setShowAlert(false);
     history.push('/taller');
   };
-
- 
 
   return (
     <IonPage>
@@ -176,17 +153,33 @@ console.log(checkboxValuesFunciones)
           <HeaderGeneral />
         </IonHeader>
         <div className='diagnostico-ctn'>
-          <div className="section">
-            <h1 style={{ fontSize: '28px', marginBottom: '-20px' }}><strong>En taller</strong></h1>
+          <div className='section'>
+            <h1 style={{ fontSize: '28px', marginBottom: '-20px' }}>
+              <strong>En taller</strong>
+            </h1>
             <h2>Orden: {ordenSeleccionada?.numero_orden}</h2>
-            <h3><strong>Datos del cliente</strong></h3>
+            <h3>
+              <strong>Datos del cliente</strong>
+            </h3>
             <div className='orden-datosCliente'>
-              <h4><strong>Nombre:</strong> {ordenSeleccionada?.Cliente?.nombre}</h4>
-              <h4><strong>Teléfono:</strong> {ordenSeleccionada?.Cliente?.telefono}</h4>
-              <h4><strong>N° Cliente:</strong> {ordenSeleccionada?.Cliente?.numero_cliente}</h4>
-              <h4><strong>Producto:</strong> {ordenSeleccionada?.equipo}</h4>
-              <h4><strong>Marca:</strong> {ordenSeleccionada?.marca}</h4>
-              <h4><strong>Modelo:</strong> {ordenSeleccionada?.modelo}</h4>
+              <h4>
+                <strong>Nombre:</strong> {ordenSeleccionada?.Cliente?.nombre}
+              </h4>
+              <h4>
+                <strong>Teléfono:</strong> {ordenSeleccionada?.Cliente?.telefono}
+              </h4>
+              <h4>
+                <strong>N° Cliente:</strong> {ordenSeleccionada?.Cliente?.numero_cliente}
+              </h4>
+              <h4>
+                <strong>Producto:</strong> {ordenSeleccionada?.equipo}
+              </h4>
+              <h4>
+                <strong>Marca:</strong> {ordenSeleccionada?.marca}
+              </h4>
+              <h4>
+                <strong>Modelo:</strong> {ordenSeleccionada?.modelo}
+              </h4>
             </div>
           </div>
 
@@ -216,7 +209,7 @@ console.log(checkboxValuesFunciones)
               {textosCheckbox.map((texto, index) => (
                 <div key={index} className='checkbox-item'>
                   <IonCheckbox
-                    checked={checkboxValuesFunciones[index]}  // Usar el estado correcto para marcar el checkbox
+                    checked={checkboxValuesFunciones[index]} // Usar el estado correcto para marcar el checkbox
                     onIonChange={(e) => {
                       const newCheckboxValues = [...checkboxValuesFunciones];
                       newCheckboxValues[index] = e.detail.checked;
@@ -232,23 +225,16 @@ console.log(checkboxValuesFunciones)
 
           <div className='section'>
             <h2>Observaciones</h2>
-            <IonInput
-              className='obs-input'
-              value={motivo}
-              onIonChange={(e) => setMotivo(e.detail.value!)}
-              placeholder='Ingrese observaciones'
-            />
+            <IonInput className='obs-input' value={motivo} onIonChange={(e) => setMotivo(e.detail.value!)} placeholder='Ingrese observaciones' />
           </div>
 
           <div className='section'>
             <h2>Estado del presupuesto</h2>
-            <IonSelect
-              value={estadoSeleccionado}
-              placeholder='Seleccione un estado'
-              onIonChange={(e) => setEstadoSeleccionado(e.detail.value)}
-            >
+            <IonSelect value={estadoSeleccionado} placeholder='Seleccione un estado' onIonChange={(e) => setEstadoSeleccionado(e.detail.value)}>
               {estadosPresupuestos.map((estado) => (
-                <IonSelectOption key={estado.id} value={estado.id}>{estado.texto}</IonSelectOption>
+                <IonSelectOption key={estado.id} value={estado.id}>
+                  {estado.texto}
+                </IonSelectOption>
               ))}
             </IonSelect>
           </div>
@@ -275,18 +261,18 @@ console.log(checkboxValuesFunciones)
 
           <div className='section'>
             <h2>Seleccionar cierre extendido</h2>
-            <IonSelect
-              placeholder="Seleccione un cierre extendido"
-              value={idCierreExtendidoSeleccionado || undefined}
-              onIonChange={(e) => setIdCierreExtendidoSeleccionado(e.detail.value)}
-            >
-              {cierresExtendidos.map(cierre => (
-                <IonSelectOption key={cierre.id} value={cierre.id}>{cierre.tipo_cierre_extendido}</IonSelectOption>
+            <IonSelect placeholder='Seleccione un cierre extendido' value={idCierreExtendidoSeleccionado || undefined} onIonChange={(e) => setIdCierreExtendidoSeleccionado(e.detail.value)}>
+              {cierresExtendidos.map((cierre) => (
+                <IonSelectOption key={cierre.id} value={cierre.id}>
+                  {cierre.tipo_cierre_extendido}
+                </IonSelectOption>
               ))}
             </IonSelect>
           </div>
 
-          <IonButton expand="full" onClick={handleConfirmarClick}>Confirmar</IonButton>
+          <IonButton expand='full' onClick={handleConfirmarClick}>
+            Confirmar
+          </IonButton>
 
           <IonAlert
             isOpen={showAlert}
@@ -298,12 +284,12 @@ console.log(checkboxValuesFunciones)
                 text: 'Cancelar',
                 role: 'cancel',
                 cssClass: 'secondary',
-                handler: () => console.log('Cancelado')
+                handler: () => console.log('Cancelado'),
               },
               {
                 text: 'Confirmar',
-                handler: handleConfirmar
-              }
+                handler: handleConfirmar,
+              },
             ]}
           />
         </div>
