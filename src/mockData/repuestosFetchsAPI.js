@@ -1,4 +1,4 @@
-const listaRepuestos = async () => {
+export const listaRepuestos = async () => {
   try {
     const response = await fetch("http://localhost:8000/repuestos/lista");
     const repuestos = await response.json();

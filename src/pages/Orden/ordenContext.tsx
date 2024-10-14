@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, Key } from 'react';
 
 interface Repuesto {
+  id_repuesto_camioneta: any;
   id: any;
   nombre: ReactNode;
   cantidad: number;
