@@ -3,7 +3,7 @@
   import "./Login.css";
   import { IonButton, IonContent, IonHeader, IonToast } from "@ionic/react";
   import { useEffect, useState } from "react";
-
+ import Fotos from "../Fotos/Fotos";
   function LoginRolComponent() {
     const [empleadoNombre, setEmpleadoNombre] = useState("");
     const history = useHistory();
@@ -52,7 +52,15 @@
     };
     const handleFeedbackClick = () => {
       history.push("/feedback");
+    }; 
+
+    const handleAddClick = () => {
+      history.push("/addRepuestoCamioneta");
     };
+
+  const handleFotosClick = () => {
+    history.push('/fotos');  
+  };
     return (
       <IonContent className="login-rol-container">
         <IonHeader>
@@ -65,12 +73,18 @@
           <h2>Hoy...</h2>
         </>
         <>
+       
+        <IonButton onClick={handleFotosClick}>Fotos</IonButton>
+       
           <IonButton onClick={() => handleButtonClick(1)}>
             Trabajo a domicilio
           </IonButton>
           <IonButton onClick={() => handleButtonClick(0)}>
-            Trabajo en taller
+            Repuestos taller
           </IonButton>
+          <IonButton onClick={handleAddClick}>
+           Agregar Repuestos
+        </IonButton>
           <IonButton onClick={handleFeedbackClick}>
           Feedback
         </IonButton>

@@ -43,9 +43,13 @@ import ConfirmacionOrden from "./pages/Orden/ConfirmacionOrden";
 import TecnicoDomicilio from "./pages/TecnicoDomicilio/TecnicoDomicilio";
 import TecnicoTaller from "./pages/TecnicoTaller/TecnicoTaller";
 import TallerVerOrden from "./pages/Orden/TallerVerOrden";
-import { OrdenProvider } from "./pages/Orden/ordenContext";
+ 
+import { OrdenProvider } from "./Provider/Provider";
 import Feedback from "./pages/Feedback/Feedback";
 import RemitoOrden from "./components/Facturacion/Remito";
+import VerOrden from "./components/Orden/VerOrden";
+import AddRepuestoCamioneta from "./components/Repuestos/AddRepuestoCamioneta";
+import Fotos from "./components/Fotos/Fotos";
 setupIonicReact();
 
 const App: React.FC = () => {
@@ -91,7 +95,7 @@ const App: React.FC = () => {
           <Chat />
         </Route>
         <Route path="/verorden">
-          <ConfirmacionOrden />
+          <VerOrden />
         </Route>
        
         <Route path="/tallerorden">
@@ -103,12 +107,16 @@ const App: React.FC = () => {
         <Route path="/repuestos" exact={true}>
           <Repuesto />
         </Route>
-
-        <Route path="/repuestosTaller" exact={true}>
-          <RepuestosTaller />
+        <Route path="/repuestos" exact={true}>
+          <Repuesto />
+        </Route>
+        <Route path="/fotos" exact={true}>
+          <Fotos />
         </Route>
 
-
+        <Route path="/addRepuestoCamioneta" exact={true}>
+          <AddRepuestoCamioneta />
+        </Route>
         <Route path="/repuestosDomicilio" exact={true}>
           <RepuestosDomicilio />
         </Route>

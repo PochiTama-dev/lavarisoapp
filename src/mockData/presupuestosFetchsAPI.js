@@ -31,9 +31,9 @@ const listadoPresupuestos = async () => {
   }
 };
   
-const obtenerPresupuesto = async (id) => {
+export const obtenerPresupuesto = async (id) => {
   try {
-    const response = await fetch(`http://localhost:8000/presupuestos/${id}`);
+    const response = await fetch(`https://lv-back.online/presupuestos/${id}`);
     const presupuesto = await response.json();
     if (presupuesto) {
       console.log(`Se encontró un presupuesto asociado al id ${id}`);

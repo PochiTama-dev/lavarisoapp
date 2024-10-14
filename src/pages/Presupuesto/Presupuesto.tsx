@@ -1,36 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { IonContent, IonPage, IonCheckbox, IonInput, IonButton, IonSelect, IonSelectOption, IonModal, IonSearchbar, IonList, IonItem, IonLabel, IonHeader, IonAlert } from "@ionic/react";
 import "./presupuesto.css";
-import { useOrden } from "../../pages/Orden/ordenContext";
 import SignatureCanvas from "react-signature-canvas";
 import HeaderGeneral from "../../components/Header/HeaderGeneral";
-import { useHistory, useLocation } from "react-router-dom";
-import { fetchPlazosReparacion, estadosPresupuestos, listaRepuestos, mediosDePago, createRepuestoOrden, getRepuestosOrdenById } from "./fetchsFunctions";
-
-interface Repuesto {
- id: number;
- codigo_repuesto: string;
- descripcion: string;
-}
-interface MedioDePago {
- id: number;
- medio_de_pago: string;
-}
-
-interface FormaPago {
- id: number;
- medio_de_pago: string;
-}
-
+import { useOrden } from "../../Provider/Provider";
+import { useHistory } from "react-router-dom";
+import {
+ fetchPlazosReparacion, estadosPresupuestos, listaRepuestos, mediosDePago,
+ cancelarOrden, modificarPresupuesto, guardarPresupuesto, createRepuestoOrden,
+ getRepuestosOrdenById, Repuesto, MedioDePago, FormaPago,
+} from "./fetchs";
+import { modificarStockCamioneta } from "../../components/Repuestos/FetchsRepuestos";
 const Presupuesto: React.FC = () => {
- const [producto, setProducto] = useState("");
- const [marca, setMarca] = useState("");
- const [modelo, setModelo] = useState("");
- const [cliente, setCliente] = useState("");
- const [checkboxValues, setCheckboxValues] = useState<boolean[]>(Array(6).fill(false));
  const [montos, setMontos] = useState(Array(7).fill(0));
- const [observaciones, setObservaciones] = useState("");
- const [selectedOption, setSelectedOption] = useState("");
  const [formaPago, setFormaPago] = useState<FormaPago[]>([]);
  const [estado, setEstado] = useState<any[]>([]);
  const [showModal, setShowModal] = useState(false);
@@ -56,12 +38,9 @@ const Presupuesto: React.FC = () => {
  const [medioPago, setMedioPago] = useState<MedioDePago[]>([]);
  const [selectedMedioPago, setSelectedMedioPago] = useState<number | null>(null);
  const [selectedEstadoPresupuesto, setSelectedEstadoPresupuesto] = useState<number | null>(null);
+ 
+ const { cargarOrdenes, selectedRepuestos, ordenActiva, setOrdenActiva , repuestosCamioneta} = useOrden();
 
- const location = useLocation();
- const { orden } = location.state as { orden: any };
- const ordenId = orden.id; 
- const { ordenSeleccionada, setOrdenSeleccionada, selectedRepuestos} = useOrden();
-console.log("SELECTED REPUESTOS", selectedRepuestos)
  const servicios = ["Viaticos", "Descuentos", "Comisión visita", "Comisión reparación", "Comisión entrega", "Comisión rep. a domicilio", "Gasto impositivo"] as const;
 
  type Servicio = (typeof servicios)[number];
@@ -75,7 +54,6 @@ console.log("SELECTED REPUESTOS", selectedRepuestos)
   "Comisión rep. a domicilio": "comision_reparacion_domicilio",
   "Gasto impositivo": "gasto_impositivo",
  };
- 
 
  const handleMontoChange = (index: number, value: any) => {
   const newMontos = [...montos];
@@ -83,196 +61,134 @@ console.log("SELECTED REPUESTOS", selectedRepuestos)
   setMontos(newMontos);
  };
 
- 
+ const updateRepuestoCantidad = async (id: number, nuevaCantidad: number) => {
+  const repuestoActualizado = { cantidad: nuevaCantidad };
+  try {
+   await modificarStockCamioneta(id, repuestoActualizado);
+  } catch (error) {
+   console.error("Error al actualizar la cantidad del repuesto:", error);
+  }
+ };
 
  const [repuestosOrden, setRepuestosOrden] = useState([]);
+
  ///////////////// MODIFICAR ACA
  useEffect(() => {
   const fetchRepuestos = async () => {
-    try {
-      const data = await getRepuestosOrdenById(ordenId);
-      const lista = await listaRepuestos();   
-      console.log('Datos de listaRepuestos:', lista);  
-      console.log("Datos de repuestos:", data);
+   try {
+    const data = await getRepuestosOrdenById(ordenActiva);
+    const lista = await listaRepuestos();
 
-      const repuestosConPrecio = data.map((repuesto: { id_repuesto: any; }) => {
-        // Encontrar el repuesto en lista que coincida con el id
-        const repuestoEncontrado = lista.find((r: { id_repuesto_camioneta: any; id_repuesto_taller: any; }) => 
-          r.id_repuesto_camioneta === repuesto.id_repuesto || 
-          r.id_repuesto_taller === repuesto.id_repuesto
-        );
+    const repuestosConPrecio = data.map((repuesto: { id_repuesto: any }) => {
 
-        // Obtener el precio correspondiente o null si no se encontró
-        const precio = repuestoEncontrado ? repuestoEncontrado.precio : null;
+     const repuestoEncontrado = lista.find(
+      (r: { id_repuesto_camioneta: any; id_repuesto_taller: any }) => r.id_repuesto_camioneta === repuesto.id_repuesto || r.id_repuesto_taller === repuesto.id_repuesto
+     );
 
-        console.log("Repuesto encontrado:", repuestoEncontrado); 
-        return {
-          ...repuesto,
-          precio: precio, // Asignar el precio del repuesto encontrado
-        };
-      });
 
-      console.log("Repuestos con precios:", repuestosConPrecio);  
-      setRepuestosOrden(repuestosConPrecio);
-    } catch (error) {
-      console.error('Error al obtener repuestos:', error);
-    }
+     const precio = repuestoEncontrado ? repuestoEncontrado.precio : null;
+
+     return {
+      ...repuesto,
+      precio: precio,
+     };
+    });
+
+    setRepuestosOrden(repuestosConPrecio);
+   } catch (error) {
+    console.error("Error al obtener repuestos:", error);
+   }
   };
 
-  if (ordenId) {
-    fetchRepuestos();
+  if (ordenActiva) {
+   fetchRepuestos();
   }
-}, [ordenId]);
+ }, [ordenActiva]);
 
-
-
-
-///////////////////////////
-
-
-
-
-  
+ ///////////////////////////
 
  const totalRepuestos =
- Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0
- ? selectedRepuestos.reduce((accumulator: number, repuesto) => {
-   const precio = parseFloat(repuesto.StockPrincipal.precio) || 0;
-       // @ts-ignore
-   const cantidad = parseFloat(repuesto.cantidad) || 0;
- 
-   return accumulator + precio * cantidad;
+  Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0
+   ? selectedRepuestos.reduce((accumulator: number, repuesto) => {
+      const precio = parseFloat(repuesto.StockPrincipal.precio) || 0;
+      // @ts-ignore
+      const cantidad = parseFloat(repuesto.cantidad) || 0;
+
+      return accumulator + precio * cantidad;
      }, 0)
    : 0;
 
-const totalMontos = montos.reduce((a, b) => a + parseFloat(b), 0);
-const total = totalMontos + totalRepuestos;
- 
+ const totalMontos = montos.reduce((a, b) => a + parseFloat(b), 0);
+ const total = totalMontos + totalRepuestos;
 
-
-const agregarRepuestos = async () => {
+ const agregarRepuestos = async () => {
   try {
-    // Log para asegurarse de que se están seleccionando los repuestos
-    console.log("Repuestos seleccionados:", selectedRepuestos);
+   await Promise.all(
+    selectedRepuestos.map(async (repuesto) => {
+     const repuestoOrdenData = {
+      id_orden: ordenActiva.id,
+      id_repuesto_taller: null,
+      id_repuesto_camioneta: repuesto.id_repuesto,
+      nombre: repuesto.StockPrincipal.nombre,
+      cantidad: repuesto.cantidad,
+     };
 
-    await Promise.all(
-      selectedRepuestos.map(async (repuesto) => {
-        // Log de cada repuesto individual antes de enviar los datos
-        console.log("Procesando repuesto:", repuesto);
+     console.log("Datos a enviar a createRepuestoOrden:", repuestoOrdenData);
 
-        const repuestoOrdenData = {
-          id_orden: orden.id,
-          id_repuesto_taller: null,
-          id_repuesto_camioneta: repuesto.id_repuesto,
-          nombre: repuesto.StockPrincipal.nombre,
-          cantidad: repuesto.cantidad,
-        };
+     await createRepuestoOrden(repuestoOrdenData);
 
-        // Log del objeto que se va a enviar a createRepuestoOrden
-        console.log("Datos a enviar a createRepuestoOrden:", repuestoOrdenData);
+     console.log("Repuesto agregado:", repuestoOrdenData);
+    })
+   );
 
-        await createRepuestoOrden(repuestoOrdenData);
-        
-        // Log de confirmación de que el repuesto se ha agregado
-        console.log("Repuesto agregado:", repuestoOrdenData);
-      })
-    );
-
-    console.log('Todos los repuestos se han agregado correctamente.');
+   console.log("Todos los repuestos se han agregado correctamente.");
   } catch (error) {
-    // Log en caso de error
-    console.error('Error al agregar repuestos:', error);
+   console.error("Error al agregar repuestos:", error);
   }
-};
+ };
 
-
-
-
-
-
-
-
-
- useEffect(() => {
-  if (orden && !orden.Presupuesto) {
-   setProducto(orden.producto || "");
-   setMarca(orden.marca || "");
-   setModelo(orden.modelo || "");
-   setCliente(orden.cliente || "");
-   setFormaPago([]);
-   setEstado([]);
-   setSelectedList([]);
-   setAcceptedPolicies(false);
-
-   const initialMontos = servicios.map(() => 0);
-   setMontos(initialMontos);
-
-   setPlazosCheckboxValues([]);
-   setSelectedMedioPago(null);
-   setSelectedEstadoPresupuesto(null);
-  }
- }, [orden]);
  useEffect(() => {
   const loadData = async () => {
    setPlazos(await fetchPlazosReparacion());
    setEstados(await estadosPresupuestos());
    setRepuestos(await listaRepuestos());
    setMedioPago(await mediosDePago());
-
-   if (orden && orden.Presupuesto) {
-    setProducto(orden.Presupuesto.producto || "");
-    setFormaPago(orden.Presupuesto.formaPago || null);
-    setEstado(orden.Presupuesto.estado || "");
-    setSelectedList(orden.Presupuesto.selectedList || []);
-    setAcceptedPolicies(orden.Presupuesto.acceptedPolicies || true);
-    setPlazosCheckboxValues([orden.Presupuesto.id_plazo_reparacion] || []);
-    setSelectedMedioPago(orden.Presupuesto.id_medio_de_pago || null);
-    setSelectedEstadoPresupuesto(orden.Presupuesto.id_estado_presupuesto || null);
-
-    setMontos([
-     orden.Presupuesto.viaticos || 0,
-     orden.Presupuesto.descuentos_referidos || 0,
-     orden.Presupuesto.comision_visita || 0,
-     orden.Presupuesto.comision_reparacion || 0,
-     orden.Presupuesto.comision_entrega || 0,
-     orden.Presupuesto.comision_reparacion_domicilio || 0,
-     orden.Presupuesto.gasto_impositivo || 0,
-    ]);
-
-    const firmaClienteDataURL = orden.Presupuesto.firma_cliente;
-    const firmaEmpleadoDataURL = orden.Presupuesto.firma_empleado;
-
-    if (sigCanvas1.current) {
-     sigCanvas1.current.fromDataURL(firmaClienteDataURL);
-    }
-    if (sigCanvas2.current) {
-     sigCanvas2.current.fromDataURL(firmaEmpleadoDataURL);
-    }
-   } else {
-    const savedData = JSON.parse(localStorage.getItem("presupuestoData") || "{}");
-    setMontos(savedData.montos || Array(7).fill(0));
-    setProducto(savedData.producto || "");
-    setFormaPago(savedData.formaPago || null);
-    setEstado(savedData.estado || "");
-    setSelectedList(savedData.selectedList || []);
-    setAcceptedPolicies(savedData.acceptedPolicies || false);
-    setSignature1(savedData.signature1 || "");
-    setSignature2(savedData.signature2 || "");
-    setPlazosCheckboxValues(savedData.plazosCheckboxValues || []);
-    setSelectedMedioPago(savedData.selectedMedioPago || null);
-    setSelectedEstadoPresupuesto(savedData.selectedEstadoPresupuesto || null);
-
-    if (sigCanvas1.current) {
-     sigCanvas1.current.fromDataURL(savedData.signature1 || "");
-    }
-    if (sigCanvas2.current) {
-     sigCanvas2.current.fromDataURL(savedData.signature2 || "");
-    }
-   }
   };
 
   loadData();
- }, [orden]);
+ }, []);
+
+ useEffect(() => {
+  if (ordenActiva) {
+   setFormaPago(ordenActiva.Presupuesto.formaPago || null);
+   setEstado(ordenActiva.Presupuesto.estado || "");
+   setSelectedList(ordenActiva.Presupuesto.selectedList || []);
+   setAcceptedPolicies(ordenActiva.Presupuesto.acceptedPolicies || true);
+   setPlazosCheckboxValues([ordenActiva.Presupuesto.id_plazo_reparacion] || []);
+   setSelectedMedioPago(ordenActiva.Presupuesto.id_medio_de_pago || null);
+   setSelectedEstadoPresupuesto(ordenActiva.Presupuesto.id_estado_presupuesto || null);
+
+   setMontos([
+    ordenActiva.Presupuesto.viaticos || 0,
+    ordenActiva.Presupuesto.descuentos_referidos || 0,
+    ordenActiva.Presupuesto.comision_visita || 0,
+    ordenActiva.Presupuesto.comision_reparacion || 0,
+    ordenActiva.Presupuesto.comision_entrega || 0,
+    ordenActiva.Presupuesto.comision_reparacion_domicilio || 0,
+    ordenActiva.Presupuesto.gasto_impositivo || 0,
+   ]);
+
+   const firmaClienteDataURL = ordenActiva.Presupuesto.firma_cliente;
+   const firmaEmpleadoDataURL = ordenActiva.Presupuesto.firma_empleado;
+
+   if (sigCanvas1.current) {
+    sigCanvas1.current.fromDataURL(firmaClienteDataURL);
+   }
+   if (sigCanvas2.current) {
+    sigCanvas2.current.fromDataURL(firmaEmpleadoDataURL);
+   }
+  }
+ }, [ordenActiva]);
 
  const handleMedioPagoChange = (event: CustomEvent) => {
   setSelectedMedioPago(event.detail.value);
@@ -282,7 +198,6 @@ const agregarRepuestos = async () => {
   setSelectedEstadoPresupuesto(event.detail.value);
  };
 
- 
  const handleConfirmarClick = async () => {
   if (!acceptedPolicies) {
    setShowAlert2(true);
@@ -291,13 +206,10 @@ const agregarRepuestos = async () => {
   }
  };
 
- const handleConfirmAlert = async () => {
+ const handleConfirm = async () => {
   setShowConfirmAlert(false);
-  if (!orden) {
-   console.error("La orden no está definida");
-   return;
-  }
-  let presupuestoId = orden.Presupuesto ? orden.Presupuesto.id : null;
+
+  let presupuestoId = ordenActiva ? ordenActiva.id : null;
 
   const serviciosMontos: Record<string, number> = {};
   montos.forEach((monto, index) => {
@@ -310,11 +222,10 @@ const agregarRepuestos = async () => {
 
   const firma_cliente = sigCanvas1.current?.toDataURL();
   const firma_empleado = sigCanvas2.current?.toDataURL();
-
   const id_plazo_reparacion = plazosCheckboxValues.length > 0 ? plazosCheckboxValues[0] : null;
 
   const dataToSend = {
-   id_orden: orden.id,
+   id_orden: ordenActiva.id,
    id_plazo_reparacion,
    id_medio_de_pago: selectedMedioPago,
    id_estado_presupuesto: selectedEstadoPresupuesto,
@@ -326,74 +237,35 @@ const agregarRepuestos = async () => {
    total,
   };
 
-  console.log("Datos a enviar:", dataToSend);
-
   try {
    let response;
 
    if (presupuestoId) {
-    response = await fetch(`https://lv-back.online/presupuestos/modificar/${presupuestoId}`, {
-     method: "PUT",
-     headers: {
-      "Content-Type": "application/json",
-     },
-     body: JSON.stringify(dataToSend),
-    });
+ 
+       for (const repuesto of selectedRepuestos) {
+        const repuestoOriginal = repuestosCamioneta.find((item) => item.id_repuesto === repuesto.id_repuesto);
+        if (repuestoOriginal) {
+         await updateRepuestoCantidad(repuestoOriginal.id, repuestoOriginal.cantidad);
+        }
+       }
+    //@ts-ignore
+    response = await modificarPresupuesto(presupuestoId, dataToSend);
    } else {
-    response = await fetch("https://lv-back.online/presupuestos/guardar", {
-     method: "POST",
-     headers: {
-      "Content-Type": "application/json",
-     },
-     body: JSON.stringify(dataToSend),
-    });
+    //@ts-ignore
+    response = await guardarPresupuesto(dataToSend);
    }
-
+   //@ts-ignore
    if (response.ok) {
-    const result = await response.json();
     console.log("Presupuesto guardado/modificado con éxito!!!");
-    console.log(result);
-    localStorage.removeItem("ordenActiva");
-    history.push("/domicilio");
-    agregarRepuestos()
-    localStorage.setItem(
-     "presupuestoData",
-     JSON.stringify({
-      producto,
-      montos,
-      selectedOption,
-      formaPago,
-      estado,
-      selectedList,
-      selectedOptions,
-      acceptedPolicies,
-      signature1,
-      signature2,
-      plazosCheckboxValues,
-      total,
-      observaciones,
-     })
-    );
-    setShowModal(false);
-    setProducto("");
-    setMarca("");
-    setModelo("");
-    setCliente("");
-    setCheckboxValues(Array(6).fill(false));
-    setMontos([0, 0, 0, 0, 0, 0, 0]);
-    setObservaciones("");
-    setSelectedOption("");
-    setFormaPago([]);
-    setEstado([]);
-    setSelectedList([]);
-    setSelectedOptions([]);
-    setAcceptedPolicies(false);
-    setSignature1("");
-    setSignature2("");
-    setPlazosCheckboxValues([]);
-    setSelectedMedioPago(null);
-    setSelectedEstadoPresupuesto(null);
-    setShowAlert(false);
+
+    setOrdenActiva((prevOrden: any) => ({
+     ...prevOrden,
+     Presupuesto: dataToSend,
+    }));
+
+    history.push("/verOrden");
+    agregarRepuestos();
+    cargarOrdenes();
    } else {
     console.error("Error al guardar/modificar el presupuesto");
     setShowAlert(true);
@@ -418,24 +290,12 @@ const agregarRepuestos = async () => {
   setSelectedList(selectedList.filter((item) => item !== itemToRemove));
  };
 
- const handleCancelAlert = () => {
-  setShowAlert(true);
- };
-
  const handleCancelarOrden = async () => {
   setShowAlert(false);
   try {
-   console.log("Cancelando orden:", orden.id);
+   console.log("Cancelando orden:", ordenActiva.id);
 
-   const response = await fetch(`https://lv-back.online/ordenes/modificar/${orden.id}`, {
-    method: "PUT",
-    headers: {
-     "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-     id_tipo_estado: 2, // 2 es el ID para el estado "cancelada"
-    }),
-   });
+   const response = await cancelarOrden(ordenActiva.id);
 
    if (response.ok) {
     console.log("Orden cancelada exitosamente");
@@ -458,11 +318,9 @@ const agregarRepuestos = async () => {
 
  const handleRepuestos = () => {
   history.push({
-    pathname: "/repuestosDomicilio",
-    state: { orden }  // Pasas la orden como parte del estado
+   pathname: "/repuestosDomicilio",
   });
-};
-
+ };
 
  return (
   <IonPage>
@@ -475,54 +333,26 @@ const agregarRepuestos = async () => {
       <h2>Presupuestar</h2>
       <IonButton onClick={handleRepuestos}>Seleccionar repuesto</IonButton>
       <IonList>
-  {Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0 ? (
-    selectedRepuestos.map((repuesto: any) => (
-      <IonItem key={repuesto.id_repuesto}>
-        <IonLabel
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            width: "100%",
-            fontSize: "16px",
-          }}
-        >
-          <span>
+       {Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0 ? (
+        selectedRepuestos.map((repuesto) => (
+         <IonItem key={repuesto.id_repuesto}>
+          <IonLabel style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: "16px" }}>
+           <span>
             {repuesto.StockPrincipal.nombre} x{repuesto.cantidad}
-          </span>
-          <span>${(parseFloat(repuesto.StockPrincipal.precio) * repuesto.cantidad).toFixed(2)}</span>
-        </IonLabel>
-      </IonItem>
-    ))
-  ) : null /* O simplemente puedes no renderizar nada aquí */ }
-  
-  {Array.isArray(repuestosOrden) && repuestosOrden.length > 0 ? (
-    repuestosOrden.map((repuesto: any) => (
-      <IonItem key={repuesto.id_repuesto}>
-        <IonLabel
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            width: "100%",
-            fontSize: "16px",
-          }}
-        >
-          <span>
-            {repuesto.nombre} x{repuesto.cantidad}
-          </span>
-          <span>${(repuesto.precio) * (repuesto.cantidad)}</span>
-        </IonLabel>
-      </IonItem>
-    ))
-  ) : (
-    <IonItem>
-      <IonLabel>No hay repuestos disponibles.</IonLabel>
-    </IonItem>
-  )}
-</IonList>
+           </span>
+           <span>${(parseFloat(repuesto.StockPrincipal.precio) * repuesto.cantidad).toFixed(2)}</span>
+          </IonLabel>
+         </IonItem>
+        ))
+       ) : (
+        <IonItem>
+         <IonLabel>No hay repuestos disponibles.</IonLabel>
+        </IonItem>
+       )}
+      </IonList>
 
       <IonModal isOpen={showModal}>
-       <IonSearchbar value={searchText || ""} onIonChange={(e) => setSearchText(e.detail.value || "")}></IonSearchbar>
-
+       <IonSearchbar value={searchText || ""} onIonChange={(e) => setSearchText(e.detail.value || "")} />
        <IonList>
         {repuestos.map((item, index) => (
          <IonItem key={index}>
@@ -533,10 +363,7 @@ const agregarRepuestos = async () => {
        </IonList>
        <IonButton
         onClick={() => {
-         setSelectedList((prevList) => {
-          const newItems = selectedOptions.filter((option) => !prevList.includes(option));
-          return [...prevList, ...newItems];
-         });
+         setSelectedList((prevList) => [...prevList, ...selectedOptions.filter((option) => !prevList.includes(option))]);
          setShowModal(false);
         }}
        >
@@ -556,18 +383,11 @@ const agregarRepuestos = async () => {
         ))}
        </ul>
       </div>
+
       <div className='servicios' style={{ display: "flex", flexDirection: "column" }}>
        <h2>Servicios</h2>
        {montos.map((monto, index) => (
-        <div
-         key={index}
-         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginTop: "-10px",
-         }}
-        >
+        <div key={index} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "-10px" }}>
          <span>
           <strong>{servicios[index]}:</strong>
          </span>
@@ -582,43 +402,23 @@ const agregarRepuestos = async () => {
          <strong>Total:</strong>
         </span>
        </div>
-       <div
-        style={{
-         textAlign: "right",
-         marginRight: "65px",
-         marginTop: "-20px",
-        }}
-       >
+       <div style={{ textAlign: "right", marginRight: "65px", marginTop: "-20px" }}>
         <span>${total}</span>
        </div>
       </div>
+
       <div>
-       <div
-        className='separador'
-        style={{
-         borderBottom: "2px solid #000",
-         margin: "20px 10px",
-         width: "90%",
-        }}
-       ></div>
+       <div className='separador' style={{ borderBottom: "2px solid #000", margin: "20px 10px", width: "90%" }} />
        <h2>Forma de pago</h2>
-       <div
-        style={{
-         width: "100%",
-         marginTop: "30px",
-         display: "flex",
-         justifyContent: "space-between",
-        }}
-       >
-        <IonSelect value={selectedMedioPago} placeholder='Seleccione medio de pago' onIonChange={handleMedioPagoChange}>
-         {medioPago.map((medio) => (
-          <IonSelectOption key={medio.id} value={medio.id}>
-           {medio.medio_de_pago}
-          </IonSelectOption>
-         ))}
-        </IonSelect>
-       </div>
+       <IonSelect value={selectedMedioPago} placeholder='Seleccione medio de pago' onIonChange={handleMedioPagoChange}>
+        {medioPago.map((medio) => (
+         <IonSelectOption key={medio.id} value={medio.id}>
+          {medio.medio_de_pago}
+         </IonSelectOption>
+        ))}
+       </IonSelect>
       </div>
+
       <div className='section'>
        <h2>Tiempo estimado de reparación/diagnóstico</h2>
        <div className='checkbox-container'>
@@ -628,11 +428,7 @@ const agregarRepuestos = async () => {
            checked={plazosCheckboxValues.includes(plazo.id)}
            onIonChange={(e) => {
             const isChecked = e.detail.checked;
-            if (isChecked) {
-             setPlazosCheckboxValues((prevValues) => [...prevValues, plazo.id]);
-            } else {
-             setPlazosCheckboxValues((prevValues) => prevValues.filter((id) => id !== plazo.id));
-            }
+            setPlazosCheckboxValues((prevValues) => (isChecked ? [...prevValues, plazo.id] : prevValues.filter((id) => id !== plazo.id)));
            }}
            className='checkbox'
           />
@@ -640,82 +436,42 @@ const agregarRepuestos = async () => {
          </div>
         ))}
        </div>
-
-       <div>
-        <IonSelect value={selectedEstadoPresupuesto} placeholder='Seleccione estado' onIonChange={handleEstadoPresupuestoChange}>
-         {estados.map((estado) => (
-          <IonSelectOption key={estado.id} value={estado.id}>
-           {estado.texto}
-          </IonSelectOption>
-         ))}
-        </IonSelect>
-       </div>
+       <IonSelect value={selectedEstadoPresupuesto} placeholder='Seleccione estado' onIonChange={handleEstadoPresupuestoChange}>
+        {estados.map((estado) => (
+         <IonSelectOption key={estado.id} value={estado.id}>
+          {estado.texto}
+         </IonSelectOption>
+        ))}
+       </IonSelect>
       </div>
 
       <div>
-       <div
-        className='separador'
-        style={{
-         borderBottom: "2px solid #000",
-         margin: "20px 10px",
-         width: "90%",
-        }}
-       ></div>
-
+       <div className='separador' style={{ borderBottom: "2px solid #000", margin: "20px 10px", width: "90%" }} />
        <div className='section'>
         <h2>Políticas de Garantía</h2>
-        <div
-         style={{
-          border: "1px solid #000",
-          padding: "10px",
-          marginBottom: "10px",
-          borderRadius: "15px",
-          width: "95%",
-         }}
-        >
-         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eget ultricies lectus. Ut sit amet aliquet...</p>
+        <div style={{ border: "1px solid #000", padding: "10px", marginBottom: "10px", borderRadius: "15px", width: "95%" }}>
+         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eget ultricies lectus...</p>
         </div>
         <div style={{ display: "flex", alignItems: "center" }}>
          <IonCheckbox checked={acceptedPolicies} onIonChange={handleAcceptPoliciesChange} />
-         <span
-          style={{
-           marginLeft: "20px",
-          }}
-         >
-          Acepto las políticas de garantía
-         </span>
+         <span style={{ marginLeft: "20px" }}>Acepto las políticas de garantía</span>
          <IonAlert isOpen={showAlert2} onDidDismiss={() => setShowAlert2(false)} header='Error' message='Debe aceptar las políticas de privacidad para continuar.' buttons={["OK"]} />
         </div>
        </div>
+
        <h2>Firmas</h2>
-       <div className='firma'>
-        <h3>Firma Cliente</h3>
-        <SignatureCanvas
-         penColor='black'
-         canvasProps={{
-          width: 500,
-          height: 200,
-          className: "sigCanvas",
-         }}
-         ref={sigCanvas1}
-         onEnd={() => setSignature1(sigCanvas1.current?.toDataURL() || "")}
-        />
-        <IonButton onClick={() => sigCanvas1.current?.clear()}>Borrar</IonButton>
-       </div>
-       <div className='firma'>
-        <h3>Firma Técnico</h3>
-        <SignatureCanvas
-         penColor='black'
-         canvasProps={{
-          width: 500,
-          height: 200,
-          className: "sigCanvas",
-         }}
-         ref={sigCanvas2}
-         onEnd={() => setSignature2(sigCanvas2.current?.toDataURL() || "")}
-        />
-        <IonButton onClick={() => sigCanvas2.current?.clear()}>Borrar</IonButton>
-       </div>
+       {["Cliente", "Técnico"].map((role, index) => (
+        <div className='firma' key={index}>
+         <h3>Firma {role}</h3>
+         <SignatureCanvas
+          penColor='black'
+          canvasProps={{ width: 500, height: 200, className: "sigCanvas" }}
+          ref={index === 0 ? sigCanvas1 : sigCanvas2}
+          onEnd={() => (index === 0 ? setSignature1(sigCanvas1.current?.toDataURL() || "") : setSignature2(sigCanvas2.current?.toDataURL() || ""))}
+         />
+         <IonButton onClick={() => (index === 0 ? sigCanvas1.current?.clear() : sigCanvas2.current?.clear())}>Borrar</IonButton>
+        </div>
+       ))}
       </div>
 
       <div className='section'>
@@ -728,47 +484,21 @@ const agregarRepuestos = async () => {
         header='Confirmar'
         message='¿Desea confirmar la operación?'
         buttons={[
-         {
-          text: "Cancelar",
-          role: "cancel",
-          handler: handleConfirmAlertCancel,
-         },
-         {
-          text: "Confirmar",
-          handler: handleConfirmAlert,
-         },
+         { text: "Cancelar", role: "cancel", handler: handleConfirmAlertCancel },
+         { text: "Confirmar", handler: handleConfirm },
         ]}
        />
-       <IonButton
-        className='button'
-        style={{
-         "--border": "none",
-         "--background": "none",
-         "--color": "#E58769",
-        }}
-        onClick={() => setShowAlert(true)}
-       >
+       <IonButton className='button' style={{ "--border": "none", "--background": "none", "--color": "#E58769" }} onClick={() => setShowAlert(true)}>
         Cancelar orden
        </IonButton>
-
        <IonAlert
         isOpen={showAlert}
         onDidDismiss={() => setShowAlert(false)}
         header={"Confirmar"}
         message={"¿Estás seguro de que deseas cancelar la orden?"}
         buttons={[
-         {
-          text: "No",
-          role: "cancel",
-          cssClass: "secondary",
-          handler: () => {
-           setShowAlert(false);
-          },
-         },
-         {
-          text: "Sí",
-          handler: handleCancelarOrden,
-         },
+         { text: "No", role: "cancel", cssClass: "secondary", handler: () => setShowAlert(false) },
+         { text: "Sí", handler: handleCancelarOrden },
         ]}
        />
       </div>
