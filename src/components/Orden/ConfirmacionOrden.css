@@ -20,13 +20,13 @@
   display: flex;
   flex-direction: column;
   justify-content: left;
-  margin-left: 10%;
+  margin: -20px auto 0 auto;
   width: 80%;
   color: #283959;
 }
 
 .confirmacion-orden-medium-box h4 {
-  margin-top: 0px;
+  margin-top: -5px;
 }
 
 .confirmacion-orden-medium-box ion-button {

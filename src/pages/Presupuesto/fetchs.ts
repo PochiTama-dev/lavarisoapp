@@ -1,5 +1,19 @@
  
-
+export interface Repuesto {
+  id: number;
+  codigo_repuesto: string;
+  descripcion: string;
+ }
+ export  interface MedioDePago {
+  id: number;
+  medio_de_pago: string;
+ }
+ 
+ export interface FormaPago {
+  id: number;
+  medio_de_pago: string;
+ }
+ 
 export const fetchPlazosReparacion = async () => {
     try {
       const response = await fetch("https://lv-back.online/opciones/plazo");
@@ -67,8 +81,17 @@ export const fetchPlazosReparacion = async () => {
       return false;
     }
   };
+  interface PresupuestoData {
+    id_plazo_reparacion: number;
+    observaciones: string;
+    repuestos_presupuesto: string;
+    firma_cliente: string | undefined;
+    firma_empleado: string | undefined;
+    total: number; 
+    id_orden: string | number;  
   
-  export const guardarPresupuesto = async (data: { id_plazo_reparacion: number; observaciones: string; repuestos_presupuesto: string; firma_cliente: string | undefined; firma_empleado: string | undefined; total: any; id_orden: any; producto: string; }) => {
+  }
+  export const guardarPresupuesto = async (data: PresupuestoData) => {
     try {
       const response = await fetch("https://lv-back.online/presupuestos/guardar", {
         method: "POST",
@@ -77,12 +100,17 @@ export const fetchPlazosReparacion = async () => {
         },
         body: JSON.stringify(data),
       });
-      return response;
+  
+      if (response.ok) {
+        console.log("Presupuesto guardado exitosamente.");
+      } else {
+        console.error("Error al guardar el presupuesto:", response.statusText);
+      }
     } catch (error) {
-      console.error("Error guardando el presupuesto:", error);
-      throw error;
+      console.error("Error en la solicitud:", error);
     }
   };
+  
   
   export const modificarPresupuesto = async (ordenId: any, data: { id_plazo_reparacion: number; observaciones: string; repuestos_presupuesto: string; firma_cliente: string | undefined; firma_empleado: string | undefined; total: any; id_orden: any; producto: string; }) => {
     try {
@@ -127,9 +155,25 @@ export const fetchPlazosReparacion = async () => {
       const response = await fetch(`${API_URL}/${id}`);
       if (!response.ok) throw new Error('Error al obtener los repuestos de la orden');
       const data = await response.json();
-      return data; // Solo devuelve los repuestos
+      return data; 
     } catch (error) {
       console.error(error);
       throw error;
     }
   };
+
+
+ 
+  export const cancelarOrden = async (ordenId: any) => {
+    const response = await fetch(`https://lv-back.online/ordenes/modificar/${ordenId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id_tipo_estado: 2, 
+      }),
+    });
+    return response;
+  };
+  

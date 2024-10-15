@@ -1,7 +1,7 @@
-import TecnicoTallerComponent from "../../components/Tecnico a Taller/TecnicoTaller";
+import RepuestosTaller from "../../components/Repuestos/RepuestosTaller";
 
 const TecnicoTaller: React.FC = () => {
-  return <TecnicoTallerComponent />;
+  return <RepuestosTaller />;
 };
 
 export default TecnicoTaller;

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./TecnicoTaller.css";
-import { IonAlert, IonButton, IonContent, IonHeader } from "@ionic/react";
-import { useOrden } from "../../pages/Orden/ordenContext";
-
+import { IonAlert, IonButton, IonContent, IonHeader, IonIcon } from "@ionic/react";
+import { useOrden } from "../../Provider/Provider";
+import { eyeOutline } from "ionicons/icons";
 function TecnicoTallerComponent() {
   const history = useHistory();
   const [ordenes, setOrdenes] = useState<any>([]);
@@ -213,20 +213,8 @@ function TecnicoTallerComponent() {
                           <span>
                             {estadoPresupuestoMap[orden.id_tipo_estado]}
                           </span>
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 18 18"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            onClick={() => handleVerOrden(orden)}
-                            style={{ cursor: "pointer" }}
-                          >
-                            <path
-                              d="M9 6.75C8.40326 6.75 7.83097 6.98705 7.40901 7.40901C6.98705 7.83097 6.75 8.40326 6.75 9C6.75 9.59674 6.98705 10.169 7.40901 10.591C7.83097 11.0129 8.40326 11.25 9 11.25C9.59674 11.25 10.169 11.0129 10.591 10.591C11.0129 10.169 11.25 9.59674 11.25 9C11.25 8.40326 11.0129 7.83097 10.591 7.40901C10.169 6.98705 9.59674 6.75 9 6.75ZM9 12.75C8.00544 12.75 7.05161 12.3549 6.34835 11.6517C5.64509 10.9484 5.25 9.99456 5.25 9C5.25 8.00544 5.64509 7.05161 6.34835 6.34835C7.05161 5.64509 8.00544 5.25 9 5.25C9.99456 5.25 10.9484 5.64509 11.6517 6.34835C12.3549 7.05161 12.75 8.00544 12.75 9C12.75 9.99456 12.3549 10.9484 11.6517 11.6517C10.9484 12.3549 9.99456 12.75 9 12.75ZM9 3.375C5.25 3.375 2.0475 5.7075 0.75 9C2.0475 12.2925 5.25 14.625 9 14.625C12.75 14.625 15.9525 12.2925 17.25 9C15.9525 5.7075 12.75 3.375 9 3.375Z"
-                              fill="#283959"
-                            />
-                          </svg>
+                          <IonIcon icon={eyeOutline} onClick={() => handleVerOrden(orden)} style={{ cursor: "pointer", fontSize: "24px", strokeWidth: "2" }} />
+
                         </h4>
                       </div>
                     )
@@ -249,20 +237,8 @@ function TecnicoTallerComponent() {
                           <span>
                             {estadoPresupuestoMap[orden.id_tipo_estado]}
                           </span>
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 18 18"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            onClick={() => handleVerOrden(orden)}
-                            style={{ cursor: "pointer" }}
-                          >
-                            <path
-                              d="M9 6.75C8.40326 6.75 7.83097 6.98705 7.40901 7.40901C6.98705 7.83097 6.75 8.40326 6.75 9C6.75 9.59674 6.98705 10.169 7.40901 10.591C7.83097 11.0129 8.40326 11.25 9 11.25C9.59674 11.25 10.169 11.0129 10.591 10.591C11.0129 10.169 11.25 9.59674 11.25 9C11.25 8.40326 11.0129 7.83097 10.591 7.40901C10.169 6.98705 9.59674 6.75 9 6.75ZM9 12.75C8.00544 12.75 7.05161 12.3549 6.34835 11.6517C5.64509 10.9484 5.25 9.99456 5.25 9C5.25 8.00544 5.64509 7.05161 6.34835 6.34835C7.05161 5.64509 8.00544 5.25 9 5.25C9.99456 5.25 10.9484 5.64509 11.6517 6.34835C12.3549 7.05161 12.75 8.00544 12.75 9C12.75 9.99456 12.3549 10.9484 11.6517 11.6517C10.9484 12.3549 9.99456 12.75 9 12.75ZM9 3.375C5.25 3.375 2.0475 5.7075 0.75 9C2.0475 12.2925 5.25 14.625 9 14.625C12.75 14.625 15.9525 12.2925 17.25 9C15.9525 5.7075 12.75 3.375 9 3.375Z"
-                              fill="#283959"
-                            />
-                          </svg>
+                          <IonIcon icon={eyeOutline} onClick={() => handleVerOrden(orden)} style={{ cursor: "pointer", fontSize: "24px", strokeWidth: "2" }} />
+
                         </h4>
                       </div>
                     )

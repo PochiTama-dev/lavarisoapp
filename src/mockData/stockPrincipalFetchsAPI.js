@@ -1,6 +1,6 @@
-const listaStockPrincipal = async () => {
+export const listaStockPrincipal = async () => {
   try {
-    const response = await fetch("http://localhost:8000/stock/principal/lista");
+    const response = await fetch("https://lv-back.online/stock/principal/lista");
     const repuestos = await response.json();
     if (repuestos[0] !== undefined) {
       console.log(`Se encontró una lista con ${repuestos.length} ingreso de repuestos!!!`);
@@ -30,9 +30,9 @@ const proveedorStockPrincipal = async (idProveedor) => {
   }
 };
 
-const obtenerRepuestosStock = async (idRepuesto) => {
+export const obtenerRepuestosStock = async (idRepuesto) => {
   try {
-    const response = await fetch(`http://localhost:8000/stock/principal/repuestos/${idRepuesto}`);
+    const response = await fetch(`https://lv-back.online/stock/principal/repuestos/${idRepuesto}`);
     const repuestos = await response.json();
     if (repuestos[0] !== undefined) {
       console.log(`Se encontró una lista de repuestos con el id ${idRepuesto}`);

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, ReactNode } from "react";
-import { useHistory, useLocation } from "react-router-dom";
-import { IonContent, IonHeader, IonList, IonItem, IonLabel, IonButton, IonButtons, IonToast } from "@ionic/react";
+import { useHistory } from "react-router-dom";
+import { IonContent, IonHeader, IonList, IonItem, IonLabel, IonButton, IonButtons, IonToast, IonAlert } from "@ionic/react";
 import HeaderGeneral from "../Header/HeaderGeneral";
-import { useOrden } from "../../pages/Orden/ordenContext";
-import { fetchRepuestos, modificarStockPrincipal } from "./FetchsRepuestos";
+import { useOrden } from "../../Provider/Provider";
+import { listaStockPrincipal, guardarStockReserva } from "./FetchsRepuestos";
+import ReservasModal from "./ReservasModal"; // Importar el modal
 
 interface Repuesto {
   id_repuesto_taller: any;
@@ -12,245 +13,126 @@ interface Repuesto {
   cantidad: number;
   StockPrincipal: any;
   id_repuesto: any;
+  precio: number;
+  lote: string;
 }
 
 const RepuestosTaller: React.FC = () => {
   const history = useHistory();
   const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
-  const [repuestosOrden, setRepuestosOrden] = useState<Repuesto[]>([]);
-  const [showToast, setShowToast] = useState(false);
   const { selectedRepuestosTaller, setSelectedRepuestosTaller } = useOrden();
-  const location = useLocation();
-  const [ordenId, setOrdenId] = useState<number | null>(null);
-  const [reload, setReload] = useState(false);
-  useEffect(() => {
-    console.log("Location state:", location.state);
-      // @ts-ignore
-    if (location.state?.ordenSeleccionada) {
-          // @ts-ignore
-      setOrdenId(location.state.ordenSeleccionada.id);
-      setSelectedRepuestosTaller([]);
-    }
-  }, [location.state]);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [showAlert, setShowAlert] = useState(false); // Estado para manejar el IonAlert
+  const [showReservasModal, setShowReservasModal] = useState(false); // Estado para manejar el modal
 
   useEffect(() => {
-    const fetchRepuestosData = async () => {
-      const idEmpleado = localStorage.getItem("empleadoId") || "";
+    const loadRepuestos = async () => {
       try {
-        const repuestosData = await fetchRepuestos("taller", idEmpleado);
-        setRepuestos(repuestosData);
+        const repuestosStock = await listaStockPrincipal();
+        setRepuestos(repuestosStock);
       } catch (error) {
-        console.error("Error al obtener repuestos:", error);
-      }
-    };
-  
-    fetchRepuestosData();
-  }, [reload]);
-
-  
-
-  const getRepuestosOrdenById = async (id: any) => {
-    const API_URL = 'https://lv-back.online/orden/repuestos';
-    try {
-      const response = await fetch(`${API_URL}/${id}`);
-      if (!response.ok) throw new Error('Error al obtener los repuestos de la orden');
-      return await response.json();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };
-
-  useEffect(() => {
-    const fetchRepuestosOrdenData = async () => {
-      if (ordenId) {
-        try {
-          const repuestosOrdenData = await getRepuestosOrdenById(ordenId);
-          setRepuestosOrden(repuestosOrdenData);
-        } catch (error) {
-          console.error("Error al obtener los repuestos de la orden:", error);
-        }
+        console.error("Error al cargar los repuestos:", error);
       }
     };
 
-    fetchRepuestosOrdenData();
-  }, [ordenId]);
-
-  const updateRepuestoCantidad = async (id: number, nuevaCantidad: number) => {
-    const repuestoActualizado = { cantidad: nuevaCantidad };
-
-    try {
-      await modificarStockPrincipal(id, repuestoActualizado);
-    } catch (error) {
-      console.error("Error al actualizar la cantidad del repuesto:", error);
-    }
-  };
+    loadRepuestos();
+  }, []);
 
   const handleAddRepuesto = (index: number) => {
     const repuestoToAdd = repuestos[index];
-    if (repuestoToAdd.cantidad <= 0) {
-      console.log("No se puede agregar, la cantidad es cero.");
-      return;
-    }
+    if (repuestoToAdd.cantidad <= 0) return;
 
     const exists = selectedRepuestosTaller.find((repuesto) => repuesto.id_repuesto === repuestoToAdd.id_repuesto);
-    
-    if (!exists) {  // @ts-ignore
+
+    if (!exists) {
+      //@ts-ignore
       setSelectedRepuestosTaller((prev) => [...prev, { ...repuestoToAdd, cantidad: 1 }]);
-    } else {  // @ts-ignore
-      setSelectedRepuestosTaller((prev) => prev.map((repuesto) =>
-        repuesto.id_repuesto === repuestoToAdd.id_repuesto
-          ? { ...repuesto, cantidad: repuesto.cantidad + 1 }
-          : repuesto
-      ));
+    } else {
+      //@ts-ignore
+      setSelectedRepuestosTaller((prev) =>
+        prev.map((repuesto: { id_repuesto: any; cantidad: number }) => (repuesto.id_repuesto === repuestoToAdd.id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad + 1 } : repuesto))
+      );
     }
 
-    updateRepuestoCantidad(repuestoToAdd.id, repuestoToAdd.cantidad - 1);
-    setRepuestos((prevState) => prevState.map((repuesto) =>
-      repuesto.id_repuesto === repuestoToAdd.id_repuesto
-        ? { ...repuesto, cantidad: repuesto.cantidad - 1 }
-        : repuesto
-    ));
+    setRepuestos((prevState) => prevState.map((repuesto) => (repuesto.id_repuesto === repuestoToAdd.id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad - 1 } : repuesto)));
   };
 
   const handleRemoveRepuesto = (id_repuesto: number) => {
     const repuestoToRemove = selectedRepuestosTaller.find((repuesto) => repuesto.id_repuesto === id_repuesto);
-    
-    if (!repuestoToRemove) {
-      console.error("Repuesto no encontrado.");
-      return;
-    }
+    if (!repuestoToRemove) return;
 
     const repuestoOriginal = repuestos.find((repuesto) => repuesto.id_repuesto === id_repuesto);
-    if (!repuestoOriginal) {
-      console.error("El repuesto no se encuentra en la lista de stock disponible.");
-      return;
-    }
+    if (!repuestoOriginal) return;
 
-    updateRepuestoCantidad(repuestoToRemove.id, repuestoOriginal.cantidad + 1);
-    setRepuestos((prevState) => prevState.map((repuesto) =>
-      repuesto.id_repuesto === id_repuesto
-        ? { ...repuesto, cantidad: repuesto.cantidad + 1 }
-        : repuesto
-    ));
+    setRepuestos((prevState) => prevState.map((repuesto) => (repuesto.id_repuesto === id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad + 1 } : repuesto)));
 
     if (repuestoToRemove.cantidad > 1) {
-  // @ts-ignore
+      //@ts-ignore
       setSelectedRepuestosTaller((prev) =>
-      
-        prev.map((repuesto: { id_repuesto: any; cantidad: number; }) =>
-          repuesto.id_repuesto === repuestoToRemove.id_repuesto
-            ? { ...repuesto, cantidad: repuesto.cantidad - 1 }
-            : repuesto
-        )
-      );
-    } else {  // @ts-ignore
-      setSelectedRepuestosTaller((prev) => prev.filter((repuesto) => repuesto.id_repuesto !== repuestoToRemove.id_repuesto));
-    }
-  };
-
-
-
-
-
- const updateRepuestoOrden = async (idRepuestoOrden: any, repuestoOrdenData: { cantidad: number; id_repuesto_taller: any; id: any; nombre: ReactNode; StockPrincipal: any; id_repuesto: any; }) => {
-    const API_URL = 'https://lv-back.online/orden/repuestos';
-    try {
-        const response = await fetch(`${API_URL}/${idRepuestoOrden}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(repuestoOrdenData),
-        });
-
-        if (!response.ok) {
-            const errorDetails = await response.json();
-            console.error('Error al actualizar:', errorDetails);
-            throw new Error('Error al actualizar los repuestos de la orden: ' + errorDetails.message);
-        }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error en la solicitud:', error);
-        throw error;
-    }
-};
-
-const deleteRepuestoOrden = async (id: any) => {
-    const API_URL = 'https://lv-back.online/orden/repuestos';
-    try {
-        const response = await fetch(`${API_URL}/${id}`, {
-            method: 'DELETE',
-        });
-        if (!response.ok) throw new Error('Error al eliminar el repuesto de la orden');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-};
-
-const handleRemoveRepuestoOrden = async (id_repuesto_taller: any, cantidad = 1) => {
-    if (ordenId === null) {
-      console.error("ordenId no está definido.");
-      return;
-    }
-  
-    const repuestoToRemove = repuestosOrden.find((repuesto) => repuesto.id_repuesto_taller === id_repuesto_taller);
-    if (!repuestoToRemove) {
-      console.error("Repuesto de la orden no encontrado.");
-      return;
-    }
-  
-    const repuestoOriginal = repuestos.find((repuesto) => repuesto.id_repuesto === repuestoToRemove.id_repuesto_taller);
-    if (repuestoOriginal) {
-      await updateRepuestoCantidad(repuestoOriginal.id, repuestoOriginal.cantidad + cantidad);
-    }
-  
-    if (repuestoToRemove.cantidad > cantidad) {
-      const updatedRepuesto = { ...repuestoToRemove, cantidad: repuestoToRemove.cantidad - cantidad };
-      await updateRepuestoOrden(repuestoToRemove.id, updatedRepuesto);
-  
-      setRepuestosOrden((prev) =>
-        prev.map((repuesto) =>
-          repuesto.id_repuesto_taller === id_repuesto_taller
-            ? updatedRepuesto
-            : repuesto
-        )
+        prev.map((repuesto: { id_repuesto: any; cantidad: number }) => (repuesto.id_repuesto === repuestoToRemove.id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad - 1 } : repuesto))
       );
     } else {
-      await deleteRepuestoOrden(repuestoToRemove.id);
-  
-      setRepuestosOrden((prev) =>
-        prev.filter((repuesto) => repuesto.id_repuesto_taller !== id_repuesto_taller)
-      );
+      //@ts-ignore
+      setSelectedRepuestosTaller((prev) => prev.filter((repuesto: { id_repuesto: number }) => repuesto.id_repuesto !== id_repuesto));
     }
-  
-    // Aquí cambias el valor de reload para disparar la recarga
-    setReload((prevReload) => !prevReload);
   };
-  
 
+  const calcularTotal = () => {
+    return selectedRepuestosTaller.reduce((total, repuesto) => {
+      return total + repuesto.precio * repuesto.cantidad;
+    }, 0);
+  };
 
-
-
- 
-  
   const handleConfirm = () => {
-    history.push("/tallerorden");
+    setShowAlert(true); // Muestra el IonAlert
+  };
+
+  const confirmReservation = async () => {
+    const id_tecnico = localStorage.getItem("empleadoId");
+    console.log("ID Técnico desde localStorage:", id_tecnico); // Para depuración
+
+    if (!id_tecnico) {
+      console.error("ID del técnico no encontrado en el localStorage.");
+      return;
+    }
+
+    for (const repuesto of selectedRepuestosTaller) {
+      const stockReserva = {
+        id_tecnico: id_tecnico,
+        id_repuesto: repuesto.id_repuesto,
+        cantidad: repuesto.cantidad,
+        lote: repuesto.lote,
+      };
+
+      console.log("Enviando StockReserva:", stockReserva); // Para depuración
+
+      const success = await guardarStockReserva(stockReserva);
+      if (success) {
+        setToastMessage("Repuesto reservado con éxito."); // Mensaje de éxito
+        setShowToast(true);
+
+        // Guardar la reserva en el localStorage
+        const reservas = JSON.parse(localStorage.getItem("reservas") || "[]");
+        reservas.push(stockReserva);
+        localStorage.setItem("reservas", JSON.stringify(reservas));
+      } else {
+        console.error("Error al reservar el repuesto", repuesto.nombre);
+      }
+    }
+
+    setShowAlert(false); // Ocultar el IonAlert después de confirmar
   };
 
   const renderRepuestos = () => (
     <>
-      <div className='container-listado-respuestos'>
-        <IonList className='listado-respuestos'>
+      <div className="container-listado-respuestos">
+        <IonList className="listado-respuestos">
           {repuestos.map((repuesto, index) => (
             <IonItem key={index}>
               <IonLabel>{repuesto.nombre}</IonLabel>
-              <IonButtons slot='end'>
+              <IonLabel>${repuesto.precio}</IonLabel>
+              <IonButtons slot="end">
                 <IonLabel className={repuesto.cantidad > 0 ? "repuesto-incrementado" : ""}>{repuesto.cantidad}</IonLabel>
                 <IonButton onClick={() => handleAddRepuesto(index)}>+</IonButton>
                 <IonButton onClick={() => handleRemoveRepuesto(repuesto.id_repuesto)}>-</IonButton>
@@ -260,8 +142,8 @@ const handleRemoveRepuestoOrden = async (id_repuesto_taller: any, cantidad = 1) 
         </IonList>
       </div>
 
-      <IonItem className='listado-seleccionados'>
-        <IonLabel className='subtitle-listado-seleccionados'>Seleccionado:</IonLabel>
+      <IonItem className="listado-seleccionados">
+        <IonLabel className="subtitle-listado-seleccionados">Seleccionado:</IonLabel>
       </IonItem>
       <IonList>
         {selectedRepuestosTaller.map((repuesto, index) => (
@@ -272,29 +154,46 @@ const handleRemoveRepuestoOrden = async (id_repuesto_taller: any, cantidad = 1) 
         ))}
       </IonList>
 
-      <IonItem className='listado-orden'>
-        <IonLabel className='subtitle-listado-orden'>Repuestos de la Orden:</IonLabel>
+      <IonItem className="total-container">
+        <IonLabel>Total:</IonLabel>
+        <IonLabel>${calcularTotal()}</IonLabel>
       </IonItem>
-      <IonList>
-        {repuestosOrden.map((repuesto, index) => (
-          <IonItem key={index}>
-            <IonLabel>{repuesto.nombre}</IonLabel>
-            <IonLabel>{repuesto.cantidad}</IonLabel>
-            <IonButton onClick={() => handleRemoveRepuestoOrden(repuesto.id_repuesto_taller)}>-</IonButton>
-          </IonItem>
-        ))}
-      </IonList>
     </>
   );
 
   return (
     <IonContent>
       <IonHeader>
-        <HeaderGeneral  />
+        <HeaderGeneral />
       </IonHeader>
       {renderRepuestos()}
-      <IonButton expand="full" onClick={handleConfirm}>Confirmar</IonButton>
-      <IonToast isOpen={showToast} message="Repuesto agregado." duration={2000} onDidDismiss={() => setShowToast(false)} />
+      <IonButton expand="full" onClick={handleConfirm}>
+        Confirmar
+      </IonButton>
+      <IonButton expand="full" onClick={() => setShowReservasModal(true)}>
+        Reservas realizadas
+      </IonButton>
+      <IonToast isOpen={showToast} message={toastMessage} duration={2000} onDidDismiss={() => setShowToast(false)} />
+      <IonAlert
+        isOpen={showAlert}
+        onDidDismiss={() => setShowAlert(false)}
+        header={"Confirmar Reserva"}
+        message={"¿Está seguro de que desea confirmar la reserva de los repuestos seleccionados?"}
+        buttons={[
+          {
+            text: "Cancelar",
+            role: "cancel",
+            handler: () => {
+              console.log("Reserva cancelada");
+            },
+          },
+          {
+            text: "Confirmar",
+            handler: confirmReservation, // Llama a la función de confirmación
+          },
+        ]}
+      />
+      <ReservasModal isOpen={showReservasModal} onClose={() => setShowReservasModal(false)} /> {/* Usar el modal */}
     </IonContent>
   );
 };
