@@ -7,7 +7,6 @@ import HeaderGeneral from '../Header/HeaderGeneral';
 import './ConfirmacionOrden.css';
 import { useLocation } from 'react-router-dom';
 import { useOrden } from '../../pages/Orden/ordenContext';
-import socket from '../services/socketService';
 
 function ConfirmacionOrdenComponent() {
   const [position, setPosition] = useState({
@@ -38,9 +37,6 @@ function ConfirmacionOrdenComponent() {
   };
 
   useEffect(() => {
-    socket.on('todasNotificaciones', (data) => {
-      console.log('Notificación recibida en Confirmación de Orden:', data);
-    });
     if (orden && orden.Cliente) {
       setPosition({
         latitude: orden.Cliente.latitud,
@@ -59,11 +55,6 @@ function ConfirmacionOrdenComponent() {
     };
 
     fetchData();
-
-    // Limpieza del evento cuando se desmonta el componente
-    return () => {
-      socket.off('todasNotificaciones');
-    };
   }, [orden]);
 
   const handleButtonClick = (path: any, orden = null) => {
@@ -77,9 +68,6 @@ function ConfirmacionOrdenComponent() {
     }
   };
 
-  const handleSocket = () => {
-    socket.emit('todasNotificaciones', { mensaje: 'Mensaje desde Confirmación de Orden' });
-  };
   return (
     <IonContent className='confirmacion-orden-container'>
       <IonHeader>
@@ -133,7 +121,6 @@ function ConfirmacionOrdenComponent() {
         <h4>Cotización</h4>
         <h3>${total}</h3>
         <button>Cerrar orden</button>
-        <button onClick={handleSocket}>Enviar algo al Sokcet</button>
       </div>
     </IonContent>
   );
