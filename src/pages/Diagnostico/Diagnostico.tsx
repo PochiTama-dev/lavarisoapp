@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { IonContent, IonPage, IonIcon, IonCheckbox, IonInput, IonButton, IonHeader, IonAlert } from "@ionic/react";
+import { IonContent, IonPage, IonIcon, IonCheckbox, IonInput, IonButton, IonHeader, IonAlert, IonSelect, IonSelectOption } from "@ionic/react";
 import { pencilOutline } from "ionicons/icons";
 import "./diagnostico.css";
 import HeaderGeneral from "../../components/Header/HeaderGeneral";
 import { useHistory } from "react-router-dom";
-import { modificarOrden, fetchTiposFunciones, Orden } from "./fetchs";
+import { modificarOrden, getFotosNumeroOrden, Orden, listaReparaciones} from "./fetchs";
 import { useOrden } from "../../Provider/Provider";
-
+import Fotos from "../../components/Fotos/Fotos";
+interface Foto {
+  ruta_imagen: string;
+}
 const Diagnostico: React.FC = () => {
  const [equipo, setEquipo] = useState("");
  const [marca, setMarca] = useState("");
@@ -18,30 +21,48 @@ const Diagnostico: React.FC = () => {
  const motivoRef = useRef<HTMLIonInputElement>(null);
  const [showConfirm, setShowConfirm] = useState(false);
  const { cargarOrdenes, ordenActiva, setOrdenActiva, tiposDeFunciones } = useOrden();
+ const [reparaciones, setReparaciones] = useState<any[]>([]);
+ const [selectedReparaciones, setSelectedReparaciones] = useState<number[]>([]);
+ const [motivoCheckboxValues, setMotivoCheckboxValues] = useState<boolean[]>([]);
+ const [fotos, setFotos] = useState<Foto[]>([]);
  
- useEffect(() => {
-  const loadData = async () => {
-   
-    if (ordenActiva) {
-     setTextosCheckbox(tiposDeFunciones);
-     setEquipo(ordenActiva.equipo || "");
-     setMarca(ordenActiva.marca || "");
-     setModelo(ordenActiva.modelo || "");
-     setCliente(ordenActiva.Cliente?.numero_cliente || "");
-     if (motivoRef.current) {
-      motivoRef.current.value = ordenActiva.motivo || "";
-     }
-     const diagnosticoOrden = ordenActiva.diagnostico || "";
-     const nuevosCheckboxValues = textosCheckbox.map((texto) => diagnosticoOrden.includes(texto));
-     setCheckboxValues(nuevosCheckboxValues);
-    }
-   }  
-   
-  {
-   loadData();
-  }
- }, [ordenActiva, textosCheckbox, tiposDeFunciones]);
+ const loadData = async () => {
+  if (ordenActiva) {
+    setTextosCheckbox(tiposDeFunciones);
+    setEquipo(ordenActiva.equipo || "");
+    setMarca(ordenActiva.marca || "");
+    setModelo(ordenActiva.modelo || "");
+    setCliente(ordenActiva.Cliente?.numero_cliente || "");
 
+    if (motivoRef.current) {
+      motivoRef.current.value = ordenActiva.motivo || "";
+    }
+
+    const reparacionesData = await listaReparaciones();
+    setReparaciones(reparacionesData || []);
+
+    const diagnosticoOrden = ordenActiva.diagnostico || "";
+    const nuevosCheckboxValues = textosCheckbox.map((texto) =>
+      diagnosticoOrden.includes(texto)
+    );
+    setCheckboxValues(nuevosCheckboxValues);
+
+    if (ordenActiva.motivo) {
+      const motivosSeleccionados = ordenActiva.motivo.split(", ");
+      setSelectedReparaciones(motivosSeleccionados);
+    }
+
+    const numeroOrden = ordenActiva.id;
+    if (numeroOrden) {
+      const fotosObtenidas = await getFotosNumeroOrden(numeroOrden);
+      setFotos(fotosObtenidas);
+    }
+  }
+};
+
+useEffect(() => {
+  loadData();
+}, [ordenActiva, textosCheckbox, tiposDeFunciones]);
  const handleConfirmarClick = async () => {
   const diagnostico = textosCheckbox.filter((texto, index) => checkboxValues[index]).join(", ");
 
@@ -51,7 +72,7 @@ const Diagnostico: React.FC = () => {
    modelo,
    cliente,
    diagnostico,
-   motivo: String(motivoRef.current?.value || ""),
+   motivo: selectedReparaciones.join(", "), 
    checkboxValues,
   };
 
@@ -76,9 +97,31 @@ const Diagnostico: React.FC = () => {
    console.error("No se pudo obtener el ID de la orden.");
   }
  };
- function setMotivo(arg0: string): void {
-  throw new Error("Function not implemented.");
- }
+ 
+ const handleReparacionChange = (value: number[]) => {
+  setSelectedReparaciones(value);
+  console.log(selectedReparaciones)
+};
+
+const handleMotivoCheckboxChange = (index: number, checked: boolean) => {
+  const newMotivoCheckboxValues = [...motivoCheckboxValues];
+  newMotivoCheckboxValues[index] = checked;
+  setMotivoCheckboxValues(newMotivoCheckboxValues);
+
+  const newSelectedReparaciones = reparaciones
+    .filter((_, i) => newMotivoCheckboxValues[i])
+    .map(reparacion => reparacion.reparacion);
+  setSelectedReparaciones(newSelectedReparaciones);
+};
+ 
+
+const handleFotosClick = (isEntrega: boolean) => {
+  history.push({
+    pathname: '/fotos',
+    state: { isEntrega }  
+  });
+};
+ 
 
  return (
   <IonPage>
@@ -138,10 +181,58 @@ const Diagnostico: React.FC = () => {
        ))}
       </div>
      </div>
+
+
+
      <div className='section'>
-      <h2>Diagnostico</h2>
-      <IonInput className='obs-input' ref={motivoRef} onIonChange={(e) => setMotivo(e.detail.value!)} placeholder='Ingrese diagnóstico' />
-     </div>
+        <h2>Motivos de la reparación</h2>
+        <IonSelect
+          placeholder="Seleccione reparaciones"
+          multiple
+          value={selectedReparaciones} // Aquí reflejamos las reparaciones seleccionadas
+          onIonChange={(e) => handleReparacionChange(e.detail.value)}
+        >
+          {reparaciones.map((reparacion, index) => (
+            <IonSelectOption key={index} value={reparacion.reparacion}>
+              {reparacion.reparacion}
+            </IonSelectOption>
+          ))}
+        </IonSelect>
+      </div>
+
+
+
+<div>
+<IonButton onClick={() => handleFotosClick(false)}>
+ Agregar Fotos
+</IonButton>
+
+
+</div>
+
+
+<div className="fotos-miniaturas-container">
+                {fotos.length > 0 ? (
+                    fotos.map((foto, index) => (
+                        <div key={index} className="foto-miniatura">
+                            <img 
+                                src={foto.ruta_imagen} 
+                                 alt={`Foto ${index}`} 
+                                style={{ width: '100px', height: '100px', objectFit: 'cover' }} 
+                            />
+                        </div>
+                    ))
+                ) : (
+                    <p>No hay fotos disponibles.</p>
+                )}
+            </div>
+
+
+
+
+
+
+          
      <div className='section'>
       <IonButton className='button' style={{ "--border-radius": "20px" }} onClick={() => setShowConfirm(true)}>
        Confirmar

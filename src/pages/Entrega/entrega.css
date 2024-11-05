@@ -13,3 +13,31 @@
     display: flex;
     justify-content: center;
 }
+.diagnostico-ctn{
+    margin-top:  0;
+}
+ 
+.entrega {
+    margin-top: 20px;
+  }
+  
+  .entrega h2 {
+    margin-bottom: 15px;
+  }
+  
+  .item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .item span {
+    flex: 1; 
+    min-width: 100px;  
+  }
+  
+  .input-field {
+    flex: 2;  
+    margin-left: 10px;  
+  }
+  
