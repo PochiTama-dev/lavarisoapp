@@ -14,7 +14,7 @@ import { addOutline, cameraOutline } from "ionicons/icons";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./Facturacion.css";
 import { useHistory, useLocation } from "react-router-dom";
-
+import { useOrden } from "../../Provider/Provider";
 interface MedioDePago {
   id: number;
   value: string;
@@ -34,7 +34,7 @@ const FacturacionComponent = () => {
   const [imagenComprobante, setImagenComprobante] = useState<string>("");
   const [entregaId, setEntregaId] = useState<number | null>(null);
   const [showAlert, setShowAlert] = useState<boolean>(false);
-
+  const { cargarOrdenes, selectedRepuestos, ordenActiva, setOrdenActiva , repuestosCamioneta} = useOrden();
   const entregaPago = async (idEntrega: number) => {
     try {
       const response = await fetch(
@@ -67,7 +67,7 @@ const FacturacionComponent = () => {
     const pago = {
       id_medio_de_pago: selectedMedioPago,
       id_entrega: entregaId,
-      importe: orden.Presupuesto.total,
+      importe: ordenActiva.Presupuesto.total,
       imagen_comprobante: imagenComprobante,
     };
 
@@ -118,9 +118,7 @@ const FacturacionComponent = () => {
     }
   };
 
-  useEffect(() => {
-    ordenEntrega(orden.id);
-  }, [orden.id]);
+ 
 
   const fetchMediosDePago = async () => {
     try {
@@ -162,13 +160,7 @@ const FacturacionComponent = () => {
     }
   };
 
-  useEffect(() => {
-    if (orden && orden.id) {
-      ordenEntrega(orden.id);
-    } else {
-      console.error("No se encontró la orden.");
-    }
-  }, [orden]);
+ 
 
   return (
     <IonContent className="facturacion-container">
@@ -191,25 +183,25 @@ const FacturacionComponent = () => {
         </div>
         <div className="estado-pago-total">
           <span>Total:</span>
-          <span className="total-amount">${orden.Presupuesto?.total || 0}</span>
+          <span className="total-amount">${ordenActiva.Presupuesto?.total || 0}</span>
         </div>
         <div className="subtitle-forma-pago">
           <span>Formas de pago</span>
         </div>
         <div className="forma-pago">
-          <IonSelect
-            placeholder="Seleccionar forma de pago"
-            value={selectedMedioPago}
-            onIonChange={(e) => setSelectedMedioPago(parseInt(e.detail.value))}
-          >
-            {mediosPago.map((medio, index) => (
-              <IonSelectOption key={index} value={medio.id}>
-                {medio.medio_de_pago}
-              </IonSelectOption>
-            ))}
-          </IonSelect>
+        <IonSelect
+  placeholder="Seleccionar forma de pago"
+  value={selectedMedioPago || ordenActiva?.Presupuesto?.id_medio_de_pago}  
+  onIonChange={(e) => setSelectedMedioPago(parseInt(e.detail.value))}
+>
+  {mediosPago.map((medio, index) => (
+    <IonSelectOption key={index} value={medio.id}>
+      {medio.medio_de_pago}
+    </IonSelectOption>
+  ))}
+</IonSelect>
 
-          <IonInput value={`$${orden.Presupuesto?.total || 0}`} />
+          <IonInput value={`$${ordenActiva.Presupuesto?.total || 0}`} />
         </div>
         <div className="adjuntar-foto">
           <input
@@ -224,7 +216,7 @@ const FacturacionComponent = () => {
             onClick={() => document.getElementById("file-upload")?.click()}
           >
             <IonIcon icon={cameraOutline} className="custom-icon" />
-            Adjuntar foto de comprobante
+          <span style={{color:'black'}}> Foto comprobante</span>  
           </IonButton>
         </div>
         <IonButton

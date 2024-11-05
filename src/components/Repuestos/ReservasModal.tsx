@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonButton, IonButtons, IonAlert } from "@ionic/react";
 import { tecnicoStockReserva, eliminarStockReserva } from './FetchsRepuestos';
 import { useOrden } from '../../Provider/Provider';
+import HeaderGeneral from "../Header/HeaderGeneral";
 
 interface ReservasModalProps {
   isOpen: boolean;
@@ -60,12 +61,7 @@ const ReservasModal: React.FC<ReservasModalProps> = ({ isOpen, onClose }) => {
     <>
       <IonModal isOpen={isOpen} onDidDismiss={onClose}>
         <IonHeader>
-          <IonToolbar>
-            <IonTitle>Reservas Realizadas</IonTitle>
-            <IonButtons slot="end">
-              <IonButton onClick={onClose}>Cerrar</IonButton>
-            </IonButtons>
-          </IonToolbar>
+  <HeaderGeneral/>
         </IonHeader>
         <IonContent>
           {loading ? (

@@ -107,19 +107,19 @@ const Presupuesto: React.FC = () => {
 
  ///////////////////////////
 
- const totalRepuestos =
-  Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0
-   ? selectedRepuestos.reduce((accumulator: number, repuesto) => {
-      const precio = parseFloat(repuesto.StockPrincipal.precio) || 0;
-      // @ts-ignore
-      const cantidad = parseFloat(repuesto.cantidad) || 0;
+//  const totalRepuestos =
+//   Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0
+//    ? selectedRepuestos.reduce((accumulator: number, repuesto) => {
+//       const precio = parseFloat(repuesto.StockPrincipal.precio) || 0;
+//       // @ts-ignore
+//       const cantidad = parseFloat(repuesto.cantidad) || 0;
 
-      return accumulator + precio * cantidad;
-     }, 0)
-   : 0;
+//       return accumulator + precio * cantidad;
+//      }, 0)
+//    : 0;
 
  const totalMontos = montos.reduce((a, b) => a + parseFloat(b), 0);
- const total = totalMontos + totalRepuestos;
+ const total = totalMontos ;
 
  const agregarRepuestos = async () => {
   try {
@@ -257,7 +257,7 @@ const Presupuesto: React.FC = () => {
    //@ts-ignore
    if (response.ok) {
     console.log("Presupuesto guardado/modificado con éxito!!!");
-
+    
     setOrdenActiva((prevOrden: any) => ({
      ...prevOrden,
      Presupuesto: dataToSend,
@@ -276,6 +276,7 @@ const Presupuesto: React.FC = () => {
   }
  };
 
+ 
  const handleSelect = (selectedValue: string) => {
   setSelectedOptions((prevOptions) => {
    if (prevOptions.includes(selectedValue)) {
@@ -330,17 +331,20 @@ const Presupuesto: React.FC = () => {
    <IonContent>
     <div className='diagnostico-ctn'>
      <div className='section'>
-      <h2>Presupuestar</h2>
-      <IonButton onClick={handleRepuestos}>Seleccionar repuesto</IonButton>
+      <div style={{display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+
+      <h2>Repuestos</h2>
+      <IonButton style={{width:'120px', height:'40px', margin:'-10px 0 20px 0' }} onClick={handleRepuestos}>Seleccionar  </IonButton>
+      </div>
       <IonList>
        {Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0 ? (
         selectedRepuestos.map((repuesto) => (
          <IonItem key={repuesto.id_repuesto}>
           <IonLabel style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: "16px" }}>
            <span>
-            {repuesto.StockPrincipal.nombre} x{repuesto.cantidad}
+           {repuesto.StockPrincipal?.nombre ? repuesto.StockPrincipal.nombre : repuesto.nombre} x{repuesto.cantidad}
            </span>
-           <span>${(parseFloat(repuesto.StockPrincipal.precio) * repuesto.cantidad).toFixed(2)}</span>
+           {/* <span>${(parseFloat(repuesto.StockPrincipal.precio) * repuesto.cantidad).toFixed(2)}</span> */}
           </IonLabel>
          </IonItem>
         ))

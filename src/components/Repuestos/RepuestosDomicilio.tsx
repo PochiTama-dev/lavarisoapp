@@ -7,12 +7,12 @@ import { modificarStockCamioneta, getRepuestosOrdenById } from "./FetchsRepuesto
 import "./Repuestos.css";
 
 interface Repuesto {
- id_repuesto: any;
  id: any;
+ id_repuesto: any;
  nombre: ReactNode;
  cantidad: number;
  StockPrincipal: any;
- id_repuesto_camioneta: any;
+ id_camioneta: any;
 }
 
 const RepuestosDomicilio: React.FC = () => {
@@ -45,33 +45,33 @@ const RepuestosDomicilio: React.FC = () => {
    return;
   }
 
-  const exists = selectedRepuestos.find((repuesto) => repuesto.id_repuesto === repuestoToAdd.id_repuesto);
+  const exists = selectedRepuestos.find((repuesto) => repuesto.id === repuestoToAdd.id);
 
   if (!exists) {   //@ts-ignore
    setSelectedRepuestos((prev) => [...prev, { ...repuestoToAdd, cantidad: 1 }]);
   } else {   //@ts-ignore
-   setSelectedRepuestos((prev) => prev.map((repuesto) => (repuesto.id_repuesto === repuestoToAdd.id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad + 1 } : repuesto)));
+   setSelectedRepuestos((prev) => prev.map((repuesto) => (repuesto.id === repuestoToAdd.id ? { ...repuesto, cantidad: repuesto.cantidad + 1 } : repuesto)));
   }
 
-  setRepuestosCamioneta((prevState) => prevState.map((repuesto) => (repuesto.id_repuesto === repuestoToAdd.id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad - 1 } : repuesto)));
+  setRepuestosCamioneta((prevState) => prevState.map((repuesto) => (repuesto.id === repuestoToAdd.id ? { ...repuesto, cantidad: repuesto.cantidad - 1 } : repuesto)));
  };
 
- const handleRemoveRepuesto = (id_repuesto: number) => {
-  const repuestoToRemove = selectedRepuestos.find((repuesto) => repuesto.id_repuesto === id_repuesto);
+ const handleRemoveRepuesto = (id: number) => {
+  const repuestoToRemove = selectedRepuestos.find((repuesto) => repuesto.id === id);
 
   if (!repuestoToRemove) {
    console.error("Repuesto no encontrado.");
    return;
   }
 
-  setRepuestosCamioneta((prevState) => prevState.map((repuesto) => (repuesto.id_repuesto === id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad + 1 } : repuesto)));
+  setRepuestosCamioneta((prevState) => prevState.map((repuesto) => (repuesto.id === id ? { ...repuesto, cantidad: repuesto.cantidad + 1 } : repuesto)));
 
   if (repuestoToRemove.cantidad > 1) {
     //@ts-ignore
-   setSelectedRepuestos((prev) => prev.map((repuesto) => (repuesto.id_repuesto === repuestoToRemove.id_repuesto ? { ...repuesto, cantidad: repuesto.cantidad - 1 } : repuesto)));
+   setSelectedRepuestos((prev) => prev.map((repuesto) => (repuesto.id === repuestoToRemove.id ? { ...repuesto, cantidad: repuesto.cantidad - 1 } : repuesto)));
   } else {
    //@ts-ignore
-    setSelectedRepuestos((prev) => prev.filter((repuesto) => repuesto.id_repuesto !== repuestoToRemove.id_repuesto));
+    setSelectedRepuestos((prev) => prev.filter((repuesto) => repuesto.id !== repuestoToRemove.id));
   }
  };
 
@@ -96,7 +96,7 @@ const RepuestosDomicilio: React.FC = () => {
                             {repuesto.cantidad}
                         </IonLabel>
                         <IonButton onClick={() => handleAddRepuesto(index)}>+</IonButton>
-                        <IonButton onClick={() => handleRemoveRepuesto(repuesto.id_repuesto)}>-</IonButton>
+                        <IonButton onClick={() => handleRemoveRepuesto(repuesto.id)}>-</IonButton>
                     </IonButtons>
                 </IonItem>
             ))
@@ -116,7 +116,7 @@ const RepuestosDomicilio: React.FC = () => {
      selectedRepuestos.map((repuesto, index) => (
       <IonItem key={index}>
              {repuesto.StockPrincipal?.nombre ? repuesto.StockPrincipal.nombre : repuesto.nombre}
-       <IonLabel>{repuesto.cantidad}</IonLabel>
+       <IonLabel style={{marginLeft:'20px'}}> x{repuesto.cantidad}</IonLabel>
       </IonItem>
      ))
     ) : (
