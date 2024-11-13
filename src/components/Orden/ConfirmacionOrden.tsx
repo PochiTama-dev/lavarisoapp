@@ -1,3 +1,4 @@
+ 
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { IonButton, IonContent, IonHeader } from '@ionic/react';
@@ -8,7 +9,7 @@ import './ConfirmacionOrden.css';
 import { useLocation } from 'react-router-dom';
 import { useOrden } from '../../pages/Orden/ordenContext';
 import socket from '../services/socketService';
-
+ 
 function ConfirmacionOrdenComponent() {
   const [position, setPosition] = useState({
     latitude: -33.9913,
@@ -19,6 +20,11 @@ function ConfirmacionOrdenComponent() {
   const history = useHistory();
   const location = useLocation();
   const { orden } = location.state as { orden: any };
+ 
+  const { cargarOrdenes, selectedRepuestos, ordenActiva, setOrdenActiva ,  } = useOrden();
+console.log(ordenActiva)
+
+ 
   const obtenerPresupuesto = async (id_orden: any) => {
     try {
       const response = await fetch(`https://lv-back.online/presupuestos?ordenId=${id_orden}`);
@@ -37,34 +43,40 @@ function ConfirmacionOrdenComponent() {
     }
   };
 
-  useEffect(() => {
-    socket.on('todasNotificaciones', (data) => {
-      console.log('Notificación recibida en Confirmación de Orden:', data);
-    });
-    if (orden && orden.Cliente) {
-      setPosition({
-        latitude: orden.Cliente.latitud,
-        longitude: orden.Cliente.longitud,
-      });
-    }
-    setLoading(false);
-
-    const fetchData = async () => {
-      const presupuesto = await obtenerPresupuesto(orden.id);
-      if (presupuesto) {
-        setTotal(presupuesto.total);
-      } else {
-        setTotal(0); // Si no hay presupuesto, establecer el total a 0 o a un valor por defecto
+ 
+useEffect(() => {
+ 
+  const initialize = async () => {
+    try {
+      if (orden && orden.Cliente) {
+        setPosition({
+          latitude: orden.Cliente.latitud,
+          longitude: orden.Cliente.longitud,
+        });
       }
-    };
+      const presupuesto = await obtenerPresupuesto(orden.id);
+      setTotal(presupuesto ? presupuesto.total : 0); // Total a 0 si no hay presupuesto
+      setLoading(false);
+    } catch (error) {
+      console.error("Error obteniendo la ubicación o presupuesto:", error);
+      setLoading(false);
+    }
+  };
 
-    fetchData();
+  // Escuchar notificaciones del socket
+  socket.on('todasNotificaciones', (data) => {
+    console.log('Notificación recibida en Confirmación de Orden:', data);
+  });
 
-    // Limpieza del evento cuando se desmonta el componente
-    return () => {
-      socket.off('todasNotificaciones');
-    };
-  }, [orden]);
+  // Llamar a la función de inicialización
+  initialize();
+
+  // Limpiar el evento del socket al desmontar el componente
+  return () => {
+    socket.off('todasNotificaciones');
+  };
+}, [orden]);
+
 
   const handleButtonClick = (path: any, orden = null) => {
     if (orden) {

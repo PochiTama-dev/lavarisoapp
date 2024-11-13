@@ -120,7 +120,7 @@ const Presupuesto: React.FC = () => {
 
  const totalMontos = montos.reduce((a, b) => a + parseFloat(b), 0);
  const total = totalMontos ;
-
+ // AGREGAR RESPUESTOS DE CAMIONETA
  const agregarRepuestos = async () => {
   try {
    await Promise.all(
@@ -160,26 +160,26 @@ const Presupuesto: React.FC = () => {
 
  useEffect(() => {
   if (ordenActiva) {
-   setFormaPago(ordenActiva.Presupuesto.formaPago || null);
-   setEstado(ordenActiva.Presupuesto.estado || "");
-   setSelectedList(ordenActiva.Presupuesto.selectedList || []);
-   setAcceptedPolicies(ordenActiva.Presupuesto.acceptedPolicies || true);
-   setPlazosCheckboxValues([ordenActiva.Presupuesto.id_plazo_reparacion] || []);
-   setSelectedMedioPago(ordenActiva.Presupuesto.id_medio_de_pago || null);
-   setSelectedEstadoPresupuesto(ordenActiva.Presupuesto.id_estado_presupuesto || null);
+   setFormaPago(ordenActiva.Presupuesto?.formaPago || null);
+   setEstado(ordenActiva.Presupuesto?.estado || "");
+   setSelectedList(ordenActiva.Presupuesto?.selectedList || []);
+   setAcceptedPolicies(ordenActiva.Presupuesto?.acceptedPolicies || true);
+   setPlazosCheckboxValues([ordenActiva.Presupuesto?.id_plazo_reparacion] || []);
+   setSelectedMedioPago(ordenActiva.Presupuesto?.id_medio_de_pago || null);
+   setSelectedEstadoPresupuesto(ordenActiva.Presupuesto?.id_estado_presupuesto || null);
 
    setMontos([
-    ordenActiva.Presupuesto.viaticos || 0,
-    ordenActiva.Presupuesto.descuentos_referidos || 0,
-    ordenActiva.Presupuesto.comision_visita || 0,
-    ordenActiva.Presupuesto.comision_reparacion || 0,
-    ordenActiva.Presupuesto.comision_entrega || 0,
-    ordenActiva.Presupuesto.comision_reparacion_domicilio || 0,
-    ordenActiva.Presupuesto.gasto_impositivo || 0,
+    ordenActiva.Presupuesto?.viaticos || 0,
+    ordenActiva.Presupuesto?.descuentos_referidos || 0,
+    ordenActiva.Presupuesto?.comision_visita || 0,
+    ordenActiva.Presupuesto?.comision_reparacion || 0,
+    ordenActiva.Presupuesto?.comision_entrega || 0,
+    ordenActiva.Presupuesto?.comision_reparacion_domicilio || 0,
+    ordenActiva.Presupuesto?.gasto_impositivo || 0,
    ]);
 
-   const firmaClienteDataURL = ordenActiva.Presupuesto.firma_cliente;
-   const firmaEmpleadoDataURL = ordenActiva.Presupuesto.firma_empleado;
+   const firmaClienteDataURL = ordenActiva.Presupuesto?.firma_cliente;
+   const firmaEmpleadoDataURL = ordenActiva.Presupuesto?.firma_empleado;
 
    if (sigCanvas1.current) {
     sigCanvas1.current.fromDataURL(firmaClienteDataURL);
@@ -206,75 +206,102 @@ const Presupuesto: React.FC = () => {
   }
  };
 
+
+
+
+
+
+
+
+
+ const toggleOrdenActiva = (orden: any) => {
+    setOrdenActiva(orden);
+    localStorage.setItem("ordenActiva", JSON.stringify(orden));
+    localStorage.removeItem("diagnosticoData");
+    localStorage.removeItem("presupuestoData");
+     
+  };
+
+
+
+
+
+
+
+
+
+
+
  const handleConfirm = async () => {
   setShowConfirmAlert(false);
 
-  let presupuestoId = ordenActiva ? ordenActiva.id : null;
+  let presupuestoId = ordenActiva ? ordenActiva.Presupuesto?.id : null;
 
   const serviciosMontos: Record<string, number> = {};
   montos.forEach((monto, index) => {
-   const servicio = servicios[index];
-   const dbField = servicioToDBFieldMap[servicio];
-   if (dbField) {
-    serviciosMontos[dbField] = monto;
-   }
+    const servicio = servicios[index];
+    const dbField = servicioToDBFieldMap[servicio];
+    if (dbField) {
+      serviciosMontos[dbField] = monto;
+    }
   });
 
   const firma_cliente = sigCanvas1.current?.toDataURL();
   const firma_empleado = sigCanvas2.current?.toDataURL();
-  const id_plazo_reparacion = plazosCheckboxValues.length > 0 ? plazosCheckboxValues[0] : null;
+  const id_plazo_reparacion = plazosCheckboxValues.length > 0 ? plazosCheckboxValues[1] : 0;
 
   const dataToSend = {
-   id_orden: ordenActiva.id,
-   id_plazo_reparacion,
-   id_medio_de_pago: selectedMedioPago,
-   id_estado_presupuesto: selectedEstadoPresupuesto,
-   firma_cliente,
-   firma_empleado,
-   selectedList,
-   acceptedPolicies,
-   ...serviciosMontos,
-   total,
+    id_orden: ordenActiva.id,
+    id_plazo_reparacion,
+    id_medio_de_pago: selectedMedioPago,
+    id_estado_presupuesto: selectedEstadoPresupuesto,
+    firma_cliente,
+    firma_empleado,
+    selectedList,
+    acceptedPolicies,
+    ...serviciosMontos,
+    total,
   };
 
   try {
-   let response;
+    let response;
 
-   if (presupuestoId) {
- 
-       for (const repuesto of selectedRepuestos) {
+    if (presupuestoId) {
+      for (const repuesto of selectedRepuestos) {
         const repuestoOriginal = repuestosCamioneta.find((item) => item.id_repuesto === repuesto.id_repuesto);
         if (repuestoOriginal) {
-         await updateRepuestoCantidad(repuestoOriginal.id, repuestoOriginal.cantidad);
+          await updateRepuestoCantidad(repuestoOriginal.id, repuestoOriginal.cantidad);
         }
-       }
-    //@ts-ignore
-    response = await modificarPresupuesto(presupuestoId, dataToSend);
-   } else {
-    //@ts-ignore
-    response = await guardarPresupuesto(dataToSend);
-   }
-   //@ts-ignore
-   if (response.ok) {
-    console.log("Presupuesto guardado/modificado con éxito!!!");
-    
-    setOrdenActiva((prevOrden: any) => ({
-     ...prevOrden,
-     Presupuesto: dataToSend,
-    }));
+      }
+      //@ts-ignore
+      response = await modificarPresupuesto(presupuestoId, dataToSend);
+    } else {
+      //@ts-ignore
+      response = await guardarPresupuesto(dataToSend);
+    }
 
-    history.push("/verOrden");
-    agregarRepuestos();
-    cargarOrdenes();
-   } else {
-    console.error("Error al guardar/modificar el presupuesto");
-    setShowAlert(true);
-   }
+    // Verificar que response no sea undefined antes de acceder a response.ok
+    if (response && response.ok) {
+      console.log("Presupuesto guardado/modificado con éxito!!!");
+      
+      setOrdenActiva((prevOrden: any) => {
+          return {
+              ...prevOrden,
+              Presupuesto: { ...dataToSend },  
+            };
+        });
+        console.log(ordenActiva)
+
+      history.push("/verOrden");
+      agregarRepuestos();
+      cargarOrdenes();
+    } else {
+      console.error("Error al guardar/modificar el presupuesto");
+    }
   } catch (error) {
-   console.error("Error en la solicitud:", error);
-   setShowAlert(true);
+    console.error("Error en la solicitud:", error);
   }
- };
+};
 
  
  const handleSelect = (selectedValue: string) => {
@@ -350,7 +377,7 @@ const Presupuesto: React.FC = () => {
         ))
        ) : (
         <IonItem>
-         <IonLabel>No hay repuestos disponibles.</IonLabel>
+         <IonLabel style={{fontSize:'18px'}}>No hay repuestos seleccionados.</IonLabel>
         </IonItem>
        )}
       </IonList>
@@ -374,19 +401,23 @@ const Presupuesto: React.FC = () => {
         Cerrar
        </IonButton>
       </IonModal>
-
-      <div className='item'>
-       <ul>
-        {selectedList.map((item, index) => (
-         <li key={index}>
+      {/* LISTA REPUESTOS SELECCIONADOS */}
+      {selectedList.length > 0 && (
+  <div className='item'>
+    <ul>
+      {selectedList.map((item, index) => (
+        <li key={index}>
           {item}
           <button style={{ marginLeft: "10px" }} onClick={() => handleRemove(item)}>
-           x
+            x
           </button>
-         </li>
-        ))}
-       </ul>
-      </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+      <div className='separador' style={{ borderBottom: "2px solid #000", margin: "20px 10px", width: "90%" }} />
 
       <div className='servicios' style={{ display: "flex", flexDirection: "column" }}>
        <h2>Servicios</h2>
@@ -422,6 +453,7 @@ const Presupuesto: React.FC = () => {
         ))}
        </IonSelect>
       </div>
+      <div className='separador' style={{ borderBottom: "2px solid #000", margin: "20px 10px", width: "90%" }} />
 
       <div className='section'>
        <h2>Tiempo estimado de reparación/diagnóstico</h2>
@@ -440,6 +472,20 @@ const Presupuesto: React.FC = () => {
          </div>
         ))}
        </div>
+ 
+      </div>
+
+
+
+
+
+      <div className='separador' style={{ borderBottom: "2px solid #000", margin: "20px 10px", width: "90%" }} />
+
+      <div className='section'>
+       <h2>Estado de reparación</h2>
+      
+         
+       
        <IonSelect value={selectedEstadoPresupuesto} placeholder='Seleccione estado' onIonChange={handleEstadoPresupuestoChange}>
         {estados.map((estado) => (
          <IonSelectOption key={estado.id} value={estado.id}>
@@ -448,6 +494,15 @@ const Presupuesto: React.FC = () => {
         ))}
        </IonSelect>
       </div>
+
+
+
+
+
+
+
+
+
 
       <div>
        <div className='separador' style={{ borderBottom: "2px solid #000", margin: "20px 10px", width: "90%" }} />
@@ -462,6 +517,7 @@ const Presupuesto: React.FC = () => {
          <IonAlert isOpen={showAlert2} onDidDismiss={() => setShowAlert2(false)} header='Error' message='Debe aceptar las políticas de privacidad para continuar.' buttons={["OK"]} />
         </div>
        </div>
+       <div className='separador' style={{ borderBottom: "2px solid #000", margin: "20px 10px", width: "90%" }} />
 
        <h2>Firmas</h2>
        {["Cliente", "Técnico"].map((role, index) => (

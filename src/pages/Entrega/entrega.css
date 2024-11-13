@@ -40,4 +40,57 @@
     flex: 2;  
     margin-left: 10px;  
   }
+
+  /* Contenedor general del grupo de radios */
+.radio-group {
+  font-family: Arial, sans-serif;
+}
+
+/* Etiqueta principal */
+.radio-label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Contenedor de las opciones */
+.radio-options {
+  display: flex;
+  margin: 1rem 0;
+  gap: 1.5rem; 
+  justify-content: space-between; 
+  width: 50%;
+}
+
+/* Estilos de cada opción */
+.radio-option {
+  position: relative;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Ocultar los radios originales */
+.radio-option input[type="radio"] {
+  display: none;
+}
+
+/* Estilos del círculo exterior personalizado */
+.custom-radio {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #4e4e4e;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* Círculo interior al estar seleccionado */
+.radio-option input[type="radio"]:checked + .custom-radio {
+  background-color: #69688c;
+  border-color:#69688c
+}
+
   

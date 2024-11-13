@@ -51,12 +51,15 @@ import VerOrden from "./components/Orden/VerOrden";
 import AddRepuestoCamioneta from "./components/Repuestos/AddRepuestoCamioneta";
 import Fotos from "./components/Fotos/Fotos";
 setupIonicReact();
-
+import { AuthProvider } from "./components/Login/loginContext";
 const App: React.FC = () => {
+
+  
   return (
     <IonApp>
  
         <OrdenProvider>
+        <AuthProvider> 
       <IonReactRouter>
         <Route exact path="/">
           <Redirect to="/login" />
@@ -124,6 +127,7 @@ const App: React.FC = () => {
             <RemitoOrden />
           </Route>
       </IonReactRouter>
+      </AuthProvider> 
         </OrdenProvider>
  
     </IonApp>

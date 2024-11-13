@@ -24,11 +24,30 @@
   border: 5px solid #8ea3bf;
   width: 80%;
   margin-left: 10%;
+  font-size: 22px;
+}
+.orden-activa-domicilio h3{
+ 
+  font-size: 18px;
+}
+.domicilio-lista-ordenes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Espacio entre órdenes */
+}
+
+.orden-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 0.5fr;  
+  align-items: center;  
+  gap: 1rem;  
+  margin-left: 10px;
 }
 
 .tecnico-domicilio-top-box h3 {
   color: #283959;
   margin-left: 5%;
+ 
 }
 
 .tecnico-domicilio-top-box h3 strong {
@@ -63,6 +82,7 @@
   display: flex;
   justify-content: left;
   width: 80%;
+  font-size: 22px;
   margin-left: 10%;
 }
 
@@ -70,7 +90,8 @@
   border: 5px solid #8ea3bf;
   width: 80%;
   margin-left: 10%;
-  height: 250px;
+  min-height: 70px ;
+  max-height: 250px;
   overflow-y: scroll;
   color: #283959;
 }
@@ -82,13 +103,18 @@
 
 .tecnico-domicilio-bottom-box span {
   color: #40a63d;
-  margin-left: 5%;
-  margin-right: 2.5%;
+ 
 }
 
-.tecnico-domicilio-bottom-button ion-button {
-  width: 70%;
-  margin-left: 15%;
-  min-height: 1vh;
-  height: 4vh;
+.tecnico-domicilio-bottom-button  {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%; /* Para que ocupe todo el ancho */
+  background-color: white; /* Opcional: fondo para destacar los botones */
+  padding: 1rem; /* Espacio alrededor de los botones */
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* Sombra para efecto flotante */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Espacio entre los botones */
 }

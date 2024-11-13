@@ -25,31 +25,26 @@ const FacturacionComponent = () => {
   const location = useLocation();
   const history = useHistory();
   const { orden } = location.state as { orden: any };
+ 
   const [mediosPago, setMediosPago] = useState<MedioDePago[]>([]);
-  const [selectedMedioPago, setSelectedMedioPago] = useState<number | null>(
-    null
-  );
-  const [importe, setImporte] = useState<string>("");
+   const [importe, setImporte] = useState<string>("");
   const [estadoPago, setEstadoPago] = useState<string>("pendiente");
   const [imagenComprobante, setImagenComprobante] = useState<string>("");
   const [entregaId, setEntregaId] = useState<number | null>(null);
   const [showAlert, setShowAlert] = useState<boolean>(false);
-  const { cargarOrdenes, selectedRepuestos, ordenActiva, setOrdenActiva , repuestosCamioneta} = useOrden();
-  const entregaPago = async (idEntrega: number) => {
+  const { ordenActiva} = useOrden();
+  const [selectedMedioPago, setSelectedMedioPago] = useState( ordenActiva.Presupuesto.id_medio_de_pago);
+
+  console.log("ORDEN ACTIVA", ordenActiva)
+  const entregaPago = async (idEntrega:any) => {
     try {
-      const response = await fetch(
-        `https://lv-back.online/pagos/entrega/${idEntrega}`
-      );
+      const response = await fetch(`https://lv-back.online/pagos/entrega/${idEntrega}`);
       const pagos = await response.json();
       if (pagos && pagos.length > 0) {
-        console.log(
-          `Se encontraron pagos asociados a la entrega id ${idEntrega}`
-        );
+        console.log(`Se encontraron pagos asociados a la entrega id ${idEntrega}`);
         return pagos[0]; // Retorna el primer pago encontrado
       } else {
-        console.log(
-          `No se encontró ningún pago asociado a la entrega id ${idEntrega}`
-        );
+        console.log(`No se encontró ningún pago asociado a la entrega id ${idEntrega}`);
         return null;
       }
     } catch (error) {
@@ -57,43 +52,51 @@ const FacturacionComponent = () => {
       return null;
     }
   };
-
   const guardarPago = async () => {
-    if (selectedMedioPago === null || entregaId === null) {
-      console.error("No se ha seleccionado un medio de pago o no hay entrega.");
+    if (!selectedMedioPago) {
+      console.error("No se ha seleccionado un medio de pago.");
       return;
     }
-
+  
     const pago = {
       id_medio_de_pago: selectedMedioPago,
-      id_entrega: entregaId,
+      id_entrega: entregaId || ordenActiva.Entrega.id,  
       importe: ordenActiva.Presupuesto.total,
       imagen_comprobante: imagenComprobante,
     };
-
+  
     try {
-      const pagoExistente = await entregaPago(entregaId);
+      const pagoExistente = await entregaPago(ordenActiva.Entrega.id);
+      
+      console.log("Pago existente:", pagoExistente);
       const url = pagoExistente
         ? `https://lv-back.online/pagos/modificar/${pagoExistente.id}`
         : "https://lv-back.online/pagos/guardar";
       const method = pagoExistente ? "PUT" : "POST";
-
+  
+      console.log(`URL de la solicitud: ${url}`);
+      console.log(`Método de la solicitud: ${method}`);
+      console.log(`Datos del pago a enviar:`, pago);
+  
       const response = await fetch(url, {
         method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pago),
       });
-
+  
       if (response.ok) {
+        console.log("Pago procesado exitosamente.");
         setShowAlert(true);
       } else {
-        console.log("Error al procesar el pago.");
+        const errorText = await response.text();
+        console.error("Error al procesar el pago:", errorText);
       }
     } catch (error) {
       console.error("Error al guardar el pago.", error);
     }
   };
-
+  
+  
   const ordenEntrega = async (entregaId: any) => {
     try {
       const response = await fetch(
@@ -143,7 +146,7 @@ const FacturacionComponent = () => {
     const file = event.target.files?.[0];
     if (file) {
       const fileURL = URL.createObjectURL(file);
-      setImagenComprobante(fileURL); // Guardar la URL del archivo
+      setImagenComprobante(fileURL); 
     }
   };
 
@@ -192,7 +195,7 @@ const FacturacionComponent = () => {
         <IonSelect
   placeholder="Seleccionar forma de pago"
   value={selectedMedioPago || ordenActiva?.Presupuesto?.id_medio_de_pago}  
-  onIonChange={(e) => setSelectedMedioPago(parseInt(e.detail.value))}
+ disabled
 >
   {mediosPago.map((medio, index) => (
     <IonSelectOption key={index} value={medio.id}>
@@ -200,8 +203,8 @@ const FacturacionComponent = () => {
     </IonSelectOption>
   ))}
 </IonSelect>
-
-          <IonInput value={`$${ordenActiva.Presupuesto?.total || 0}`} />
+ {/* INPUT DE TOTAL */}
+          {/* <IonInput value={`$${ordenActiva.Presupuesto?.total || 0}`} /> */}
         </div>
         <div className="adjuntar-foto">
           <input
@@ -240,10 +243,7 @@ const FacturacionComponent = () => {
             //   text: "Descargar remito",
             //   handler: () => handleOptionSelection("descargar"),
             // },
-            {
-              text: "Enviar remito al cliente",
-              handler: () => handleOptionSelection("enviar"),
-            },
+      
             {
               text: "Ir al inicio",
               handler: () => handleOptionSelection("inicio"),

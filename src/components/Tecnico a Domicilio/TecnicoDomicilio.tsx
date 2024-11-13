@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import socket from "../services/socketService";
 import { eyeOutline } from "ionicons/icons";
 import { useOrden } from "../../Provider/Provider";  // Importar el hook
-
+import GlobalRefresher from "../Refresher/GlobalRefresher";
 const estadoPresupuestoMap: { [key: number]: string } = {
   1: "Aprobada",
   2: "Cancelada",
@@ -48,6 +48,7 @@ function TecnicoDomicilioComponent() {
  
   return (
     <>
+    <GlobalRefresher> 
       <IonContent className='tecnico-domicilio-container'>
         <IonHeader>
           <HeaderGeneral />
@@ -57,7 +58,7 @@ function TecnicoDomicilioComponent() {
         </div>
         <div className='tecnico-domicilio-top-box'>
           {ordenActiva && (
-            <div>
+            <div className="orden-activa-domicilio"> 
               <h3><strong>Orden Activa</strong> #{ordenActiva.id}</h3>
               <h3>{ordenActiva.Cliente.nombre} {ordenActiva.Cliente.apellido}</h3>
               <h3>{ordenActiva.Cliente.direccion}</h3>
@@ -73,17 +74,27 @@ function TecnicoDomicilioComponent() {
         <h2>Estado de las ordenes</h2>
         <div className='tecnico-domicilio-bottom-box'>
           {ordenes.map((orden: any) => (
-            <h4 key={orden.id}>
-              Orden #{orden.id}
-              {orden.Presupuesto && <span>{estadoPresupuestoMap[orden.id_tipo_estado]}</span>}
-              <IonIcon icon={eyeOutline} onClick={() => handleVerOrden(orden)} style={{ cursor: "pointer", fontSize: "24px", strokeWidth: "2" }} />
-            </h4>
+       <div className="domicilio-lista-ordenes">
+       <div className="orden-grid">
+         <h4  >Orden #{orden.id}</h4>
+         <h4 key={orden.id}>
+           {orden.Presupuesto && <span>{estadoPresupuestoMap[orden.id_tipo_estado]}</span>}
+         </h4>
+         <IonIcon
+        key={`icon-${orden.id}`} // Unique key for the icon
+           icon={eyeOutline}
+           onClick={() => handleVerOrden(orden)}
+           style={{ cursor: "pointer", fontSize: "24px", strokeWidth: "2" }}
+         />
+       </div>
+     </div>
+     
           ))}
         </div>
-        <div className='tecnico-domicilio-bottom-button'>
+        {/* <div className='tecnico-domicilio-bottom-button'>
           <IonButton onClick={() => handleButtonClick("/repuestos")}>Repuestos</IonButton>
           <IonButton onClick={() => handleButtonClick("/rol")}>Inicio</IonButton>
-        </div>
+        </div> */}
       </IonContent>
 
       <IonAlert
@@ -96,6 +107,7 @@ function TecnicoDomicilioComponent() {
           { text: "Aceptar", handler: () => toggleOrdenActiva(ordenSeleccionada) },
         ]}
       />
+      </GlobalRefresher>
     </>
   );
 }

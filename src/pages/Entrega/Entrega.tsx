@@ -192,7 +192,7 @@ const Entrega: React.FC = () => {
  const handleConfirmarClick = async () => {
   const entregaGuardada = await guardarEntrega();
   if (entregaGuardada) {
-   history.push("/domicilio");
+   history.push("/verorden");
   } else {
    console.log("Error al concretar la entrega.");
   }
@@ -287,14 +287,14 @@ const Entrega: React.FC = () => {
        ))}
       </div>
      </div>
-     <div className='section'>
+     {/* <div className='section'>
       <h2>Tipo de entrega</h2>
       <IonSelect value={selectedEntrega} placeholder='Seleccionar' onIonChange={(e) => setSelectedEntrega(e.detail.value)}>
        <IonSelectOption value='option1'>Option 1</IonSelectOption>
        <IonSelectOption value='option2'>Option 2</IonSelectOption>
        <IonSelectOption value='option3'>Option 3</IonSelectOption>
       </IonSelect>
-     </div>
+     </div> */}
      {ordenActiva?.observaciones && (
   <div className='section'>
     <h2>Observaciones</h2>
@@ -330,29 +330,40 @@ const Entrega: React.FC = () => {
      </div>
      <div className='section'>
       <h2>¿Nos recomendarías? </h2>
-      <IonRadioGroup value={selectedOption} onIonChange={(e) => setSelectedOption(e.detail.value)}>
-       <IonRow>
-        <IonCol>
-         <IonItem>
-          <IonLabel>Si</IonLabel>
-          <IonRadio slot='start' value='si' />
-         </IonItem>
-        </IonCol>
-        <IonCol>
-         <IonItem>
-          <IonLabel>No</IonLabel>
-          <IonRadio slot='start' value='no' />
-         </IonItem>
-        </IonCol>
-       </IonRow>
-      </IonRadioGroup>
+      <div role="radiogroup" aria-labelledby="radioOptionsLabel" className="radio-group">
+   
+      <div className="radio-options">
+        <label className="radio-option">
+          <input
+            type="radio"
+            name="options"
+            value="si"
+            checked={selectedOption === 'si'}
+            onChange={(e) => setSelectedOption(e.target.value)}
+          />
+          <span className="custom-radio"></span>
+          Sí
+        </label>
+        <label className="radio-option">
+          <input
+            type="radio"
+            name="options"
+            value="no"
+            checked={selectedOption === 'no'}
+            onChange={(e) => setSelectedOption(e.target.value)}
+          />
+          <span className="custom-radio"></span>
+          No
+        </label>
+      </div>
+    </div>
      </div>
 
 
 
 
-     <IonButton onClick={() => handleFotosClick(true)}>
- Agregar Fotos
+     <IonButton style={{ "--border-radius": "20px" }}  onClick={() => handleFotosClick(true)}>
+ Agregar/Ver Fotos
 </IonButton>
 
 

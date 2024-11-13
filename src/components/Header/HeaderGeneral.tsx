@@ -29,7 +29,7 @@ const HeaderGeneral: React.FC = () => {
       <img onClick={() => handleNavigate('rol')} className='iconHome' src={home} alt='home' />
       <div className='headerSesion'>
         <h3>Sesión de {empleadoNombre}</h3>
-        <span>leg.{empleadoLegajo} - Camioneta #1</span>
+        {/* <span>leg.{empleadoLegajo} - Camioneta #1</span> */}
       </div>
     </IonHeader>
   );
