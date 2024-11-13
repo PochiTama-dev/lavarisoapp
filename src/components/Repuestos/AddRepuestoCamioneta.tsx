@@ -3,7 +3,7 @@ import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonAlert, 
 import HeaderGeneral from '../Header/HeaderGeneral';
 import { guardarStockCamioneta, modificarStockCamioneta } from './FetchsRepuestos';
 import { useOrden } from '../../Provider/Provider';
-
+import GlobalRefresher from '../Refresher/GlobalRefresher';
 const AddRepuestoCamioneta: React.FC = () => {
   const [nombreRepuesto, setNombreRepuesto] = useState<string>('');
   const [cantidad, setCantidad] = useState<number>(0); // Cambiado a 0
@@ -12,7 +12,8 @@ const AddRepuestoCamioneta: React.FC = () => {
   const [cantidadesModificadas, setCantidadesModificadas] = useState<{ [key: number]: number }>({});
 
   const { repuestosCamioneta } = useOrden();
-
+  const [localRepuestosCamioneta, setLocalRepuestosCamioneta] = useState<any[]>(repuestosCamioneta);
+  
   useEffect(() => {
     const empleadoId = localStorage.getItem('empleadoId');
     if (empleadoId) {
@@ -21,6 +22,11 @@ const AddRepuestoCamioneta: React.FC = () => {
       setShowAlert({ success: false, message: 'Error: No se pudo obtener el ID del empleado.' });
     }
   }, []);
+
+  useEffect(() => {
+    // Mantiene sincronizado localRepuestosCamioneta con repuestosCamioneta en caso de cambios externos
+    setLocalRepuestosCamioneta(repuestosCamioneta);
+  }, [repuestosCamioneta]);
 
   const handleAgregarRepuesto = async () => {
     if (!nombreRepuesto.trim()) {
@@ -42,13 +48,14 @@ const AddRepuestoCamioneta: React.FC = () => {
     if (success) {
       setShowAlert({ success: true, message: 'Repuesto agregado exitosamente al stock de la camioneta.' });
       setNombreRepuesto('');
-      setCantidad(0); // Resetea a 0
-      setIdEmpleado(undefined);
+      setCantidad(0);
+
+      // Actualizar localRepuestosCamioneta agregando el nuevo repuesto
+      setLocalRepuestosCamioneta(prev => [...prev, { ...repuesto, id: new Date().getTime() }]); // Usa un id temporal
     } else {
       setShowAlert({ success: false, message: 'Error al agregar el repuesto al stock de la camioneta.' });
     }
   };
-
   const handleCantidadChange = (id: number, nuevaCantidad: string) => {
     const cantidadNumerica = parseInt(nuevaCantidad, 10);
     if (!isNaN(cantidadNumerica)) {
@@ -93,45 +100,44 @@ const AddRepuestoCamioneta: React.FC = () => {
       setShowAlert({ success: false, message: 'Error al modificar las cantidades.' });
     }
   };
-
   return (
-    <IonPage>
-      <HeaderGeneral />
-      <IonContent className="ion-padding">
-        <IonItem>
-          <IonLabel position="stacked">Nombre del Repuesto</IonLabel>
-          <IonInput
-            value={nombreRepuesto}
-            placeholder="Ingresa el nombre del repuesto"
-            onIonChange={e => setNombreRepuesto(e.detail.value!)}
-          />
-        </IonItem>
-
-        <IonItem>
-          <IonLabel position="stacked">Cantidad</IonLabel>
-          <div style={{ display: 'flex'}}>
+    <GlobalRefresher> 
+      <IonPage>
+        <HeaderGeneral />
+        <IonContent className="ion-padding">
+          <IonItem>
+            <IonLabel position="stacked">Nombre del Repuesto</IonLabel>
             <IonInput
-              value={cantidad}
-              onIonChange={e => setCantidad(parseInt(e.detail.value!, 10) || 0)} // Establecer a 0 si es NaN
-              style={{ width: '80px', textAlign: 'right', margin: '0 8px' }}
+              value={nombreRepuesto}
+              placeholder="Ingresa el nombre del repuesto"
+              onIonChange={e => setNombreRepuesto(e.detail.value!)}
             />
-            <IonButton onClick={() => setCantidad(prev => (prev ?? 0) + 1)}>+</IonButton>
-            <IonButton onClick={() => setCantidad(prev => (prev ?? 1) - 1)}>–</IonButton>
-          </div>
-        </IonItem>
+          </IonItem>
 
-        <IonButton expand="block" onClick={handleAgregarRepuesto}>
-          Agregar Repuesto
-        </IonButton>
-        <h1>Repuestos propios</h1>
-        <IonList>
-          {repuestosCamioneta && repuestosCamioneta.length > 0 ? (
-            repuestosCamioneta
-              .filter((repuesto: any) => repuesto.nombre)
-              .map((repuesto: any) => (
+          <IonItem>
+            <IonLabel position="stacked">Cantidad</IonLabel>
+            <div style={{ display: 'flex', width: '100%', justifyContent: 'space-around' }}>
+              <IonInput
+                value={cantidad}
+                onIonChange={e => setCantidad(parseInt(e.detail.value!, 10) || 0)}
+                style={{ width: '80px', textAlign: 'right', margin: '0 8px' }}
+              />
+              <IonButton onClick={() => setCantidad(prev => prev + 1)}>+</IonButton>
+              <IonButton onClick={() => setCantidad(prev => (prev > 0 ? prev - 1 : 0))}>–</IonButton>
+            </div>
+          </IonItem>
+
+          <IonButton expand="block" onClick={handleAgregarRepuesto}>
+            Agregar Repuesto
+          </IonButton>
+
+          <h1>Repuestos propios</h1>
+          <IonList>
+            {localRepuestosCamioneta && localRepuestosCamioneta.length > 0 ? (
+              localRepuestosCamioneta.map((repuesto: any) => (
                 <IonItem key={repuesto.id}>
                   <IonLabel>{repuesto.nombre}</IonLabel>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', width: '100%', justifyContent: 'space-around' }}>
                     <IonInput
                       value={cantidadesModificadas[repuesto.id] ?? repuesto.cantidad}
                       onIonChange={e => handleCantidadChange(repuesto.id, e.detail.value!)}
@@ -145,28 +151,25 @@ const AddRepuestoCamioneta: React.FC = () => {
                   </div>
                 </IonItem>
               ))
-          ) : (
-            <IonItem>
-              <IonLabel>No hay repuestos disponibles.</IonLabel>
-            </IonItem>
+            ) : (
+              <IonItem>
+                <IonLabel>No hay repuestos disponibles.</IonLabel>
+              </IonItem>
+            )}
+          </IonList>
+
+          {showAlert && (
+            <IonAlert
+              isOpen={!!showAlert}
+              onDidDismiss={() => setShowAlert(null)}
+              header={showAlert.success ? 'Éxito' : 'Error'}
+              message={showAlert.message}
+              buttons={['OK']}
+            />
           )}
-        </IonList>
-
-        <IonButton expand="block" onClick={handleGuardarCantidades}>
-          Guardar
-        </IonButton>
-
-        {showAlert && (
-          <IonAlert
-            isOpen={!!showAlert}
-            onDidDismiss={() => setShowAlert(null)}
-            header={showAlert.success ? 'Éxito' : 'Error'}
-            message={showAlert.message}
-            buttons={['OK']}
-          />
-        )}
-      </IonContent>
-    </IonPage>
+        </IonContent>
+      </IonPage>
+    </GlobalRefresher>
   );
 };
 

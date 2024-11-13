@@ -59,3 +59,21 @@ export const fetchOrdenes = async () => {
       return [];
     }
   };
+
+  export const entregaPago = async (idEntrega: any) => {
+    try {
+      const response = await fetch(`https://lv-back.online/pagos/entrega/${idEntrega}`);
+      const pagos = await response.json();
+      if (pagos[0] !== undefined) {
+        console.log(`Se encontraron medios de pago asociados a la entrega id ${idEntrega}`);
+        console.log(pagos);
+        return pagos;
+      } else {
+        console.log(`No se encontró ningún medio de pago con la entrega id ${idEntrega}`);
+        return false;
+      }
+    } catch (error) {
+        console.error("Error, medio de pago no encontrado.", error);
+    }
+  };
+  

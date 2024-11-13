@@ -1,24 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import "./Remito.css";
 import { IonContent } from "@ionic/react";
-
+import { useOrden } from "../../Provider/Provider";
+import { useHistory } from 'react-router-dom';
+ 
 const RemitoOrden = () => {
-  const location = useLocation();
-  // @ts-ignore
-  const { orden } = location.state || {};
+  const { ordenActiva } = useOrden(); // Obtenemos la ordenActiva directamente del contexto
   const [mediosDePago, setMediosDePago] = useState([]);
   const [medioDePagoNombre, setMedioDePagoNombre] = useState("");
-
+  const history = useHistory();
   useEffect(() => {
-    console.log("Orden recibida:", orden);
-    if (orden && orden.Presupuesto && orden.Presupuesto.id_medio_de_pago) {
-      console.log("Método de pago:", orden.Presupuesto.id_medio_de_pago);
+    if (ordenActiva && ordenActiva.Presupuesto && ordenActiva.Presupuesto.id_medio_de_pago) {
+      console.log("Método de pago:", ordenActiva.Presupuesto.id_medio_de_pago);
     } else {
-      console.log("No se encontró id_medio_de_pago en la orden");
+      console.log("No se encontró id_medio_de_pago en la ordenActiva");
     }
-  }, [orden]);
-
+  }, [ordenActiva]);
+console.log("ordenActiva", ordenActiva)
   useEffect(() => {
     const fetchMediosDePago = async () => {
       try {
@@ -28,8 +26,7 @@ const RemitoOrden = () => {
         if (data && data.length > 0) {
           setMediosDePago(data);
           const medio = data.find(
-            // @ts-ignore
-            (m) => m.id === orden?.Presupuesto?.id_medio_de_pago
+            (m: { id: any; }) => m.id === ordenActiva?.Presupuesto?.id_medio_de_pago
           );
           console.log("Medio de pago encontrado:", medio);
           if (medio) {
@@ -44,43 +41,49 @@ const RemitoOrden = () => {
       }
     };
 
-    if (orden?.Presupuesto?.id_medio_de_pago) {
+    if (ordenActiva?.Presupuesto?.id_medio_de_pago) {
       fetchMediosDePago();
     } else {
-      console.log("No se encontró un id_medio_de_pago en la orden.");
+      console.log("No se encontró un id_medio_de_pago en la ordenActiva.");
     }
-  }, [orden?.Presupuesto?.id_medio_de_pago]);
+  }, [ordenActiva?.Presupuesto?.id_medio_de_pago]);
 
-  if (!orden) {
-    return <div>No hay datos de orden disponibles.</div>;
+  if (!ordenActiva) {
+    return <div>No hay datos de ordenActiva disponibles.</div>;
   }
 
   const {
-    numero_orden,
+    id ,
     Cliente = {},
     Empleado = {},
     equipo = "",
     modelo = "",
     antiguedad = "",
     diagnostico = "",
+   motivo="",
     Presupuesto = {},
-  } = orden;
+  } = ordenActiva;
 
   const handlePrint = () => {
     window.print();
   };
-
+  const handleRedirect = () => {
+    if (location.pathname !== '/domicilio') {
+      history.push('/domicilio'); // Usar `history.push` para redirigir
+    }
+  };
   return (
+ 
     <IonContent className="remito">
       <div className="remito-container">
         <div className="remito-container-content">
-          <div className="remito-container-top">
+          <div className="remito-container-table">
             <div>
               <h2>Remito</h2>
             </div>
             <div>
               <h4>
-                No. <strong>#{numero_orden || ""}</strong>
+                No. <strong>#{id  || ""}</strong>
               </h4>
               <h4>
                 Fecha <strong>{new Date().toLocaleDateString()}</strong>
@@ -91,24 +94,23 @@ const RemitoOrden = () => {
               <h4>IVA RESPONSABLE INSCRIPTO</h4>
             </div>
           </div>
-          <div className="remito-container-bottom">
+          <div className="remito-container-table">
             <div>
-              <h2>Cliente</h2>
+              <h2>Datos del Cliente</h2>
             </div>
             <div>
               <h4>
-                {Cliente.nombre || ""} {Cliente.apellido || ""}
+               Nombre: <strong>{Cliente.nombre || ""} {Cliente.apellido || ""}</strong>  
               </h4>
+              
               <h4>
-                CUIL <strong>{Cliente.cuil || ""}</strong>
+                CUIL: <strong>{Cliente.cuil || ""}</strong>
               </h4>
             </div>
             <div>
-              <h4>{Cliente.direccion || ""}</h4>
+            <h4>    Dirección:  <strong>{Cliente.direccion || ""}</strong> </h4>
             </div>
-            <div>
-              <h4>{Cliente.ubicacion || ""}</h4>
-            </div>
+        
           </div>
           <svg
             width="1829"
@@ -140,6 +142,9 @@ const RemitoOrden = () => {
               <h4>
                 <strong>Diagnóstico:</strong> {diagnostico || ""}
               </h4>
+              <h4>
+                <strong>Presupuesto:</strong> {motivo || ""}
+              </h4>
             </div>
             <svg
               width="1829"
@@ -166,6 +171,32 @@ const RemitoOrden = () => {
                 TOTAL: <strong>${Presupuesto.total || ""}</strong>
               </h4>
             </div>
+            <div className="remito-container-firmas">
+          <div className="firma-cliente">
+            <h4>Firma del Cliente:</h4>
+            {ordenActiva.Entrega.firma_cliente ? (
+              <img
+                src={`${ordenActiva.Entrega.firma_cliente}`}
+                alt="Firma del Cliente"
+                className="firma-imagen"
+              />
+            ) : (
+              <p>Firma no disponible</p>
+            )}
+          </div>
+          <div className="firma-empleado">
+            <h4>Firma del Empleado:</h4>
+            {ordenActiva.Entrega.firma_empleado ? (
+              <img
+                src={`${ordenActiva.Entrega.firma_empleado}`}
+                alt="Firma del Empleado"
+                className="firma-imagen"
+              />
+            ) : (
+              <p>Firma no disponible</p>
+            )}
+          </div>
+        </div>
             <svg
               width="1829"
               height="5"
@@ -183,12 +214,18 @@ const RemitoOrden = () => {
               />
             </svg>
             <div className="remito-button-container">
-              <button onClick={handlePrint}>Imprimir</button>
+              <button style={{width:'100%'}} onClick={handlePrint}>Imprimir</button>
             </div>
+            <div className="remito-button-container">
+            <button style={{width:'100%'}} onClick={handleRedirect}>Volver</button>
+            </div>
+        
           </div>
+          
         </div>
       </div>
     </IonContent>
+    
   );
 };
 

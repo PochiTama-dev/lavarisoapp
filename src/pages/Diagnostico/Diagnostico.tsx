@@ -139,21 +139,21 @@ const handleFotosClick = (isEntrega: boolean) => {
         <strong>Equipo:</strong>
        </span>
        <IonInput style={{ marginLeft: "10px" }} value={equipo} placeholder='Ingrese equipo' onIonChange={(e) => setEquipo(e.detail.value!)} />
-       <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: "22px" }} />
+       {/* <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: "22px" }} /> */}
       </div>
       <div className='item2'>
        <span>
         <strong>Marca:</strong>
        </span>
        <IonInput style={{ marginLeft: "10px" }} value={marca} placeholder='Ingrese marca' onIonChange={(e) => setMarca(e.detail.value!)} />
-       <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: "22px" }} />
+       {/* <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: "22px" }} /> */}
       </div>
       <div className='item2'>
        <span>
         <strong>Modelo:</strong>
        </span>
        <IonInput style={{ marginLeft: "10px" }} value={modelo} placeholder='Ingrese modelo' onIonChange={(e) => setModelo(e.detail.value!)} />
-       <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: "22px" }} />
+       {/* <IonIcon icon={pencilOutline} className='icon-pencil' style={{ fontSize: "22px" }} /> */}
       </div>
       <div className='item2'>
        <span>
@@ -203,15 +203,13 @@ const handleFotosClick = (isEntrega: boolean) => {
 
 
 <div>
-<IonButton onClick={() => handleFotosClick(false)}>
- Agregar Fotos
-</IonButton>
+ 
 
 
 </div>
 
 
-<div className="fotos-miniaturas-container">
+{/* <div className="fotos-miniaturas-container">
                 {fotos.length > 0 ? (
                     fotos.map((foto, index) => (
                         <div key={index} className="foto-miniatura">
@@ -225,7 +223,7 @@ const handleFotosClick = (isEntrega: boolean) => {
                 ) : (
                     <p>No hay fotos disponibles.</p>
                 )}
-            </div>
+            </div> */}
 
 
 
@@ -233,7 +231,10 @@ const handleFotosClick = (isEntrega: boolean) => {
 
 
           
-     <div className='section'>
+     <div className='bottom-buttons-diagnostico'>
+     <IonButton  style={{ "--border-radius": "20px" }}  onClick={() => handleFotosClick(false)}>
+ Agregar/Ver Fotos
+</IonButton>
       <IonButton className='button' style={{ "--border-radius": "20px" }} onClick={() => setShowConfirm(true)}>
        Confirmar
       </IonButton>

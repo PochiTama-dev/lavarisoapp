@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
-import { fetchOrdenes, fetchRepuestosCamioneta, fetchStockPrincipal, fetchTiposFunciones } from "./fetchs"; // Importar los fetchs necesarios
+import { entregaPago, fetchOrdenes, fetchRepuestosCamioneta, fetchStockPrincipal, fetchTiposFunciones } from "./fetchs"; // Importar los fetchs necesarios
 
 interface Repuesto {
   lote: any;
@@ -31,6 +31,8 @@ interface OrdenContextProps {
   repuestosTaller: Repuesto[];
   tiposDeFunciones: string[]; // Nuevo estado para tipos de funciones
   cargarTiposFunciones: () => void; // Nueva función para cargar tipos de funciones
+  pagos: any[]; // Nuevo estado para pagos
+  cargarPagos: (idEntrega: any) => void; // Nueva función para cargar pagos
 }
 
 const OrdenContext = createContext<OrdenContextProps | undefined>(undefined);
@@ -48,7 +50,21 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
   const [repuestosCamioneta, setRepuestosCamioneta] = useState<Repuesto[]>([]);
   const [repuestosTaller, setRepuestosTaller] = useState<Repuesto[]>([]);
   const [tiposDeFunciones, setTiposDeFunciones] = useState<string[]>([]); // Nuevo estado para tipos de funciones
+  const [pagos, setPagos] = useState<any[]>([]);
 
+  const cargarPagos = async (idEntrega: any) => {
+    try {
+      const pagos = await entregaPago(idEntrega); // Llamar al fetch que ya tienes
+      if (pagos) {
+        setPagos(pagos); // Si se encuentran pagos, los almacenamos
+      } else {
+        setPagos([]); // Si no se encuentran, dejamos el estado vacío
+      }
+    } catch (error) {
+      console.error("Error al cargar los pagos:", error);
+      setPagos([]); // Si hay un error, dejamos el estado vacío
+    }
+  };
   // Función para cargar las órdenes
   const cargarOrdenes = async () => {
     const empleadoId = localStorage.getItem("empleadoId");
@@ -57,7 +73,7 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
       setOrdenes([]);
       return;
     }
-
+  
     try {
       const todasLasOrdenes = await fetchOrdenes();
       if (todasLasOrdenes.length > 0) {
@@ -65,6 +81,19 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
           orden.Empleado.id == empleadoId && orden.id_tipo_estado === 1
         );
         setOrdenes(ordenesFiltradas);
+  
+        // Si hay una orden activa en el localStorage, verificar si sigue siendo válida
+        const ordenActivaGuardada = localStorage.getItem("ordenActiva");
+        if (ordenActivaGuardada) {
+          const ordenActivaParsed = JSON.parse(ordenActivaGuardada);
+          const ordenValida = ordenesFiltradas.find((orden: { id: any; }) => orden.id === ordenActivaParsed.id);
+          if (ordenValida) {
+            setOrdenActiva(ordenValida); // Si la orden activa sigue existiendo, actualizarla
+          } else {
+            setOrdenActiva(null); // Si no existe, resetear
+            localStorage.removeItem("ordenActiva");
+          }
+        }
       } else {
         console.log("No se encontraron órdenes.");
         setOrdenes([]);
@@ -170,6 +199,8 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
         setRepuestosCamioneta,
         tiposDeFunciones, 
         cargarTiposFunciones,
+        pagos, // Estado de pagos
+        cargarPagos, // Nueva función para cargar pagos
       }}
     >
       {children}

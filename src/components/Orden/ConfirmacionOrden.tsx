@@ -6,7 +6,8 @@ import Map from "./Map";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import "./ConfirmacionOrden.css";
 import { useLocation } from "react-router-dom";
-import { useOrden } from "../../pages/Orden/ordenContext"; 
+ 
+import { useOrden } from "../../Provider/Provider";
 function ConfirmacionOrdenComponent() {
   const [position, setPosition] = useState({
     latitude: -33.9913,
@@ -17,6 +18,8 @@ function ConfirmacionOrdenComponent() {
   const history = useHistory();
   const location = useLocation();
   const { orden } = location.state as { orden: any };
+  const { cargarOrdenes, selectedRepuestos, ordenActiva, setOrdenActiva ,  } = useOrden();
+console.log(ordenActiva)
 
   const obtenerPresupuesto = async (id_orden: any) => {
     try {
@@ -47,10 +50,10 @@ function ConfirmacionOrdenComponent() {
   useEffect(() => {
     async function initialize() {
       try {
-        const coordenadas = await Geolocation.getCurrentPosition();
+     
         setPosition({
-          latitude: coordenadas.coords.latitude,
-          longitude: coordenadas.coords.longitude,
+          latitude: orden.Cliente.latitud,
+          longitude: orden.Cliente.longitud,
         });
         setLoading(false);
       } catch (error) {

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, ReactNode } from "react";
 import { useHistory } from "react-router-dom";
-import { IonContent, IonHeader, IonList, IonItem, IonLabel, IonButton, IonButtons, IonToast, IonAlert } from "@ionic/react";
+import { IonContent, IonHeader, IonList, IonItem, IonLabel, IonButton, IonButtons, IonToast, IonAlert, IonRefresher, IonRefresherContent } from "@ionic/react";
 import HeaderGeneral from "../Header/HeaderGeneral";
 import { useOrden } from "../../Provider/Provider";
 import { listaStockPrincipal, guardarStockReserva } from "./FetchsRepuestos";
 import ReservasModal from "./ReservasModal"; // Importar el modal
+import './Repuestos.css';
 
 interface Repuesto {
   id_repuesto_taller: any;
@@ -127,19 +128,26 @@ const RepuestosTaller: React.FC = () => {
   const renderRepuestos = () => (
     <>
       <div className="container-listado-respuestos">
-        <IonList className="listado-respuestos">
-          {repuestos.map((repuesto, index) => (
-            <IonItem key={index}>
-              <IonLabel>{repuesto.nombre}</IonLabel>
-              <IonLabel>${repuesto.precio}</IonLabel>
-              <IonButtons slot="end">
-                <IonLabel className={repuesto.cantidad > 0 ? "repuesto-incrementado" : ""}>{repuesto.cantidad}</IonLabel>
-                <IonButton onClick={() => handleAddRepuesto(index)}>+</IonButton>
-                <IonButton onClick={() => handleRemoveRepuesto(repuesto.id_repuesto)}>-</IonButton>
-              </IonButtons>
-            </IonItem>
-          ))}
-        </IonList>
+      {repuestos && repuestos.length > 0 ? (
+  <IonList className="listado-respuestos">
+    {repuestos.map((repuesto, index) => (
+      <IonItem key={index}>
+        <IonLabel>{repuesto.nombre}</IonLabel>
+        <IonLabel>${repuesto.precio}</IonLabel>
+        <IonButtons slot="end">
+          <IonLabel className={repuesto.cantidad > 0 ? "repuesto-incrementado" : ""}>
+            {repuesto.cantidad}
+          </IonLabel>
+          <IonButton onClick={() => handleAddRepuesto(index)}>+</IonButton>
+          <IonButton onClick={() => handleRemoveRepuesto(repuesto.id_repuesto)}>-</IonButton>
+        </IonButtons>
+      </IonItem>
+    ))}
+  </IonList>
+) : (
+  <p>No hay repuestos disponibles.</p>
+)}
+
       </div>
 
       <IonItem className="listado-seleccionados">
@@ -161,39 +169,71 @@ const RepuestosTaller: React.FC = () => {
     </>
   );
 
+  // Función de refresco para actualizar los repuestos
+  const handleRefresh = async (event: CustomEvent) => {
+    try {
+      const repuestosStock = await listaStockPrincipal();
+      setRepuestos(repuestosStock);
+      event.detail.complete(); // Completa el refresco
+    } catch (error) {
+      console.error("Error al cargar los repuestos:", error);
+      event.detail.complete(); // Completa el refresco, incluso en caso de error
+    }
+  };
+
   return (
     <IonContent>
       <IonHeader>
         <HeaderGeneral />
       </IonHeader>
+
+      {/* Agregar el refresher */}
+      <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+        <IonRefresherContent />
+      </IonRefresher>
+
       {renderRepuestos()}
-      <IonButton expand="full" onClick={handleConfirm}>
-        Confirmar
-      </IonButton>
-      <IonButton expand="full" onClick={() => setShowReservasModal(true)}>
-        Reservas realizadas
-      </IonButton>
-      <IonToast isOpen={showToast} message={toastMessage} duration={2000} onDidDismiss={() => setShowToast(false)} />
+
+      <div className="buttons-comprar-repuestos">
+        <IonButton expand="full" onClick={handleConfirm}>
+          Confirmar
+        </IonButton>
+        <IonButton expand="full" onClick={() => setShowReservasModal(true)}>
+          Reservas realizadas
+        </IonButton>
+      </div>
+
+      {/* Mostrar mensaje de éxito */}
+      <IonToast
+        isOpen={showToast}
+        message={toastMessage}
+        duration={2000}
+        onDidDismiss={() => setShowToast(false)}
+      />
+
+      {/* Confirmación de reserva */}
       <IonAlert
         isOpen={showAlert}
         onDidDismiss={() => setShowAlert(false)}
-        header={"Confirmar Reserva"}
-        message={"¿Está seguro de que desea confirmar la reserva de los repuestos seleccionados?"}
+        header="Confirmar reserva"
+        message="¿Estás seguro de que deseas confirmar esta reserva?"
         buttons={[
           {
             text: "Cancelar",
             role: "cancel",
-            handler: () => {
-              console.log("Reserva cancelada");
-            },
           },
           {
             text: "Confirmar",
-            handler: confirmReservation, // Llama a la función de confirmación
+            handler: confirmReservation,
           },
         ]}
       />
-      <ReservasModal isOpen={showReservasModal} onClose={() => setShowReservasModal(false)} /> {/* Usar el modal */}
+
+      {/* Modal de reservas */}
+      <ReservasModal
+        isOpen={showReservasModal}
+        onClose={() => setShowReservasModal(false)}
+      />
     </IonContent>
   );
 };
