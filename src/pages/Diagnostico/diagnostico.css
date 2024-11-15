@@ -1,12 +1,11 @@
 .diagnostico-ctn {
   margin-left: 3%;
- 
 }
 .diagnostico-ctn .item {
   margin-top: -15px;
   font-size: 20px;
 }
- 
+
 .diagnostico-ctn .checkbox-item {
   margin-top: 2px;
   font-size: 20px;
@@ -17,12 +16,12 @@
 .checkbox {
   margin-right: 10px;
 }
-.bottom-buttons-diagnostico{
+.bottom-buttons-diagnostico {
   width: 90%;
   margin: 20px auto;
 }
- 
-.diagnostico-ctn .item2{
+
+.diagnostico-ctn .item2 {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -35,7 +34,7 @@
 .diagnostico-ctn .section {
   margin-top: 4%;
 }
-.alert-checkbox-label.sc-ion-alert-md{
+.alert-checkbox-label.sc-ion-alert-md {
   color: black;
 }
 .obs-input {
@@ -51,7 +50,7 @@
   margin: 0 auto 20px auto;
   width: 250px;
 }
- 
+
 .fotos-miniaturas-container {
   display: flex;
   flex-wrap: wrap;
@@ -62,4 +61,20 @@
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
+}
+
+.input-error {
+  border: 2px solid orange !important;
+  border-radius: 5px;
+}
+
+.checkbox-error {
+  outline: 2px solid orange;
+  outline-offset: 4px;
+  border-radius: 5px;
+}
+
+.select-error {
+  border: 2px solid orange !important;
+  border-radius: 5px;
 }
