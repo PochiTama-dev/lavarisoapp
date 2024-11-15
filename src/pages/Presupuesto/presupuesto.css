@@ -1,14 +1,34 @@
-.estado-select{
-    margin: 15px auto;
- 
+.estado-select {
+  margin: 15px auto;
 }
 
-.lista-respuestos-presupuesto{
-    width: 100%;
+.lista-respuestos-presupuesto {
+  width: 100%;
 }
-.alert-radio-label.sc-ion-alert-md{
-    color: black;
-  }
-  [aria-checked="true"].sc-ion-alert-md .alert-radio-label.sc-ion-alert-md{
-    color: black;
-  }
+.alert-radio-label.sc-ion-alert-md {
+  color: black;
+}
+[aria-checked="true"].sc-ion-alert-md .alert-radio-label.sc-ion-alert-md {
+  color: black;
+}
+
+.input-error {
+  border: 2px solid orange !important;
+  border-radius: 5px;
+}
+
+.select-error {
+  border: 2px solid orange !important;
+  border-radius: 5px;
+}
+
+.checkbox-error {
+  outline: 2px solid orange;
+  outline-offset: 4px;
+  border-radius: 5px;
+}
+
+.firma-error {
+  border: 2px solid orange !important;
+  border-radius: 5px;
+}
