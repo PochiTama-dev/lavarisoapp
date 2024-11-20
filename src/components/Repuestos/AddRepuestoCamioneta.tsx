@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonAlert, IonList, IonModal } from '@ionic/react';
+import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonAlert, IonList, IonModal, IonCheckbox } from '@ionic/react';
 import HeaderGeneral from '../Header/HeaderGeneral';
 import { guardarStockCamioneta, modificarStockCamioneta } from './FetchsRepuestos';
 import { useOrden } from '../../Provider/Provider';
@@ -14,6 +14,7 @@ const AddRepuestoCamioneta: React.FC = () => {
   const [cantidadesModificadas, setCantidadesModificadas] = useState<{ [key: number]: number }>({});
   const [modalNota, setModalNota] = useState(false);
   const [modalRep, setModalRep] = useState(false);
+  const [checkbox, setCheckbox] = useState(false);
 
   const { repuestosCamioneta } = useOrden();
   const [localRepuestosCamioneta, setLocalRepuestosCamioneta] = useState<any[]>(repuestosCamioneta);
@@ -37,16 +38,21 @@ const AddRepuestoCamioneta: React.FC = () => {
       setShowAlert({ success: false, message: 'El nombre del repuesto no puede estar vacío.' });
       return;
     }
+    if (confirm('Desea agregar el reppuesto?')) {
+      const repuesto = {
+        nombre: nombreRepuesto,
+        cantidad: cantidad,
+        id_empleado: idEmpleado,
+        id_repuesto: null,
+        lote: '',
+        usado: checkbox,
+      };
+      console.log(repuesto);
+    }
 
-    const repuesto = {
-      nombre: nombreRepuesto,
-      cantidad: cantidad,
-      id_empleado: idEmpleado,
-      id_repuesto: null,
-      lote: '',
-    };
-
+    /* 
     //@ts-ignore
+    
     const success = await guardarStockCamioneta(repuesto);
 
     if (success) {
@@ -58,7 +64,7 @@ const AddRepuestoCamioneta: React.FC = () => {
       setLocalRepuestosCamioneta((prev) => [...prev, { ...repuesto, id: new Date().getTime() }]); // Usa un id temporal
     } else {
       setShowAlert({ success: false, message: 'Error al agregar el repuesto al stock de la camioneta.' });
-    }
+    } */
   };
   const handleCantidadChange = (id: number, nuevaCantidad: string) => {
     const cantidadNumerica = parseInt(nuevaCantidad, 10);
@@ -126,15 +132,14 @@ const AddRepuestoCamioneta: React.FC = () => {
               <IonInput value={cantidad} onIonChange={(e) => setCantidad(parseInt(e.detail.value!, 10) || 0)} style={{ width: '80px', textAlign: 'right', margin: '0 8px' }} />
               <IonButton onClick={() => setCantidad((prev) => prev + 1)}>+</IonButton>
               <IonButton onClick={() => setCantidad((prev) => (prev > 0 ? prev - 1 : 0))}>–</IonButton>
+              <IonCheckbox justify='end' style={{ width: '30%' }} onClick={() => setCheckbox(!checkbox)}>
+                usado?
+              </IonCheckbox>
             </div>
           </IonItem>
 
           <IonButton expand='block' onClick={handleAgregarRepuesto}>
             Agregar Repuesto
-          </IonButton>
-
-          <IonButton expand='block' onClick={handleModalRep}>
-            Agregar Repuesto Usado
           </IonButton>
 
           <IonButton expand='block' onClick={handleModalNota}>
