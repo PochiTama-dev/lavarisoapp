@@ -1,17 +1,21 @@
-const ordenEntrega = async (idOrden) => {
+export const ordenEntrega = async (idOrden) => {
   try {
-    const response = await fetch(`http://localhost:8000/entregas/orden/${idOrden}`);
+    const response = await fetch(
+      `http://lv-back.online/entregas/orden/${idOrden}`
+    );
     const entrega = await response.json();
     if (entrega) {
       console.log(`Se encontró una entrega asociada a la órden id ${idOrden}`);
       console.log(entrega);
       return entrega;
     } else {
-      console.log(`No se encontró ninguna entrega asociada a la órden id ${idOrden}`);
+      console.log(
+        `No se encontró ninguna entrega asociada a la órden id ${idOrden}`
+      );
       return false;
     }
   } catch (error) {
-      console.error("Error, entrega no encontrada.", error);
+    console.error("Error, entrega no encontrada.", error);
   }
 };
 
@@ -28,17 +32,22 @@ const obtenerEntrega = async (id) => {
       return false;
     }
   } catch (error) {
-      console.error("Error, entrega no encontrada.", error);
+    console.error("Error, entrega no encontrada.", error);
   }
 };
 
 const guardarEntrega = async () => {
-  const entrega = { id_orden: 3, firma_cliente: 'firma cliente', firma_empleado: 'firma empleado', recomienda: 0 }
+  const entrega = {
+    id_orden: 3,
+    firma_cliente: "firma cliente",
+    firma_empleado: "firma empleado",
+    recomienda: 0,
+  };
   try {
     const response = await fetch("http://localhost:8000/entregas/guardar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entrega)
+      body: JSON.stringify(entrega),
     });
     const result = await response.json();
     if (result) {
@@ -54,15 +63,23 @@ const guardarEntrega = async () => {
 };
 
 const modificarEntrega = async (id) => {
-  const entrega = { id_orden: 2, firma_cliente: 'firma cliente', firma_empleado: 'firma empleado', recomienda: 1 }
+  const entrega = {
+    id_orden: 2,
+    firma_cliente: "firma cliente",
+    firma_empleado: "firma empleado",
+    recomienda: 1,
+  };
   try {
-    const response = await fetch(`http://localhost:8000/entregas/modificar/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entrega)
-    });
+    const response = await fetch(
+      `http://localhost:8000/entregas/modificar/${id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(entrega),
+      }
+    );
     const result = await response.json();
-    console.log(result)
+    console.log(result);
     if (result[0] === 1) {
       console.log("Entrega modificada con éxito!!!");
       return true;
@@ -77,16 +94,21 @@ const modificarEntrega = async (id) => {
 
 const eliminarEntrega = async (id) => {
   try {
-    const response = await fetch(`http://localhost:8000/entregas/eliminar/${id}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" }
-    });
+    const response = await fetch(
+      `http://localhost:8000/entregas/eliminar/${id}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
     const result = await response.json();
     if (result === 1) {
       console.log("El registro de entrega se eliminó correctamente!!");
       return true;
     } else {
-      console.log("Se produjo un error, el registro de entrega no pudo ser eliminada...");
+      console.log(
+        "Se produjo un error, el registro de entrega no pudo ser eliminada..."
+      );
       return false;
     }
   } catch (error) {
