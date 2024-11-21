@@ -2,21 +2,52 @@ import React, { useEffect, useState } from "react";
 import "./Remito.css";
 import { IonContent } from "@ionic/react";
 import { useOrden } from "../../Provider/Provider";
-import { useHistory } from 'react-router-dom';
- 
+import { useHistory } from "react-router-dom";
+import { obtenerPresupuesto, ordenEntrega } from "../Orden/fetchs";
+import GaleriaFotos from "./GaleriaFotos";
+import { getFotosNumeroOrden } from "../Fotos/fetchs";
+
 const RemitoOrden = () => {
   const { ordenActiva } = useOrden(); // Obtenemos la ordenActiva directamente del contexto
   const [mediosDePago, setMediosDePago] = useState([]);
   const [medioDePagoNombre, setMedioDePagoNombre] = useState("");
+  const [fotosDiagnostico, setFotosDiagnostico] = useState([]);
+  const [fotosEntrega, setFotosEntrega] = useState([]);
   const history = useHistory();
+
   useEffect(() => {
-    if (ordenActiva && ordenActiva.Presupuesto && ordenActiva.Presupuesto.id_medio_de_pago) {
+    const fetchFotos = async () => {
+      try {
+        const fotosOrden = await getFotosNumeroOrden(ordenActiva.id);
+
+        const fotosEntrega = fotosOrden.filter((foto) => foto.isEntrega);
+        const fotosDiagnostico = fotosOrden.filter((foto) => !foto.isEntrega);
+
+        console.log("Fotos de la Entrega:", fotosEntrega);
+        console.log("Fotos del Diagnóstico:", fotosDiagnostico);
+
+        setFotosEntrega(fotosEntrega);
+        setFotosDiagnostico(fotosDiagnostico);
+      } catch (error) {
+        console.error("Error al obtener las fotos de la orden:", error);
+      }
+    };
+
+    fetchFotos();
+  }, [ordenActiva]);
+
+  useEffect(() => {
+    if (
+      ordenActiva &&
+      ordenActiva.Presupuesto &&
+      ordenActiva.Presupuesto.id_medio_de_pago
+    ) {
       console.log("Método de pago:", ordenActiva.Presupuesto.id_medio_de_pago);
     } else {
       console.log("No se encontró id_medio_de_pago en la ordenActiva");
     }
   }, [ordenActiva]);
-console.log("ordenActiva", ordenActiva)
+  console.log("ordenActiva", ordenActiva);
   useEffect(() => {
     const fetchMediosDePago = async () => {
       try {
@@ -26,7 +57,8 @@ console.log("ordenActiva", ordenActiva)
         if (data && data.length > 0) {
           setMediosDePago(data);
           const medio = data.find(
-            (m: { id: any; }) => m.id === ordenActiva?.Presupuesto?.id_medio_de_pago
+            (m: { id: any }) =>
+              m.id === ordenActiva?.Presupuesto?.id_medio_de_pago
           );
           console.log("Medio de pago encontrado:", medio);
           if (medio) {
@@ -53,14 +85,14 @@ console.log("ordenActiva", ordenActiva)
   }
 
   const {
-    id ,
+    id,
     Cliente = {},
     Empleado = {},
     equipo = "",
     modelo = "",
     antiguedad = "",
     diagnostico = "",
-   motivo="",
+    motivo = "",
     Presupuesto = {},
   } = ordenActiva;
 
@@ -68,12 +100,11 @@ console.log("ordenActiva", ordenActiva)
     window.print();
   };
   const handleRedirect = () => {
-    if (location.pathname !== '/domicilio') {
-      history.push('/domicilio'); // Usar `history.push` para redirigir
+    if (location.pathname !== "/domicilio") {
+      history.push("/domicilio"); // Usar `history.push` para redirigir
     }
   };
   return (
- 
     <IonContent className="remito">
       <div className="remito-container">
         <div className="remito-container-content">
@@ -83,7 +114,7 @@ console.log("ordenActiva", ordenActiva)
             </div>
             <div>
               <h4>
-                No. <strong>#{id  || ""}</strong>
+                No. <strong>#{id || ""}</strong>
               </h4>
               <h4>
                 Fecha <strong>{new Date().toLocaleDateString()}</strong>
@@ -100,17 +131,22 @@ console.log("ordenActiva", ordenActiva)
             </div>
             <div>
               <h4>
-               Nombre: <strong>{Cliente.nombre || ""} {Cliente.apellido || ""}</strong>  
+                Nombre:{" "}
+                <strong>
+                  {Cliente.nombre || ""} {Cliente.apellido || ""}
+                </strong>
               </h4>
-              
+
               <h4>
                 CUIL: <strong>{Cliente.cuil || ""}</strong>
               </h4>
             </div>
             <div>
-            <h4>    Dirección:  <strong>{Cliente.direccion || ""}</strong> </h4>
+              <h4>
+                {" "}
+                Dirección: <strong>{Cliente.direccion || ""}</strong>{" "}
+              </h4>
             </div>
-        
           </div>
           <svg
             width="1829"
@@ -172,31 +208,81 @@ console.log("ordenActiva", ordenActiva)
               </h4>
             </div>
             <div className="remito-container-firmas">
-          <div className="firma-cliente">
-            <h4>Firma del Cliente:</h4>
-            {ordenActiva.Entrega.firma_cliente ? (
-              <img
-                src={`${ordenActiva.Entrega.firma_cliente}`}
-                alt="Firma del Cliente"
-                className="firma-imagen"
-              />
-            ) : (
-              <p>Firma no disponible</p>
-            )}
-          </div>
-          <div className="firma-empleado">
-            <h4>Firma del Empleado:</h4>
-            {ordenActiva.Entrega.firma_empleado ? (
-              <img
-                src={`${ordenActiva.Entrega.firma_empleado}`}
-                alt="Firma del Empleado"
-                className="firma-imagen"
-              />
-            ) : (
-              <p>Firma no disponible</p>
-            )}
-          </div>
-        </div>
+              <div className="firma-cliente">
+                <h4>Firmas del Cliente:</h4>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    width: "90%",
+                    gap: "5px",
+                  }}
+                >
+                  <div style={{ borderRight: "1px solid black" }}>
+                    <h6>Presupuesto:</h6>
+
+                    {ordenActiva.Presupuesto.firma_cliente ? (
+                      <img
+                        src={`${ordenActiva.Presupuesto.firma_cliente}`}
+                        alt="Firma del Cliente"
+                        className="firma-imagen"
+                      />
+                    ) : (
+                      <p>Firma no disponible</p>
+                    )}
+                  </div>
+                  <div>
+                    <h6>Entrega:</h6>
+
+                    {ordenActiva.Entrega.firma_cliente ? (
+                      <img
+                        src={`${ordenActiva.Entrega.firma_cliente}`}
+                        alt="Firma del Cliente"
+                        className="firma-imagen"
+                      />
+                    ) : (
+                      <p>Firma no disponible</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="firma-empleado">
+                <h4>Firmas del Empleado:</h4>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    width: "90%",
+                    gap: "5px",
+                  }}
+                >
+                  <div style={{ borderRight: "1px solid black" }}>
+                    <h6>Presupuesto:</h6>
+                    {ordenActiva.Presupuesto.firma_empleado ? (
+                      <img
+                        src={`${ordenActiva.Presupuesto.firma_empleado}`}
+                        alt="Firma del Empleado"
+                        className="firma-imagen"
+                      />
+                    ) : (
+                      <p>Firma no disponible</p>
+                    )}
+                  </div>
+                  <div>
+                    <h6>Entrega:</h6>
+                    {ordenActiva.Entrega.firma_empleado ? (
+                      <img
+                        src={`${ordenActiva.Entrega.firma_empleado}`}
+                        alt="Firma del Empleado"
+                        className="firma-imagen"
+                      />
+                    ) : (
+                      <p>Firma no disponible</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
             <svg
               width="1829"
               height="5"
@@ -213,19 +299,28 @@ console.log("ordenActiva", ordenActiva)
                 strokeWidth="5"
               />
             </svg>
-            <div className="remito-button-container">
-              <button style={{width:'100%'}} onClick={handlePrint}>Imprimir</button>
+            <div>
+              <h2>Fotos del Diagnóstico</h2>
+              <GaleriaFotos fotos={fotosDiagnostico} />
+            </div>
+            <div>
+              <h2>Fotos de la Entrega</h2>
+              <GaleriaFotos fotos={fotosEntrega} />
             </div>
             <div className="remito-button-container">
-            <button style={{width:'100%'}} onClick={handleRedirect}>Volver</button>
+              <button style={{ width: "100%" }} onClick={handlePrint}>
+                Imprimir
+              </button>
             </div>
-        
+            <div className="remito-button-container">
+              <button style={{ width: "100%" }} onClick={handleRedirect}>
+                Volver
+              </button>
+            </div>
           </div>
-          
         </div>
       </div>
     </IonContent>
-    
   );
 };
 
