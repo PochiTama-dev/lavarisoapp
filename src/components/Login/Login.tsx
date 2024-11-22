@@ -9,7 +9,7 @@ import "./Login.css";
 import { useRef, useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import socket from "../services/socketService";
-import { Geolocation } from "@capacitor/geolocation";
+ 
 import { registerPlugin } from "@capacitor/core";
 const LoginComponent: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
@@ -18,8 +18,7 @@ const LoginComponent: React.FC = () => {
   const emailRef = useRef<HTMLIonInputElement>(null);
   const cuilRef = useRef<HTMLIonInputElement>(null);
   const locationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const intervalTime = 3000; // 3 segundos
-
+  const intervalTime = 5000;  
   useEffect(() => {
     return () => {
       if (locationIntervalRef.current) {
@@ -74,7 +73,7 @@ const LoginComponent: React.FC = () => {
 
           if (!locationIntervalRef.current) {
             locationIntervalRef.current = setInterval(() => {
-              console.log("Enviando ubicación:", coords);
+          
               socket.emit("locationUpdate", {
                 id: localStorage.getItem("empleadoId"),
                 nombre: localStorage.getItem("empleadoNombre"),

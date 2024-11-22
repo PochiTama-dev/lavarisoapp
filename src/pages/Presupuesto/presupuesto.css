@@ -12,6 +12,31 @@
   color: black;
 }
 
+
+.presupuesto-forma-pago {
+  display: flex; /* Activa Flexbox */
+  align-items: center; /* Alinea verticalmente al centro */
+  justify-content: space-between; /* Mueve los elementos a los extremos */
+  gap: 10px; /* Espaciado entre el texto y el select */
+}
+
+.forma-pago-label {
+  font-weight: bold;
+}
+
+.forma-pago-select {
+  max-width: 250px; /* Ajusta el ancho máximo del select */
+  flex-shrink: 0; /* Asegura que no se reduzca más allá de su contenido */
+}
+
+
+
+.forma-pago-select .ionicon {
+
+   margin-left: 20px;
+}
+
+
 .input-error {
   border: 2px solid orange !important;
   border-radius: 5px;
