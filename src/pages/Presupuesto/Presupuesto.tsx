@@ -86,6 +86,7 @@ const Presupuesto: React.FC = () => {
 
   const servicios = [
     "Viaticos",
+    "DPG",
     "Descuentos",
     "Comisión visita",
     "Comisión reparación",
@@ -93,11 +94,12 @@ const Presupuesto: React.FC = () => {
     "Comisión rep. a domicilio",
     "Gasto impositivo",
   ] as const;
-
+  
   type Servicio = (typeof servicios)[number];
-
+  
   const servicioToDBFieldMap: Record<Servicio, string> = {
     Viaticos: "viaticos",
+    DPG: "dpg",
     Descuentos: "descuentos_referidos",
     "Comisión visita": "comision_visita",
     "Comisión reparación": "comision_reparacion",
@@ -105,7 +107,7 @@ const Presupuesto: React.FC = () => {
     "Comisión rep. a domicilio": "comision_reparacion_domicilio",
     "Gasto impositivo": "gasto_impositivo",
   };
-
+  
   const handleMontoChange = (index: number, value: any) => {
     const newMontos = [...montos];
     newMontos[index] = Number(value);
@@ -161,7 +163,53 @@ const Presupuesto: React.FC = () => {
   }, [ordenActiva]);
 
   const totalMontos = montos.reduce((a, b) => a + parseFloat(b), 0);
-  const total = totalMontos;
+
+/////////// TOTAL
+
+const descuentosIndex = servicios.indexOf("Descuentos");
+const dpgIndex = servicios.indexOf("DPG");
+
+const totalMontosSinDescuentoYDPG = montos
+  .filter((_, index) => index !== descuentosIndex && index !== dpgIndex)
+  .reduce((a, b) => a + parseFloat(b || 0), 0);
+
+const descuentoPorcentaje = descuentosIndex !== -1 ? parseFloat(montos[descuentosIndex]) : 0;
+const montoDescuento = totalMontosSinDescuentoYDPG * (descuentoPorcentaje / 100);
+
+let total = totalMontosSinDescuentoYDPG - montoDescuento;
+
+if (selectedMedioPago) {
+  const medio = medioPago.find((mp) => mp.id === selectedMedioPago)?.medio_de_pago.toLowerCase();
+
+  if (medio) {
+    if (
+      medio === "efectivo en dólares" ||
+      medio === "efectivo en pesos" ||
+      medio === "mercadopago" ||
+      medio === "transferencia en dólares" ||
+      medio === "transferencia en pesos"
+    ) {
+      total *= 0.95;
+    } else if (medio === "tarjeta de crédito") {
+      total *= 1.21;
+    }
+  }
+}
+
+const dpgMonto = dpgIndex !== -1 ? parseFloat(montos[dpgIndex] || 0) : 0;
+total += dpgMonto;
+
+const comisionCobrar = (total - dpgMonto) / 2;
+
+total = parseFloat(total.toFixed(2));
+const comisionCobrarRedondeado = parseFloat(comisionCobrar.toFixed(2));
+
+
+
+  /////////////////////////
+
+
+
   // AGREGAR RESPUESTOS DE CAMIONETA
   const agregarRepuestos = async () => {
     try {
@@ -552,33 +600,83 @@ const Presupuesto: React.FC = () => {
               style={{ display: "flex", flexDirection: "column" }}
             >
               <h2>Servicios</h2>
-              {montos.map((monto, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginTop: "-10px",
-                  }}
-                >
-                  <span>
-                    <strong>{servicios[index]}:</strong>
-                  </span>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <span>$</span>
-                    <IonInput
-                      className={inputErrors.montos ? "input-error" : ""}
-                      style={{ width: "100px", marginLeft: "20px" }}
-                      type="number"
-                      value={monto}
-                      onIonChange={(e) =>
-                        handleMontoChange(index, e.detail.value)
-                      }
-                    />
-                  </div>
-                </div>
-              ))}
+              <div className="presupuesto-forma-pago">
+  <span className="forma-pago-label">Forma de pago</span>
+  <IonSelect
+    className={`forma-pago-select ${inputErrors.medioPago ? "select-error" : ""}`}
+    value={selectedMedioPago}
+    placeholder="Seleccione medio de pago"
+    onIonChange={handleMedioPagoChange}
+  >
+    {medioPago.map((medio) => (
+      <IonSelectOption key={medio.id} value={medio.id}>
+        {medio.medio_de_pago}
+      </IonSelectOption>
+    ))}
+  </IonSelect>
+</div>
+{montos.map((monto, index) => (
+  <div
+    key={index}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: "-10px",
+    }}
+  >
+    <span>
+      <strong>{servicios[index]}:</strong>
+    </span>
+    <div style={{ display: "flex", alignItems: "center" }}>
+      {servicios[index] === "DPG" ? (
+        <select
+          style={{
+            margin: "10px 0 10px 20px",
+            width: "120px",
+            color: "black",
+            background: "white",
+            border: "none",
+          }}
+          value={monto || ""}
+          onChange={(e) => handleMontoChange(index, e.target.value)}
+        >
+          <option value="">Seleccione</option>
+          {[5000, 10000, 15000, 20000, 25000, 30000].map((valor) => (
+            <option key={valor} value={valor}>
+              {valor}
+            </option>
+          ))}
+        </select>
+      ) : servicios[index] === "Descuentos" ? (
+        <select
+          style={{ width: "120px", margin: "10px 0 10px 20px", color:'black', background:'white ', border:'none' }}
+          value={monto}
+          onChange={(e) => handleMontoChange(index, e.target.value)}
+        >   <option value={0}>Sin desc.</option>
+          <option value={5}>5%</option>
+          <option value={10}>10%</option>
+          <option value={15}>15%</option>
+        </select>
+  
+      ) : (
+        <>
+          <span>$</span>
+          <IonInput
+            className={inputErrors.montos ? "input-error" : ""}
+            style={{ width: "100px", marginLeft: "20px" }}
+            type="number"
+            value={monto}
+            onIonChange={(e) => handleMontoChange(index, e.detail.value)}
+          />
+        </>
+      )}
+    </div>
+  </div>
+))}
+
+
+
               <div style={{ width: "100%", marginTop: "30px" }}>
                 <span>
                   <strong>Total:</strong>
@@ -593,30 +691,23 @@ const Presupuesto: React.FC = () => {
               >
                 <span>${total}</span>
               </div>
-            </div>
-
-            <div>
+              <div style={{ width: "100%", marginTop: "30px" }}>
+                <span>
+                  <strong>Comisión a cobrar :</strong>
+                </span>
+              </div>
               <div
-                className="separador"
                 style={{
-                  borderBottom: "2px solid #000",
-                  margin: "20px 10px",
-                  width: "90%",
+                  textAlign: "right",
+                  marginRight: "65px",
+                  marginTop: "-20px",
                 }}
-              />
-              <h2>Forma de pago</h2>
-              <IonSelect
-                className={inputErrors.medioPago ? "select-error" : ""}
-                value={selectedMedioPago}
-                placeholder="Seleccione medio de pago"
-                onIonChange={handleMedioPagoChange}
               >
-                {medioPago.map((medio) => (
-                  <IonSelectOption key={medio.id} value={medio.id}>
-                    {medio.medio_de_pago}
-                  </IonSelectOption>
-                ))}
-              </IonSelect>
+                <span>${ 
+              comisionCobrarRedondeado}</span>
+              </div>
+        
+       
             </div>
             <div
               className="separador"

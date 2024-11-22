@@ -9,7 +9,7 @@ export const getFotos = async () => {
     }
   };
   
-  export const uploadFoto = async (numero_orden: any, ruta_imagen: any, id_empleado: any, isEntrega: any) => {
+  export const uploadFoto = async (numero_orden: any, ruta_imagen: any, id_empleado: any, isEntrega: any, isFactura : any) => {
     try {
       const response = await fetch('https://lv-back.online/fotos/guardar', {
         method: 'POST',
@@ -21,6 +21,7 @@ export const getFotos = async () => {
           ruta_imagen,
           id_empleado,
           isEntrega,
+          isFactura,
         }),
       });
       const data = await response.json();

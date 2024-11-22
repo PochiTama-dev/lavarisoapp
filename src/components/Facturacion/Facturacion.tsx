@@ -15,6 +15,7 @@ import HeaderGeneral from "../Header/HeaderGeneral";
 import "./Facturacion.css";
 import { useHistory, useLocation } from "react-router-dom";
 import { useOrden } from "../../Provider/Provider";
+import Fotos from "../Fotos/Fotos";
 interface MedioDePago {
   id: number;
   value: string;
@@ -164,7 +165,12 @@ const FacturacionComponent = () => {
   };
 
  
-
+  const handleFotosClick = (isFactura: boolean) => {
+    history.push({
+      pathname: '/fotos',
+      state: {isFactura},
+    });
+  };
   return (
     <IonContent className="facturacion-container">
       <IonHeader>
@@ -214,13 +220,14 @@ const FacturacionComponent = () => {
             style={{ display: "none" }}
             id="file-upload"
           />
-          <IonButton
-            className="custom-button"
-            onClick={() => document.getElementById("file-upload")?.click()}
-          >
-            <IonIcon icon={cameraOutline} className="custom-icon" />
-          <span style={{color:'black'}}> Foto comprobante</span>  
-          </IonButton>
+       
+          
+  
+          <IonButton style={{ '--border-radius': '20px' }} onClick={() => handleFotosClick(true)}>
+          <IonIcon icon={cameraOutline} className="custom-icon" />
+              Agregar comprobante de pago
+            </IonButton>
+          
         </div>
         <IonButton
           expand="block"

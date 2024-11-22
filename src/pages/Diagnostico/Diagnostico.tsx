@@ -41,7 +41,7 @@ const Diagnostico: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredReparaciones, setFilteredReparaciones] = useState(reparaciones);
-
+//@ts-ignore
   const handleSearchChange = (term) => {
     setSearchTerm(term);
     setFilteredReparaciones(reparaciones.filter((rep) => rep.reparacion.toLowerCase().includes(term.toLowerCase())));
@@ -173,7 +173,7 @@ const Diagnostico: React.FC = () => {
       state: { isEntrega },
     });
   };
-  const handleCheckboxChange = (reparacion) => {
+  const handleCheckboxChange = (reparacion: number) => {
     if (selectedReparaciones.includes(reparacion)) {
       // Si ya está seleccionada, la eliminamos
       setSelectedReparaciones(selectedReparaciones.filter((item) => item !== reparacion));
