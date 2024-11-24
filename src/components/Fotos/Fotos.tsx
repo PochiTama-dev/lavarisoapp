@@ -83,20 +83,26 @@ console.log("IS FACTURA", isFactura)
       : isFactura
       ? photosFactura
       : photosDiagnostico;
+  
     if (currentPhotos.length >= maxPhotos) return;
-
+  
     try {
       const image = await Camera.getPhoto({
         quality: 70,
         allowEditing: false,
         resultType: CameraResultType.Base64,
       });
-
+  
+      const base64Data = image.base64String;
+      if (!base64Data) return;
+  
+      const compressedBase64 = await compressImage(base64Data);
+  
       const newPhoto = {
         id: `${Date.now()}`,
-        base64: `data:image/webp;base64,${image.base64String}`,
+        base64: `data:image/jpeg;base64,${compressedBase64}`,
       };
-
+  
       if (isEntrega) {
         setPhotosEntrega((prevPhotos) => [newPhoto, ...prevPhotos]);
       } else if (isFactura) {
@@ -104,43 +110,127 @@ console.log("IS FACTURA", isFactura)
       } else {
         setPhotosDiagnostico((prevPhotos) => [newPhoto, ...prevPhotos]);
       }
+  
+      await handleSendPhotos();
     } catch (error) {
       console.error("Error tomando la foto:", error);
     }
   };
+  
+  const compressImage = async (base64Data: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = `data:image/jpeg;base64,${base64Data}`;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject("No se pudo obtener el contexto del canvas");
+  
+        const maxWidth = 800;
+        const scaleFactor = maxWidth / img.width;
+        canvas.width = maxWidth;
+        canvas.height = img.height * scaleFactor;
+  
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+        const compressedBase64 = dataUrl.split(',')[1];
+        resolve(compressedBase64);
+      };
+  
+      img.onerror = (err) => reject(err);
+    });
+  };
 
   const handleSendPhotos = async () => {
     try {
+      // Determinar cuál conjunto de fotos enviar
       const photosToSend = isEntrega
         ? photosEntrega
         : isFactura
         ? photosFactura
         : photosDiagnostico;
+  
+      // Filtrar solo las fotos con base64
       const nuevasFotos = photosToSend.filter((photo) => photo.base64);
-
+  
       if (nuevasFotos.length === 0) {
         alert("No hay fotos para enviar.");
         return;
       }
-
+  
+      // Subir cada foto
       for (const photo of nuevasFotos) {
         if (photo.base64) {
-          await uploadFoto(
-            ordenActiva.id,
-            photo.base64,
-            ordenActiva.id_empleado,
-            isEntrega,
-            isFactura
-          );
+          try {
+            // Convertir base64 a un archivo Blob
+            const byteCharacters = atob(photo.base64.split(',')[1]); // Remover el prefijo base64
+            const byteArray = new Uint8Array(byteCharacters.length);
+  
+            // Convertir los caracteres en bytes
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteArray[i] = byteCharacters.charCodeAt(i);
+            }
+  
+            // Crear el archivo a partir de los bytes
+            const file = new Blob([byteArray], { type: 'image/jpeg' });
+            const formData = new FormData();
+            formData.append('file', file, `photo_${photo.id}.jpg`);  
+  
+        
+  
+       
+            const uploadResponse = await fetch('https://lv-back.online/upload', {
+              method: 'POST',
+              body: formData,
+            });
+  
+            if (!uploadResponse.ok) throw new Error("Error al subir la foto a /uploads");
+  
+            // Procesar la respuesta
+            const uploadData = await uploadResponse.json();
+          
+            const photoUrl = `https://lv-back.online${uploadData.file.path}`;
+
+            // Validar que photoUrl es una cadena
+            if (typeof photoUrl !== 'string') {
+              console.error('La URL de la foto no es una cadena');
+              return;  // Detener la ejecución si no es una cadena válida
+            }
+            
+            const updatedPhoto = { ...photo, ruta_imagen: photoUrl };
+            
+            const photoLink = await uploadFoto(
+              ordenActiva.id,
+              photoUrl, // Ahora estamos enviando un string explícitamente
+              ordenActiva.id_empleado,
+              isEntrega,
+              isFactura
+            );
+           
+            if (isEntrega) {
+              setPhotosEntrega((prevPhotos) => [...prevPhotos, updatedPhoto]);
+            } else if (isFactura) {
+              setPhotosFactura((prevPhotos) => [...prevPhotos, updatedPhoto]);
+            } else {
+              setPhotosDiagnostico((prevPhotos) => [...prevPhotos, updatedPhoto]);
+            }
+  
+            console.log("Foto subida con éxito:", photoLink);
+  
+          } catch (error) {
+            console.error("Error al subir la foto:", error);
+          }
         }
       }
-
+  
       console.log("Fotos enviadas con éxito");
       history.goBack();
     } catch (error) {
       console.error("Error al enviar las fotos:", error);
     }
   };
+  
 
   const handleDeletePhoto = async (photoId: string) => {
     const confirmed = window.confirm("¿Estás seguro de que quieres eliminar esta foto?");
@@ -222,7 +312,7 @@ console.log("IS FACTURA", isFactura)
     onClick={handleSendPhotos}
     expand="full"
     fill="solid"
-    disabled={isFactura ? false : remainingPhotos > 0}
+  
   >
     <IonIcon slot="icon-only" icon={checkmarkOutline} />
     Enviar fotos

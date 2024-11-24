@@ -54,16 +54,16 @@ setupIonicReact();
 import { AuthProvider } from "./components/Login/loginContext";
 const App: React.FC = () => {
 
-  
+  const empleadoEmail = localStorage.getItem("empleadoEmail");
   return (
     <IonApp>
  
         <OrdenProvider>
         <AuthProvider> 
       <IonReactRouter>
-        <Route exact path="/">
-          <Redirect to="/login" />
-        </Route>
+      <Route exact path="/">
+              {empleadoEmail ? <Redirect to="/rol" /> : <Redirect to="/login" />}
+            </Route>
         <Route path="/login" exact={true}>
           <Login />
         </Route>
