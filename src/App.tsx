@@ -53,7 +53,7 @@ import Fotos from "./components/Fotos/Fotos";
 setupIonicReact();
 import { AuthProvider } from "./components/Login/loginContext";
 const App: React.FC = () => {
-
+ 
   const empleadoEmail = localStorage.getItem("empleadoEmail");
   return (
     <IonApp>

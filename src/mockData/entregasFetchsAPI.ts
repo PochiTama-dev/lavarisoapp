@@ -1,4 +1,4 @@
-export const ordenEntrega = async (idOrden) => {
+export const ordenEntrega = async (idOrden: any) => {
   try {
     const response = await fetch(
       `http://lv-back.online/entregas/orden/${idOrden}`
@@ -19,7 +19,7 @@ export const ordenEntrega = async (idOrden) => {
   }
 };
 
-const obtenerEntrega = async (id) => {
+const obtenerEntrega = async (id: any) => {
   try {
     const response = await fetch(`http://localhost:8000/entregas/orden/${id}`);
     const entrega = await response.json();
@@ -62,16 +62,17 @@ const guardarEntrega = async () => {
   }
 };
 
-const modificarEntrega = async (id) => {
+export const modificarEntrega = async (id: any, idOrden: any) => {
+  
   const entrega = {
-    id_orden: 2,
+    id_orden: idOrden, // Aquí se pasa el ID correcto de la orden
     firma_cliente: "firma cliente",
     firma_empleado: "firma empleado",
     recomienda: 1,
   };
   try {
     const response = await fetch(
-      `http://localhost:8000/entregas/modificar/${id}`,
+      `https://lv-back.online/entregas/modificar/${id}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -92,7 +93,7 @@ const modificarEntrega = async (id) => {
   }
 };
 
-const eliminarEntrega = async (id) => {
+const eliminarEntrega = async (id: any) => {
   try {
     const response = await fetch(
       `http://localhost:8000/entregas/eliminar/${id}`,

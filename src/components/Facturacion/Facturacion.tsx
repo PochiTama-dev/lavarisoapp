@@ -35,8 +35,7 @@ const FacturacionComponent = () => {
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const { ordenActiva} = useOrden();
   const [selectedMedioPago, setSelectedMedioPago] = useState( ordenActiva.Presupuesto.id_medio_de_pago);
-
-  console.log("ORDEN ACTIVA", ordenActiva)
+ 
   const entregaPago = async (idEntrega:any) => {
     try {
       const response = await fetch(`https://lv-back.online/pagos/entrega/${idEntrega}`);
@@ -96,32 +95,6 @@ const FacturacionComponent = () => {
       console.error("Error al guardar el pago.", error);
     }
   };
-  
-  
-  const ordenEntrega = async (entregaId: any) => {
-    try {
-      const response = await fetch(
-        `https://lv-back.online/entregas/orden/${entregaId}`
-      );
-      const entrega = await response.json();
-      if (entrega) {
-        console.log(
-          `Se encontró una entrega asociada a la órden id ${entregaId}`
-        );
-        console.log(entrega);
-        setEntregaId(entrega.id);
-        return entrega;
-      } else {
-        console.log(
-          `No se encontró ninguna entrega asociada a la órden id ${entregaId}`
-        );
-        return false;
-      }
-    } catch (error) {
-      console.error("Error, entrega no encontrada.", error);
-    }
-  };
-
  
 
   const fetchMediosDePago = async () => {
@@ -173,9 +146,9 @@ const FacturacionComponent = () => {
   };
   return (
     <IonContent className="facturacion-container">
-      <IonHeader>
+       <IonHeader>
         <HeaderGeneral />
-      </IonHeader>
+      </IonHeader>  
       <div className="facturacion-box">
         <h2 className="text-center">Condiciones de pago</h2>
         <div className="estado-pago">
@@ -191,9 +164,18 @@ const FacturacionComponent = () => {
           </IonSelect>
         </div>
         <div className="estado-pago-total">
-          <span>Total:</span>
-          <span className="total-amount">${ordenActiva.Presupuesto?.total || 0}</span>
-        </div>
+  <span>Total:</span>
+  <span className="total-amount">${ordenActiva.Presupuesto?.total || 0}</span>
+</div>
+
+{/* Mostrar Comisión Técnico */}
+<div className="estado-pago-total" style={{marginTop:'20px'}}>
+  <span>Comisión a cobrar:</span>
+  <span  className="total-amount">
+    ${ ordenActiva.Presupuesto?.comision_visita }
+  </span>
+</div>
+
         <div className="subtitle-forma-pago">
           <span>Formas de pago</span>
         </div>

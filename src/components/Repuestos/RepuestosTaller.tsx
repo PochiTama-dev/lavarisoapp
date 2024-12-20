@@ -153,7 +153,7 @@ const RepuestosTaller: React.FC = () => {
       <IonItem className="listado-seleccionados">
         <IonLabel className="subtitle-listado-seleccionados">Seleccionado:</IonLabel>
       </IonItem>
-      <IonList>
+      <IonList className="lista-seleccionados-compra">
         {selectedRepuestosTaller.map((repuesto, index) => (
           <IonItem key={index}>
             <IonLabel>{repuesto.nombre}</IonLabel>
@@ -187,14 +187,14 @@ const RepuestosTaller: React.FC = () => {
         <HeaderGeneral />
       </IonHeader>
 
-      {/* Agregar el refresher */}
+      {/*  refresher */}
       <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
         <IonRefresherContent />
       </IonRefresher>
 
       {renderRepuestos()}
 
-      <div className="buttons-comprar-repuestos">
+      <div  >
         <IonButton expand="full" onClick={handleConfirm}>
           Confirmar
         </IonButton>

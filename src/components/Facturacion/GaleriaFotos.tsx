@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { Key, useState } from "react";
 import { IonModal, IonButton, IonContent } from "@ionic/react";
 import "./GaleriaFotos.css";
-
+//@ts-ignore
 const GaleriaFotos = ({ fotos }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -9,7 +9,7 @@ const GaleriaFotos = ({ fotos }) => {
   if (!fotos || fotos.length === 0) {
     return <p>No hay fotos disponibles.</p>;
   }
-
+//@ts-ignore
   const handlePhotoClick = (photo) => {
     const imageToShow = photo.base64 || photo.ruta_imagen || null;
     setSelectedPhoto(imageToShow);
@@ -19,7 +19,8 @@ const GaleriaFotos = ({ fotos }) => {
   return (
     <>
       <div className="galeria-container">
-        {fotos.map((foto, index) => {
+        
+        {fotos.map((foto: { base64: any; ruta_imagen: any; }, index: Key | null | undefined) => {
           const imageSrc = foto.base64 || foto.ruta_imagen;
           if (!imageSrc) return null;
 
@@ -27,6 +28,7 @@ const GaleriaFotos = ({ fotos }) => {
             <div key={index} className="galeria-item">
               <img
                 src={imageSrc}
+                //@ts-ignore
                 alt={`Foto ${index + 1}`}
                 className="galeria-img"
                 onClick={() => handlePhotoClick(foto)}

@@ -5,6 +5,18 @@
   align-items: center;
   color: #283959;
 }
+.button-maps {
+  display: flex;
+ 
+  margin:20px 0 20px -20px;
+ 
+}
+.button-maps button {
+ 
+ 
+  margin:10px auto;
+}
+
 
 .confirmacion-orden-top-box h1 {
  

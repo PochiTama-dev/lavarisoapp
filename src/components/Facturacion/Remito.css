@@ -18,7 +18,8 @@
 .remito-container-content {
   display: flex;
   flex-direction: column;
-  margin-left: 5%;
+ width: 95%;
+ margin: 0 auto;
  
   color: #283959;
 }
@@ -49,13 +50,30 @@
 
 .remito-container-table {
   margin-top: 1%;
+  margin-bottom: 1%;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+  padding: 10px;
+ 
+}
+.remito-container-table h2{
+  margin-bottom:-10px;
+ 
+}
+.remito-container-table h4:not(:last-of-type) {
+  margin-bottom: -15px;
 }
 
 .remito-container-table table {
   width: 80%;
   margin-left: 2%;
-  margin-top: 1%;
+ 
 }
+.remito-container-table h2 {
+ font-size: 20px;
+}
+.remito-container-table h4 {
+  font-size: 18px;
+ }
 
 .remito-container-table th {
   font-weight: 800;
@@ -77,23 +95,33 @@
 }
 
 .remito-button-container {
+ 
+}
+
+.remito-button-container button {
   background-color: #69688c;
   width: 200px;
   height: 30px;
  margin: 0 auto;
   border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
   margin-top: 2%;
+  margin-bottom: 2%;
 }
 
-.remito-button-container button {
-  background-color: #69688c;
-  color: white;
-  border-radius: 20px;
-  border: none;
-  margin-bottom: 50px;
+.remito-head{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-right: 5%;
 }
-
+.remito-head img{
+   width: 150px;
+}
 @media print {
   body {
     margin: 0;

@@ -27,6 +27,7 @@
 .forma-pago-select {
   max-width: 250px; /* Ajusta el ancho máximo del select */
   flex-shrink: 0; /* Asegura que no se reduzca más allá de su contenido */
+  
 }
 
 

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
-import { entregaPago, fetchOrdenes, fetchRepuestosCamioneta, fetchStockPrincipal, fetchTiposFunciones } from "./fetchs"; // Importar los fetchs necesarios
+import { entregaPago, fetchOrdenes, fetchRepuestosCamioneta, fetchStockPrincipal, fetchTiposFunciones, getRepuestosOrdenById } from "./fetchs"; // Importar los fetchs necesarios
 
 interface Repuesto {
   lote: any;
@@ -11,7 +11,17 @@ interface Repuesto {
   StockPrincipal: any;
   id_repuesto: any;
 }
-
+interface RepuestoOrden {
+  id_repuesto_taller: unknown;
+  lote: any;
+  precio: number;
+  id_repuesto_camioneta: any;
+  id: any;
+  nombre: ReactNode;
+  cantidad: number;
+  StockPrincipal: any;
+  id_repuesto: any;
+}
 interface OrdenContextProps {
   ordenes: any[];
   cargarOrdenes: () => void;
@@ -29,10 +39,13 @@ interface OrdenContextProps {
   setRepuestosCamioneta: React.Dispatch<React.SetStateAction<Repuesto[]>>;
   cargarRepuestosTaller: () => void;
   repuestosTaller: Repuesto[];
-  tiposDeFunciones: string[]; // Nuevo estado para tipos de funciones
-  cargarTiposFunciones: () => void; // Nueva función para cargar tipos de funciones
-  pagos: any[]; // Nuevo estado para pagos
-  cargarPagos: (idEntrega: any) => void; // Nueva función para cargar pagos
+  tiposDeFunciones: string[];  
+  cargarTiposFunciones: () => void;  
+  pagos: any[];  
+  cargarPagos: (idEntrega: any) => void;  
+  setRepuestosTaller: React.Dispatch<React.SetStateAction<Repuesto[]>>; 
+  repuestoOrden: RepuestoOrden[];  
+  cargarRepuestosOrden: (id: any) => void; 
 }
 
 const OrdenContext = createContext<OrdenContextProps | undefined>(undefined);
@@ -49,23 +62,37 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
   const [ordenActiva, setOrdenActiva] = useState<any>(null);
   const [repuestosCamioneta, setRepuestosCamioneta] = useState<Repuesto[]>([]);
   const [repuestosTaller, setRepuestosTaller] = useState<Repuesto[]>([]);
-  const [tiposDeFunciones, setTiposDeFunciones] = useState<string[]>([]); // Nuevo estado para tipos de funciones
+  const [tiposDeFunciones, setTiposDeFunciones] = useState<string[]>([]);  
   const [pagos, setPagos] = useState<any[]>([]);
-
+  const [repuestoOrden, setRepuestosOrden] = useState<RepuestoOrden[]>([]);
+  const cargarRepuestosOrden = async (ordenId: any) => {
+    if (!ordenId) {
+      console.error("ID de orden no proporcionado");
+      return; // Evita hacer la llamada si el ID no es válido
+    }
+  
+    try {
+      const repuestos = await getRepuestosOrdenById(ordenId);
+      setRepuestosOrden(repuestos);
+    } catch (error) {
+      console.error("Error al cargar los repuestos de la orden:", error);
+      setRepuestosOrden([]); // Limpia el estado en caso de error
+    }
+  };
   const cargarPagos = async (idEntrega: any) => {
     try {
-      const pagos = await entregaPago(idEntrega); // Llamar al fetch que ya tienes
+      const pagos = await entregaPago(idEntrega);  
       if (pagos) {
-        setPagos(pagos); // Si se encuentran pagos, los almacenamos
+        setPagos(pagos);  
       } else {
-        setPagos([]); // Si no se encuentran, dejamos el estado vacío
+        setPagos([]);  
       }
     } catch (error) {
       console.error("Error al cargar los pagos:", error);
-      setPagos([]); // Si hay un error, dejamos el estado vacío
+      setPagos([]); 
     }
   };
-  // Función para cargar las órdenes
+ 
   const cargarOrdenes = async () => {
     const empleadoId = localStorage.getItem("empleadoId");
     if (!empleadoId) {
@@ -78,19 +105,19 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
       const todasLasOrdenes = await fetchOrdenes();
       if (todasLasOrdenes.length > 0) {
         const ordenesFiltradas = todasLasOrdenes.filter((orden: { Empleado: { id: string }; id_tipo_estado: number }) =>
-          orden.Empleado.id == empleadoId && orden.id_tipo_estado === 1
+          orden.Empleado?.id == empleadoId && orden.id_tipo_estado === 1
         );
         setOrdenes(ordenesFiltradas);
   
-        // Si hay una orden activa en el localStorage, verificar si sigue siendo válida
+ 
         const ordenActivaGuardada = localStorage.getItem("ordenActiva");
         if (ordenActivaGuardada) {
           const ordenActivaParsed = JSON.parse(ordenActivaGuardada);
           const ordenValida = ordenesFiltradas.find((orden: { id: any; }) => orden.id === ordenActivaParsed.id);
           if (ordenValida) {
-            setOrdenActiva(ordenValida); // Si la orden activa sigue existiendo, actualizarla
+            setOrdenActiva(ordenValida);  
           } else {
-            setOrdenActiva(null); // Si no existe, resetear
+            setOrdenActiva(null);  
             localStorage.removeItem("ordenActiva");
           }
         }
@@ -121,19 +148,16 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
 
   // Función para cargar los repuestos del taller
   const cargarRepuestosTaller = async () => {
-    const empleadoId = localStorage.getItem("empleadoId");
-    if (!empleadoId) {
-      console.error("No se encontró el ID del empleado en el localStorage");
-      return;
-    }
+ 
     try {
-      const repuestos = await fetchStockPrincipal(empleadoId);
+      const repuestos = await fetchStockPrincipal();
+      console.log("Repuestos de taller:", repuestos); // Log para verificar la respuesta
       setRepuestosTaller(repuestos);
     } catch (error) {
       console.error("Error al cargar los repuestos de taller:", error);
     }
   };
-
+ 
   // Nueva función para cargar los tipos de funciones
   const cargarTiposFunciones = async () => {
     try {
@@ -145,13 +169,7 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
   };
 
   // Cargar datos al montar el componente
-  useEffect(() => {
-    cargarOrdenes();
-    cargarRepuestosCamioneta();
-    cargarRepuestosTaller();
-    cargarTiposFunciones(); // Cargar los tipos de funciones al montar el componente
-  }, []);
-
+ 
   // Manejo de orden activa en el localStorage
   useEffect(() => {
     const ordenActivaGuardada = localStorage.getItem("ordenActiva");
@@ -177,34 +195,43 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
       localStorage.setItem("ordenActiva", JSON.stringify(orden));
     }
   };
+  useEffect(() => {
+    cargarOrdenes();
+    cargarRepuestosCamioneta();
+    cargarRepuestosTaller();
+    cargarTiposFunciones() 
+  }, []);
 
   return (
-    <OrdenContext.Provider
-      value={{
-        ordenes,
-        cargarOrdenes,
-        ordenSeleccionada,
-        setOrdenSeleccionada,
-        selectedRepuestos,
-        setSelectedRepuestos,
-        selectedRepuestosTaller,
-        setSelectedRepuestosTaller,
-        ordenActiva,
-        setOrdenActiva,
-        toggleOrdenActiva,
-        cargarRepuestosCamioneta,
-        repuestosCamioneta,
-        cargarRepuestosTaller,
-        repuestosTaller,
-        setRepuestosCamioneta,
-        tiposDeFunciones, 
-        cargarTiposFunciones,
-        pagos, // Estado de pagos
-        cargarPagos, // Nueva función para cargar pagos
-      }}
-    >
-      {children}
-    </OrdenContext.Provider>
+<OrdenContext.Provider
+  value={{
+    ordenes,
+    cargarOrdenes,
+    ordenSeleccionada,
+    setOrdenSeleccionada,
+    selectedRepuestos,
+    setSelectedRepuestos,
+    selectedRepuestosTaller,
+    setSelectedRepuestosTaller,
+    ordenActiva,
+    setOrdenActiva,
+    toggleOrdenActiva,
+    cargarRepuestosCamioneta,
+    repuestosCamioneta,
+    cargarRepuestosTaller,
+    repuestosTaller,
+    setRepuestosCamioneta,
+    tiposDeFunciones,
+    cargarTiposFunciones,
+    pagos,
+    cargarPagos,
+    setRepuestosTaller,
+    repuestoOrden,  
+    cargarRepuestosOrden,  
+  }}
+>
+  {children}
+</OrdenContext.Provider>
   );
 };
 

@@ -20,7 +20,7 @@ function ConfirmacionOrdenComponent() {
   const history = useHistory();
   const location = useLocation();
   const { orden } = location.state as { orden: any };
- 
+ //@ts-ignore
   const { cargarOrdenes, selectedRepuestos, ordenActiva, setOrdenActiva ,  } = useOrden();
 console.log(ordenActiva)
 
@@ -128,7 +128,7 @@ useEffect(() => {
             {orden && orden.Presupuesto && orden.id_tipo_estado === 1 && (orden.Presupuesto.id_estado_presupuesto === 5 || orden.Presupuesto.id_estado_presupuesto === 4) ? (
               <>
                 <IonButton onClick={() => handleButtonClick('/entrega', orden)}>Entrega</IonButton>
-                <IonButton onClick={() => handleButtonClick('/facturacion', orden)}>Facturación</IonButton>
+                {/* <IonButton onClick={() => handleButtonClick('/facturacion', orden)}>Facturación</IonButton> */}
               </>
             ) : (
               <>
