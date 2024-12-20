@@ -39,7 +39,7 @@ const Fotos = () => {
   const location = useLocation<LocationState>();
   const isEntrega = location.state?.isEntrega ?? false;
   const isFactura = location.state?.isFactura ?? false;
-console.log("IS FACTURA", isFactura)
+ 
   const fetchFotosFromOrder = async () => {
     try {
       const fotosOrden = await getFotosNumeroOrden(ordenActiva.id);
@@ -99,7 +99,7 @@ console.log("IS FACTURA", isFactura)
       const compressedBase64 = await compressImage(base64Data);
   
       const newPhoto = {
-        id: `${Date.now()}`,
+        id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         base64: `data:image/jpeg;base64,${compressedBase64}`,
       };
   
@@ -111,11 +111,12 @@ console.log("IS FACTURA", isFactura)
         setPhotosDiagnostico((prevPhotos) => [newPhoto, ...prevPhotos]);
       }
   
-      await handleSendPhotos();
+      // No llamar a handleSendPhotos aquí, solo actualizamos el estado
     } catch (error) {
       console.error("Error tomando la foto:", error);
     }
   };
+  
   
   const compressImage = async (base64Data: string): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -281,25 +282,25 @@ console.log("IS FACTURA", isFactura)
       </div>
 
       <IonGrid>
-        <IonRow>
-          {currentPhotos.map((photo) => (
-            <IonCol size="6" key={photo.id}>
-              <img
-                src={photo.base64 || photo.ruta_imagen}
-                alt={`Foto ${photo.id}`}
-                onClick={() => {
-                  setSelectedPhoto(photo.base64 || photo.ruta_imagen || null);
-                  setShowModal(true);
-                }}
-                style={{ cursor: "pointer", width: "100%", height: "auto" }}
-              />
-              <IonButton onClick={() => handleDeletePhoto(photo.id)} fill="clear">
-                <IonIcon icon={trash} />
-              </IonButton>
-            </IonCol>
-          ))}
-        </IonRow>
-      </IonGrid>
+  <IonRow>
+    {currentPhotos.map((photo, index) => (
+      <IonCol size="6" key={`${photo.id}-${index}`}> 
+        <img
+          src={photo.base64 || photo.ruta_imagen}
+          alt={`Foto ${photo.id}`}
+          onClick={() => {
+            setSelectedPhoto(photo.base64 || photo.ruta_imagen || null);
+            setShowModal(true);
+          }}
+          style={{ cursor: "pointer", width: "100%", height: "auto" }}
+        />
+        <IonButton onClick={() => handleDeletePhoto(photo.id)} fill="clear">
+          <IonIcon icon={trash} />
+        </IonButton>
+      </IonCol>
+    ))}
+  </IonRow>
+</IonGrid>
 
       {currentPhotos.length < (isFactura ? 1 : maxPhotos) && (
         <IonButton onClick={takePhoto} fill="clear" disabled={remainingPhotos <= 0}>

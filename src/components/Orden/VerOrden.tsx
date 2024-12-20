@@ -21,6 +21,27 @@ function ConfirmacionOrdenComponent() {
   const orden = location.state?.orden;
   const { ordenActiva, pagos, cargarPagos } = useOrden();
   const [tecnico, setTecnico] = useState(Object);
+  const [isPagoCompleted, setIsPagoCompleted] = useState(false); // Nuevo estado para pagos
+  const entregaPago = async () => {
+    const idEntrega = ordenActiva?.Entrega.id;  
+    try {
+      const response = await fetch(`https://lv-back.online/pagos/entrega/${idEntrega}`);
+      const pagos = await response.json();
+      if (pagos[0] !== undefined) {
+        console.log(`Se encontraron medios de pago asociados a la entrega id ${idEntrega}`);
+        setIsPagoCompleted(true); // Si se encuentran pagos, se marca como completado
+        return pagos;
+      } else {
+        console.log(`No se encontró ningún medio de pago con la entrega id ${idEntrega}`);
+        setIsPagoCompleted(false); // Si no hay pagos, se marca como no completado
+        return false;
+      }
+    } catch (error) {
+      console.error("Error, medio de pago no encontrado.", error);
+      setIsPagoCompleted(false);
+      return false;
+    }
+  };
 
   useEffect(() => {
     const initialize = async () => {
@@ -50,14 +71,16 @@ function ConfirmacionOrdenComponent() {
           setIsFacturado(false);
         }
       }
+      await entregaPago(); // Llamamos a la función para verificar los pagos
       const userId = localStorage.getItem('empleadoId');
       const user = await obtenerEmpleado(userId);
       setTecnico(user);
     };
-    initialize();
+    initialize()
     fetchData();
   }, [ordenActiva, pagos]);
-  const obtenerEmpleado = async (id) => {
+  
+  const obtenerEmpleado = async (id: string | null) => {
     try {
       const response = await fetch(`https://lv-back.online/empleados/${id}`);
       const empleado = await response.json();
@@ -84,32 +107,42 @@ function ConfirmacionOrdenComponent() {
   const renderButtons = () => {
     if (!ordenActiva) return null;
 
-    const { id_tipo_estado, Presupuesto } = ordenActiva || {}; // Usamos un fallback vacío en caso de que `ordenActiva` sea null o undefined
-    const isDiagnosticoCompleted = ordenActiva?.diagnostico; // Opcional, si no existe `diagnostico` será undefinednpm
-    const isPresupuestoCompleted = ordenActiva?.Presupuesto; // Opcional, si no existe `Presupuesto` será undefined
-    const isEntregaCompleted = ordenActiva?.Entrega; // Opcional, si no existe `Entrega` será undefined
-    const isFacturado = ordenActiva?.Entrega?.id; // Opcional, si no existe `Entrega` o `id`, será undefined
-
+ 
+    const isDiagnosticoCompleted = ordenActiva?.diagnostico;
+    const isPresupuestoCompleted = ordenActiva?.Presupuesto;
+    const isEntregaCompleted = ordenActiva?.Entrega;
+    
+    const isLiquidaciónCompleted = async () => {
+      const pagos = await entregaPago(); // Llamar a la función asincrónica
+      return pagos !== false; // Si la respuesta no es false, entonces la liquidación está completada
+    };
+    
     return (
       <>
         <IonButton onClick={() => handleButtonClick('/diagnostico', orden)}>
           Diagnóstico
-          {isDiagnosticoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color='success' />}
+          {isDiagnosticoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
         </IonButton>
-
+    
         <IonButton onClick={() => handleButtonClick('/presupuesto', orden)}>
           Presupuestar
-          {isPresupuestoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color='success' />}
+          {isPresupuestoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
         </IonButton>
-
+    
         <IonButton onClick={() => handleButtonClick('/entrega', orden)}>
           Entrega
-          {isEntregaCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color='success' />}
+          {isEntregaCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
         </IonButton>
-
-        <IonButton onClick={() => handleButtonClick('/facturacion', orden)}>Facturación</IonButton>
+    
+        {/* Mostrar botón de "Ver Remito" si isEntregaCompleted es true */}
+        {isPresupuestoCompleted && (
+          <IonButton onClick={() => handleButtonClick('/remito', orden)}>
+            Ver Remito
+          </IonButton>
+        )}
       </>
     );
+    
   };
 
   const copiarDireccion = () => {
@@ -119,7 +152,7 @@ function ConfirmacionOrdenComponent() {
         .writeText(direccion)
         .then(() => {
           setDireccionCopiada(true);
-          setTimeout(() => setDireccionCopiada(false), 2000); // Reset mensaje 2 segundos
+          setTimeout(() => setDireccionCopiada(false), 2000);  
         })
         .catch((err) => {
           console.error('Error al copiar la dirección: ', err);
@@ -127,7 +160,7 @@ function ConfirmacionOrdenComponent() {
     }
   };
 
-  const handleGoogle = (ruta) => {
+  const handleGoogle = (ruta: { latitud: any; longitud: any; }) => {
     if (!ruta || !ruta.latitud || !ruta.longitud) {
       console.error('Coordenadas inválidas:', ruta);
       return;
@@ -135,12 +168,9 @@ function ConfirmacionOrdenComponent() {
 
     const baseUrl = 'https://www.google.com/maps/dir/';
     const destino = `${ruta.latitud},${ruta.longitud}`;
-    const origen = `${tecnico.latitud},${tecnico.longitud}`; // Coordenadas del punto fijo
-    const urlParams = `data=!3m1!4b1!4m9!4m8!1m5!1m1!1s0x94329ee2d822e6fd:0x9fb1e5d8ebbcf5a8!2m2!1d${encodeURIComponent(tecnico.longitud)}!2d${encodeURIComponent(
-      tecnico.latitud
-    )}!1m1!4e1?entry=ttu&g_ep=EgoyMDI0MTExOC4wIKXMDSoASAFQAw%3D%3D`;
+    const origen = `${tecnico.latitud},${tecnico.longitud}`; 
 
-    const fullUrl = `${baseUrl}${origen}/${destino}/${urlParams}`;
+    const fullUrl = `${baseUrl}${""}/${destino}/${""}`;
     window.open(fullUrl, '_blank');
   };
   return (
@@ -175,11 +205,14 @@ function ConfirmacionOrdenComponent() {
                     <IonIcon icon={copyOutline} slot='start' />
                   </button>
                   {direccionCopiada && <span style={{ color: 'green', marginLeft: '10px' }}>Dirección copiada!</span>}
-                  <button onClick={() => handleGoogle(ordenActiva.Cliente)}>
-                    ver ruta
-                    <IonIcon icon={mapOutline} />
-                  </button>
                 </h4>
+                <div  className='button-maps'>
+
+                  <button style={{fontSize:'18px'}} onClick={() => handleGoogle(ordenActiva.Cliente)} >
+                   <img style={{width:'26px',   margin:'-10px 5px -5px 0px'}} src="./assets/maps.png" alt="" />
+                    Abrir en Maps
+                  </button>
+                </div>
               </div>
               {!loading && <Map position={position} zoom={13} />}
               {renderButtons()}

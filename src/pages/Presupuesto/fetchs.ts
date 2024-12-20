@@ -178,7 +178,26 @@ export const fetchPlazosReparacion = async () => {
       throw error;
     }
   };
+  export const updateRepuestoOrden = async (id_orden: any, { cantidad }: { cantidad: any; }) => {
+    const API_URL = `https://lv-back.online/orden/repuestos/${id_orden}`; // Usar id_orden para el PUT
   
+    try {
+      const response = await fetch(API_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cantidad }), // Solo actualizar la cantidad
+      });
+  
+      if (!response.ok) throw new Error('Error al actualizar el repuesto de la orden');
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error en updateRepuestoOrden:', error);
+      throw error;
+    }
+  };
   
   export const getRepuestosOrdenById = async (id: any) => {
     const API_URL = 'https://lv-back.online/orden/repuestos';
@@ -207,5 +226,51 @@ export const fetchPlazosReparacion = async () => {
       }),
     });
     return response;
+  };
+  
+  export const guardarRepuestoOrden = async (ordenId: number, repuestos: { id_repuesto: number }[]) => {
+    try {
+      const payload = repuestos.map((repuesto) => ({
+        id_orden: ordenId,
+        id_repuesto: repuesto.id_repuesto, // Solo enviar estos dos campos
+      }));
+  
+      const response = await fetch("https://lv-back.online/ordenes/repuestos/guardar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload), // Envía un array con los objetos simplificados
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        console.log("Repuestos guardados exitosamente:", result);
+        return true;
+      } else {
+        console.error("Error al guardar los repuestos:", result);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error al guardar los repuestos:", error);
+      return false;
+    }
+  };
+  
+  export const modificarStockPrincipal = async (id: number, repuesto: { cantidad: number; }) => {
+    try {
+      const response = await fetch(`https://lv-back.online/stock/principal/modificar/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(repuesto)
+      });
+      const result = await response.json();
+      if (result[0] === 1) {
+        console.log("Stock principal modificado con éxito!!!");
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error al modificar el stock principal.", error);
+      throw error;
+    }
   };
   

@@ -14,9 +14,9 @@ export const fetchOrdenes = async () => {
      return [];
     }
    };
+ 
 
-
-   export const fetchStockPrincipal = async (idEmpleado: string) => {
+   export const fetchStockPrincipal = async () => {
     let url = "";
    
  
@@ -77,3 +77,14 @@ export const fetchOrdenes = async () => {
     }
   };
   
+  export const getRepuestosOrdenById = async (id: any) => {
+    const API_URL = 'https://lv-back.online/orden/repuestos';
+    try {
+      const response = await fetch(`${API_URL}/${id}`);
+      if (!response.ok) throw new Error('Error al obtener los repuestos de la orden');
+      return await response.json();
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };

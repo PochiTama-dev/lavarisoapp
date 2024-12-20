@@ -5,6 +5,7 @@ import SignatureCanvas from "react-signature-canvas";
 import HeaderGeneral from "../../components/Header/HeaderGeneral";
 import { useOrden } from "../../Provider/Provider";
 import { useHistory } from "react-router-dom";
+
 import {
  fetchPlazosReparacion,
  estadosPresupuestos,
@@ -18,6 +19,9 @@ import {
  Repuesto,
  MedioDePago,
  FormaPago,
+ guardarRepuestoOrden,
+ updateRepuestoOrden,
+ modificarStockPrincipal,
 } from "./fetchs";
 import { modificarStockCamioneta } from "../../components/Repuestos/FetchsRepuestos";
 const Presupuesto: React.FC = () => {
@@ -56,9 +60,22 @@ const Presupuesto: React.FC = () => {
  });
  const [dpg, setDpg] = useState("");
  const [descuento, setDescuento] = useState("");
- const { cargarOrdenes, selectedRepuestos, ordenActiva, setOrdenActiva, repuestosCamioneta } = useOrden();
+ const {
+  cargarOrdenes,
+  selectedRepuestos,
+  ordenActiva,
+  setOrdenActiva,
+  repuestosCamioneta,
+  selectedRepuestosTaller,
+  repuestoOrden,
+  cargarRepuestosOrden,
+  repuestosTaller,
+  setSelectedRepuestosTaller,
+  setSelectedRepuestos,
+ } = useOrden();
 
- const servicios = ["Viaticos", "DPG", "Descuentos", "Comisión visita", "Comisión reparación", "Comisión entrega", "Comisión rep. a domicilio", "Gasto impositivo"] as const;
+ const servicios = ["Viaticos", "DPG", "Descuentos", "Precio"] as const;
+ //  const servicios = ["Viaticos", "DPG", "Descuentos", "Comisión visita", "Comisión reparación", "Comisión entrega", "Comisión rep. a domicilio", "Gasto impositivo"] as const;
 
  type Servicio = (typeof servicios)[number];
 
@@ -66,16 +83,18 @@ const Presupuesto: React.FC = () => {
   Viaticos: "viaticos",
   DPG: "dpg",
   Descuentos: "descuento",
-  "Comisión visita": "comision_visita",
-  "Comisión reparación": "comision_reparacion",
-  "Comisión entrega": "comision_entrega",
-  "Comisión rep. a domicilio": "comision_reparacion_domicilio",
-  "Gasto impositivo": "gasto_impositivo",
+  Precio: "gasto_impositivo",
  };
+
+ useEffect(() => {
+  if (ordenActiva && ordenActiva.id) {
+   cargarRepuestosOrden(ordenActiva.id);
+  }
+ }, [ordenActiva]);
 
  const handleMontoChange = (index: number, value: any) => {
   const newMontos = [...montos];
-  newMontos[index] = Number(value);
+  newMontos[index] =  value;
   setMontos(newMontos);
  };
 
@@ -121,63 +140,112 @@ const Presupuesto: React.FC = () => {
   }
  }, [ordenActiva]);
 
- 
+ ///////////TOTAL
 
- /////////// TOTAL
+ let totalRepuestos = 0;
 
- const descuentosIndex = servicios.indexOf("Descuentos");
- const dpgIndex = servicios.indexOf("DPG");
+// Suma repuestos de la camioneta
+if (Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0) {
+  totalRepuestos += selectedRepuestos.reduce((acc, repuesto) => {
+    const precio = repuesto.StockPrincipal?.precio || repuesto.precio;
+    return acc + precio * repuesto.cantidad;
+  }, 0);
+}
 
- const totalMontosSinDescuentoYDPG = montos.filter((_, index) => index !== descuentosIndex && index !== dpgIndex).reduce((a, b) => a + parseFloat(b || 0), 0);
+// Sumar repuestos del taller
+if (Array.isArray(selectedRepuestosTaller) && selectedRepuestosTaller.length > 0) {
+  totalRepuestos += selectedRepuestosTaller.reduce((acc, repuesto) => {
+    const precio = repuesto.StockPrincipal?.precio || repuesto.precio;
+    return acc + precio * repuesto.cantidad;
+  }, 0);
+}
 
- const descuentoPorcentaje = descuentosIndex !== -1 ? parseFloat(montos[descuentosIndex]) : 0;
- const montoDescuento = totalMontosSinDescuentoYDPG * (descuentoPorcentaje / 100);
+// Calculo montos sin descuento ni DPG
+const descuentosIndex = servicios.indexOf("Descuentos");
+const dpgIndex = servicios.indexOf("DPG");
+const totalMontosSinDescuentoYDPG = montos.filter((_, index) => index !== descuentosIndex && index !== dpgIndex)
+  .reduce((a, b) => a + parseFloat(b || 0), 0);
 
- let total = totalMontosSinDescuentoYDPG - montoDescuento;
+// Calcular descuento
+const descuentoPorcentaje = descuentosIndex !== -1 ? parseFloat(montos[descuentosIndex]) : 0;
+const montoDescuento = totalMontosSinDescuentoYDPG * (descuentoPorcentaje / 100);
 
- if (selectedMedioPago) {
+// Calcular el total antes de aplicar descuentos, DPG y otros
+let total = totalMontosSinDescuentoYDPG + totalRepuestos - montoDescuento;
+
+// Verificar medio de pago y aplicar el ajuste correspondiente
+if (selectedMedioPago) {
   const medio = medioPago.find((mp) => mp.id === selectedMedioPago)?.medio_de_pago.toLowerCase();
-
   if (medio) {
-   if (medio === "efectivo en dólares" || medio === "efectivo en pesos" || medio === "mercadopago" || medio === "transferencia en dólares" || medio === "transferencia en pesos") {
-    total *= 0.95;
-   } else if (medio === "tarjeta de crédito") {
-    total *= 1.21;
-   }
+    if (medio === "efectivo en dólares" || medio === "efectivo en pesos" || medio === "mercadopago" || medio === "transferencia en dólares" || medio === "transferencia en pesos") {
+      total *= 0.95; // Descuento para estos métodos de pago
+    } else if (medio === "tarjeta de crédito") {
+      total *= 1.21; // Aumento por pago con tarjeta
+    }
   }
- }
+}
 
- const dpgMonto = dpgIndex !== -1 ? parseFloat(montos[dpgIndex] || 0) : 0;
- total += dpgMonto;
+// Calcular DPG
+const dpgMonto = dpgIndex !== -1 ? parseFloat(montos[dpgIndex] || 0) : 0;
+total += dpgMonto;
 
- const comisionCobrar = (total - dpgMonto) / 2;
+// Total repuestos Taller
+let totalRepuestosTaller = 0;
 
- total = parseFloat(total.toFixed(2));
- const comisionCobrarRedondeado = parseFloat(comisionCobrar.toFixed(2));
+// Sumar los repuestos seleccionados del taller
+if (Array.isArray(selectedRepuestosTaller) && selectedRepuestosTaller.length > 0) {
+  totalRepuestosTaller += selectedRepuestosTaller.reduce((acc, repuesto) => {
+    const precio = repuesto.StockPrincipal?.precio || repuesto.precio;
+    return acc + precio * repuesto.cantidad;
+  }, 0);
+}
 
- /////////////////////////
+// Incluir los repuestos de repuestoOrden que tengan `id_repuesto_repuesto_taller`
+if (Array.isArray(repuestoOrden) && repuestoOrden.length > 0) {
+  totalRepuestosTaller += repuestoOrden
+    .filter((repuesto) => repuesto.id_repuesto_taller) // Filtrar los que tienen id_repuesto_repuesto_taller definido
+    .reduce((acc, repuesto) => {
+      const precio = repuesto.StockPrincipal?.precio || repuesto.precio;
+      return acc + precio * repuesto.cantidad;
+    }, 0);
+}
+total += totalRepuestosTaller;
+
+// Calcular la comisión a cobrar
+const totalParaComision = total - dpgMonto - totalRepuestos;
+const comisionCobrar = totalParaComision / 2 + dpgMonto;
+const comisionCobrarRedondeado = Math.round(totalParaComision / 2 + dpgMonto);
+ 
+ // Mostrar el total y la comisión
+ // console.log("Total con repuestos, descuento, y medio de pago:", total);
+ // console.log("Comisión a cobrar:", comisionCobrarRedondeado);
+ // console.log("SELECTED",selectedRepuestos)
+ // console.log("TOTAL REP", totalRepuestos)
+ // console.log("TOTAL REP TALLER", totalRepuestosTaller)
 
  // AGREGAR RESPUESTOS DE CAMIONETA
  const agregarRepuestos = async () => {
   try {
-   await Promise.all(
-    selectedRepuestos.map(async (repuesto) => {
-     const repuestoOrdenData = {
-      id_orden: ordenActiva.id,
-      id_repuesto_taller: null,
-      id_repuesto_camioneta: repuesto.id_repuesto,
-      nombre: repuesto.StockPrincipal.nombre,
-      cantidad: repuesto.cantidad,
-     };
+   const repuestosData = [
+    ...selectedRepuestos.map((repuesto) => ({
+     id_orden: ordenActiva.id,
+     id_repuesto_taller: null,
+     id_repuesto_camioneta: repuesto.id,
+     nombre: repuesto.StockPrincipal?.nombre || repuesto.nombre,
+     cantidad: repuesto.cantidad,
+     precio: repuesto.precio,
+    })),
+    ...selectedRepuestosTaller.map((repuesto) => ({
+     id_orden: ordenActiva.id,
+     id_repuesto_taller: repuesto.id_repuesto,
+     id_repuesto_camioneta: null,
+     nombre: repuesto.StockPrincipal?.nombre || repuesto.nombre,
+     cantidad: repuesto.cantidad,
+     precio: repuesto.StockPrincipal?.precio || repuesto.precio,
+    })),
+   ];
 
-     console.log("Datos a enviar a createRepuestoOrden:", repuestoOrdenData);
-
-     await createRepuestoOrden(repuestoOrdenData);
-
-     console.log("Repuesto agregado:", repuestoOrdenData);
-    })
-   );
-
+   await Promise.all(repuestosData.map(createRepuestoOrden));
    console.log("Todos los repuestos se han agregado correctamente.");
   } catch (error) {
    console.error("Error al agregar repuestos:", error);
@@ -185,50 +253,47 @@ const Presupuesto: React.FC = () => {
  };
 
  useEffect(() => {
-  const loadData = async () => {
-   setPlazos(await fetchPlazosReparacion());
-   setEstados(await estadosPresupuestos());
-   setRepuestos(await listaRepuestos());
-   setMedioPago(await mediosDePago());
-  };
+  (async () => {
+   const [plazosData, estadosData, repuestosData, medioPagoData] = await Promise.all([fetchPlazosReparacion(), estadosPresupuestos(), listaRepuestos(), mediosDePago()]);
 
-  loadData();
+   setPlazos(plazosData);
+   setEstados(estadosData);
+   setRepuestos(repuestosData);
+   setMedioPago(medioPagoData);
+  })();
  }, []);
 
  useEffect(() => {
-  if (ordenActiva) {
-   setFormaPago(ordenActiva.Presupuesto?.formaPago || null);
-   setEstado(ordenActiva.Presupuesto?.estado || "");
-   setDpg(ordenActiva.Presupuesto?.dpg || "");
-   setDescuento(ordenActiva.Presupuesto?.descuento || "");
-   setSelectedList(ordenActiva.Presupuesto?.selectedList || []);
-   setAcceptedPolicies(ordenActiva.Presupuesto?.acceptedPolicies || true);
-   setPlazosCheckboxValues([ordenActiva.Presupuesto?.id_plazo_reparacion] || []);
-   setSelectedMedioPago(ordenActiva.Presupuesto?.id_medio_de_pago || null);
-   setSelectedEstadoPresupuesto(ordenActiva.Presupuesto?.id_estado_presupuesto || null);
+  if (!ordenActiva) return;
 
-   setMontos([
-    ordenActiva.Presupuesto?.viaticos || 0,
-    ordenActiva.Presupuesto?.descuentos_referidos || 0,
-    ordenActiva.Presupuesto?.comision_visita || 0,
-    ordenActiva.Presupuesto?.comision_reparacion || 0,
-    ordenActiva.Presupuesto?.comision_entrega || 0,
-    ordenActiva.Presupuesto?.comision_reparacion_domicilio || 0,
-    ordenActiva.Presupuesto?.gasto_impositivo || 0,
-    ordenActiva.Presupuesto?.dpg || 0,
-    ordenActiva.Presupuesto?.descuento || 0,
-   ]);
+  const { Presupuesto } = ordenActiva || {};
+  const firmaClienteDataURL = Presupuesto?.firma_cliente || "";
+  const firmaEmpleadoDataURL = Presupuesto?.firma_empleado || "";
 
-   const firmaClienteDataURL = ordenActiva.Presupuesto?.firma_cliente;
-   const firmaEmpleadoDataURL = ordenActiva.Presupuesto?.firma_empleado;
+  setFormaPago(Presupuesto?.formaPago || null);
+  setEstado(Presupuesto?.estado || "");
+  setDpg(Presupuesto?.dpg || "");
+  setDescuento(Presupuesto?.descuento || "");
+  setSelectedList(Presupuesto?.selectedList || []);
+  setAcceptedPolicies(Presupuesto?.acceptedPolicies ?? true);
+  setPlazosCheckboxValues([Presupuesto?.id_plazo_reparacion] || []);
+  setSelectedMedioPago(Presupuesto?.id_medio_de_pago || null);
+  setSelectedEstadoPresupuesto(Presupuesto?.id_estado_presupuesto || null);
 
-   if (sigCanvas1.current) {
-    sigCanvas1.current.fromDataURL(firmaClienteDataURL);
-   }
-   if (sigCanvas2.current) {
-    sigCanvas2.current.fromDataURL(firmaEmpleadoDataURL);
-   }
-  }
+  setMontos([
+   Presupuesto?.viaticos || 0,
+   Presupuesto?.dpg || 0,
+   Presupuesto?.descuento || 0,
+
+   // Presupuesto?.comision_visita || 0,
+   // Presupuesto?.comision_reparacion || 0,
+   // Presupuesto?.comision_entrega || 0,
+   // Presupuesto?.comision_reparacion_domicilio || 0,
+    Presupuesto?.gasto_impositivo || 0,
+  ]);
+
+  sigCanvas1.current?.fromDataURL(firmaClienteDataURL);
+  sigCanvas2.current?.fromDataURL(firmaEmpleadoDataURL);
  }, [ordenActiva]);
 
  const handleMedioPagoChange = (event: CustomEvent) => {
@@ -239,107 +304,102 @@ const Presupuesto: React.FC = () => {
   setSelectedEstadoPresupuesto(event.detail.value);
  };
 
- const validarCampos = () => {
-  const newInputErrors = { ...inputErrors };
-  let isValid = true;
-
-  if (montos.every((monto) => monto <= 0)) {
-   newInputErrors.montos = true;
-   isValid = false;
-  } else {
-   newInputErrors.montos = false;
-  }
-
-  if (selectedMedioPago === null) {
-   newInputErrors.medioPago = true;
-   isValid = false;
-  } else {
-   newInputErrors.medioPago = false;
-  }
-
-  if (selectedEstadoPresupuesto === null) {
-   newInputErrors.estadoPresupuesto = true;
-   isValid = false;
-  } else {
-   newInputErrors.estadoPresupuesto = false;
-  }
-
-  if (!acceptedPolicies) {
-   newInputErrors.acceptedPolicies = true;
-   isValid = false;
-  } else {
-   newInputErrors.acceptedPolicies = false;
-  }
-
-  if (plazosCheckboxValues.length === 0) {
-   newInputErrors.plazos = true;
-   isValid = false;
-  } else {
-   newInputErrors.plazos = false;
-  }
-
-  setInputErrors(newInputErrors);
-  return isValid;
- };
-
  const handleConfirmarClick = async () => {
-  if (!validarCampos()) {
-   setShowAlert(true);
-   return;
-  }
-  setShowConfirmAlert(true);
- };
-
- const toggleOrdenActiva = (orden: any) => {
-  setOrdenActiva(orden);
-  localStorage.setItem("ordenActiva", JSON.stringify(orden));
-  localStorage.removeItem("diagnosticoData");
-  localStorage.removeItem("presupuestoData");
- };
-
- const handleConfirm = async () => {
-  setShowConfirmAlert(false);
-
-  let presupuestoId = ordenActiva ? ordenActiva.Presupuesto?.id : null;
-
-  const serviciosMontos: Record<string, number> = {};
-  montos.forEach((monto, index) => {
-   const servicio = servicios[index];
-   const dbField = servicioToDBFieldMap[servicio];
-   if (dbField) {
-    serviciosMontos[dbField] = monto;
-   }
-  });
-
-  const firma_cliente = sigCanvas1.current?.toDataURL();
-  const firma_empleado = sigCanvas2.current?.toDataURL();
-  const id_plazo_reparacion = plazosCheckboxValues.length > 0 ? plazosCheckboxValues[1] : 0;
-
-  const dataToSend = {
-   id_orden: ordenActiva.id,
-   id_plazo_reparacion,
-   id_medio_de_pago: selectedMedioPago,
-   id_estado_presupuesto: selectedEstadoPresupuesto,
-   firma_cliente,
-   firma_empleado,
-   selectedList,
-   acceptedPolicies,
-   dpg,
-   descuento,
-   ...serviciosMontos,
-   total,
-  };
-
   try {
+   // Validaciones
+   if (!selectedMedioPago) {
+    alert("Por favor, seleccione un medio de pago.");
+    return;
+   }
+
+   if (!selectedEstadoPresupuesto) {
+    alert("Por favor, seleccione un estado para el presupuesto.");
+    return;
+   }
+
+   if (!acceptedPolicies) {
+    alert("Debe aceptar las políticas antes de continuar.");
+    return;
+   }
+
+   if (plazosCheckboxValues.length === 0) {
+    alert("Por favor, seleccione al menos un plazo para la reparación.");
+    return;
+   }
+
+   // Confirmación del alert
+   setShowConfirmAlert(false);
+   localStorage.setItem("comisionTecnico", comisionCobrarRedondeado.toString());
+
+   let presupuestoId = ordenActiva?.Presupuesto?.id || null;
+
+   const firma_cliente = sigCanvas1.current?.toDataURL();
+   const firma_empleado = sigCanvas2.current?.toDataURL();
+
+   const serviciosMontos: Record<string, number> = {};
+   montos.forEach((monto, index) => {
+    const servicio = servicios[index];
+    const dbField = servicioToDBFieldMap[servicio];
+    if (dbField) {
+     serviciosMontos[dbField] = monto;
+    }
+   });
+
+   const id_plazo_reparacion = plazosCheckboxValues.length > 0 ? plazosCheckboxValues[1] : 0;
+
+   const dataToSend = {
+    id_orden: ordenActiva?.id,
+    id_plazo_reparacion,
+    id_medio_de_pago: selectedMedioPago,
+    id_estado_presupuesto: selectedEstadoPresupuesto,
+    firma_cliente,
+    firma_empleado,
+    selectedList,
+    acceptedPolicies,
+    comision_visita: comisionCobrarRedondeado,
+    ...serviciosMontos,
+    total,
+   };
+console.log("DATA TO SEND",dataToSend)
    let response;
 
    if (presupuestoId) {
+    // Manejo de repuestos de camioneta
     for (const repuesto of selectedRepuestos) {
-     const repuestoOriginal = repuestosCamioneta.find((item) => item.id_repuesto === repuesto.id_repuesto);
+     const repuestoOriginal = repuestosCamioneta.find((item) => item.id === repuesto.id);
+
      if (repuestoOriginal) {
+      console.log("Actualizando repuesto camioneta", repuestoOriginal);
       await updateRepuestoCantidad(repuestoOriginal.id, repuestoOriginal.cantidad);
+     } else {
+      console.warn("No se encontró el repuesto original para la camioneta:", repuesto);
      }
     }
+
+    for (const repuestoTaller of selectedRepuestosTaller) {
+     const repuestoOriginalTaller = repuestosTaller.find((item) => item.id_repuesto === repuestoTaller.id_repuesto);
+
+     if (repuestoOriginalTaller) {
+      const cantidadRestante = repuestoOriginalTaller.cantidad - repuestoTaller.cantidad;
+
+      console.log(`Restando ${repuestoTaller.cantidad} del stock. Cantidad restante: ${cantidadRestante}`);
+
+      try {
+       const result = await modificarStockPrincipal(repuestoOriginalTaller.id, {
+        cantidad: cantidadRestante + repuestoTaller.cantidad,
+       });
+
+       if (result) {
+        console.log("Stock modificado exitosamente en la base de datos.");
+       }
+      } catch (error) {
+       console.error("Hubo un error al actualizar el stock:", error);
+      }
+     } else {
+      console.warn("No se encontró el repuesto original del taller:", repuestoTaller);
+     }
+    }
+
     //@ts-ignore
     response = await modificarPresupuesto(presupuestoId, dataToSend);
    } else {
@@ -347,17 +407,14 @@ const Presupuesto: React.FC = () => {
     response = await guardarPresupuesto(dataToSend);
    }
 
-   // Verificar que response no sea undefined antes de acceder a response.ok
    if (response && response.ok) {
     console.log("Presupuesto guardado/modificado con éxito!!!");
-
-    setOrdenActiva((prevOrden: any) => {
-     return {
-      ...prevOrden,
-      Presupuesto: { ...dataToSend },
-     };
-    });
-    console.log(ordenActiva);
+    setSelectedRepuestosTaller([]);
+    setSelectedRepuestos([]);
+    setOrdenActiva((prevOrden: any) => ({
+     ...prevOrden,
+     Presupuesto: { ...dataToSend },
+    }));
 
     history.push("/verOrden");
     agregarRepuestos();
@@ -371,50 +428,36 @@ const Presupuesto: React.FC = () => {
  };
 
  const handleSelect = (selectedValue: string) => {
-  setSelectedOptions((prevOptions) => {
-   if (prevOptions.includes(selectedValue)) {
-    return prevOptions.filter((option) => option !== selectedValue);
-   } else {
-    return [...prevOptions, selectedValue];
-   }
-  });
+  setSelectedOptions((prevOptions) => (prevOptions.includes(selectedValue) ? prevOptions.filter((option) => option !== selectedValue) : [...prevOptions, selectedValue]));
  };
 
  const handleRemove = (itemToRemove: string) => {
-  setSelectedList(selectedList.filter((item) => item !== itemToRemove));
+  setSelectedList((list) => list.filter((item) => item !== itemToRemove));
  };
 
  const handleCancelarOrden = async () => {
   setShowAlert(false);
   try {
    console.log("Cancelando orden:", ordenActiva.id);
-
    const response = await cancelarOrden(ordenActiva.id);
 
    if (response.ok) {
-    console.log("Orden cancelada exitosamente");
     alert("Orden cancelada exitosamente");
     window.history.back();
    } else {
-    console.log("Error al cancelar la orden");
-    console.log(`Error: ${response.status} ${response.statusText}`);
     alert("Error al cancelar la orden. Intente nuevamente.");
+    console.error(`Error: ${response.status} ${response.statusText}`);
    }
   } catch (error) {
-   console.error("Error al realizar la solicitud:", error);
    alert("Error al realizar la solicitud. Verifique su conexión e intente nuevamente.");
+   console.error("Error al realizar la solicitud:", error);
   }
  };
 
- const handleConfirmAlertCancel = () => {
-  setShowConfirmAlert(false);
- };
+ const handleConfirmAlertCancel = () => setShowConfirmAlert(false);
 
- const handleRepuestos = () => {
-  history.push({
-   pathname: "/repuestosDomicilio",
-  });
- };
+ const handleRepuestos = () => history.push("/repuestosDomicilio");
+ const combinedRepuestos = [...(selectedRepuestos || []), ...(selectedRepuestosTaller || []), ...(repuestoOrden || [])];
 
  return (
   <IonPage>
@@ -440,31 +483,34 @@ const Presupuesto: React.FC = () => {
         }}
         onClick={handleRepuestos}
        >
-        Seleccionar{" "}
+        Seleccionar
        </IonButton>
       </div>
+
+      {/*  repuestos de camioneta */}
       <IonList>
-       {Array.isArray(selectedRepuestos) && selectedRepuestos.length > 0 ? (
-        selectedRepuestos.map((repuesto) => (
-         <IonItem key={repuesto.id_repuesto}>
+       {combinedRepuestos.length > 0 ? (
+        combinedRepuestos.map((repuesto) => (
+         <IonItem key={repuesto.id}>
           <IonLabel
            style={{
             display: "flex",
             justifyContent: "space-between",
             width: "100%",
             fontSize: "16px",
+            border: "none",
            }}
           >
            <span>
-            {repuesto.StockPrincipal?.nombre ? repuesto.StockPrincipal.nombre : repuesto.nombre} x{repuesto.cantidad}
+            {repuesto.StockPrincipal?.nombre || repuesto.nombre} x{repuesto.cantidad}
            </span>
-           {/* <span>${(parseFloat(repuesto.StockPrincipal.precio) * repuesto.cantidad).toFixed(2)}</span> */}
+           <span>${repuesto.StockPrincipal?.precio * repuesto.cantidad || repuesto.precio * repuesto.cantidad}</span>
           </IonLabel>
          </IonItem>
         ))
        ) : (
         <IonItem>
-         <IonLabel style={{ fontSize: "18px" }}>No hay repuestos seleccionados.</IonLabel>
+         <IonLabel style={{ fontSize: "18px" }}>No hay repuestos disponibles.</IonLabel>
         </IonItem>
        )}
       </IonList>
@@ -488,21 +534,6 @@ const Presupuesto: React.FC = () => {
         Cerrar
        </IonButton>
       </IonModal>
-      {/* LISTA REPUESTOS SELECCIONADOS */}
-      {selectedList.length > 0 && (
-       <div className='item'>
-        <ul>
-         {selectedList.map((item, index) => (
-          <li key={index}>
-           {item}
-           <button style={{ marginLeft: "10px" }} onClick={() => handleRemove(item)}>
-            x
-           </button>
-          </li>
-         ))}
-        </ul>
-       </div>
-      )}
 
       <div
        className='separador'
@@ -517,18 +548,20 @@ const Presupuesto: React.FC = () => {
        <h2>Servicios</h2>
        <div className='presupuesto-forma-pago'>
         <span className='forma-pago-label'>Forma de pago</span>
-        <IonSelect className={`forma-pago-select ${inputErrors.medioPago ? "select-error" : ""}`} value={selectedMedioPago} placeholder='Seleccione medio de pago' onIonChange={handleMedioPagoChange}>
-         {medioPago.map((medio) => (
-          <IonSelectOption key={medio.id} value={medio.id}>
-           {medio.medio_de_pago}
-          </IonSelectOption>
-         ))}
-        </IonSelect>
+        <div>
+         <IonSelect className={`forma-pago-select ${inputErrors.medioPago ? "select-error" : ""}`} value={selectedMedioPago} placeholder='Seleccione medio de pago' onIonChange={handleMedioPagoChange}>
+          {medioPago.map((medio) => (
+           <IonSelectOption key={medio.id} value={medio.id}>
+            {medio.medio_de_pago}
+           </IonSelectOption>
+          ))}
+         </IonSelect>
+        </div>
        </div>
        {montos.map((monto, index) => (
         <div
          key={index}
-         style={{
+         style={{ 
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -548,7 +581,7 @@ const Presupuesto: React.FC = () => {
              background: "white",
              border: "none",
             }}
-            value={dpg}
+            value={monto}
             onChange={(e) => handleMontoChange(index, e.target.value)}
            >
             <option value=''>Seleccione</option>
@@ -561,10 +594,9 @@ const Presupuesto: React.FC = () => {
           ) : servicios[index] === "Descuentos" ? (
            <select
             style={{ width: "120px", margin: "10px 0 10px 20px", color: "black", background: "white ", border: "none" }}
-            value={descuento}
+            value={monto}
             onChange={(e) => handleMontoChange(index, e.target.value)}
            >
-            {" "}
             <option value={0}>Sin desc.</option>
             <option value={5}>5%</option>
             <option value={10}>10%</option>
@@ -735,7 +767,7 @@ const Presupuesto: React.FC = () => {
           role: "cancel",
           handler: handleConfirmAlertCancel,
          },
-         { text: "Confirmar", handler: handleConfirm },
+         { text: "Confirmar", handler: handleConfirmarClick },
         ]}
        />
        <IonButton

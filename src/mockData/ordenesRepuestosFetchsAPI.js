@@ -39,7 +39,7 @@ const guardarRepuesto = async () => {
 const modificarRepuesto = async (id) => {
   const repuesto = { id_orden: 3, id_repuesto: 7 };
   try {
-    const response = await fetch(`http://localhost:8000/ordenes/repue stos/modificar/${id}`, {
+    const response = await fetch(`http://localhost:8000/ordenes/repuestos/modificar/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(repuesto)
