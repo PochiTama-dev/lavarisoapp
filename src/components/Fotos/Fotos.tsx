@@ -145,7 +145,7 @@ const Fotos = () => {
 
   const handleSendPhotos = async () => {
     try {
-      // Determinar cuál conjunto de fotos enviar
+  
       const photosToSend = isEntrega
         ? photosEntrega
         : isFactura
@@ -226,7 +226,11 @@ const Fotos = () => {
       }
   
       console.log("Fotos enviadas con éxito");
-      history.goBack();
+      if (isFactura) {
+        history.push('/verOrden');
+      } else {
+        history.goBack();
+      }
     } catch (error) {
       console.error("Error al enviar las fotos:", error);
     }
@@ -303,7 +307,7 @@ const Fotos = () => {
 </IonGrid>
 
       {currentPhotos.length < (isFactura ? 1 : maxPhotos) && (
-        <IonButton onClick={takePhoto} fill="clear" disabled={remainingPhotos <= 0}>
+        <IonButton className="ion-button-fotos" onClick={takePhoto} fill="clear" disabled={remainingPhotos <= 0}>
           <IonIcon slot="icon-only" icon={cameraOutline} />
         </IonButton>
       )}

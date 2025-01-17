@@ -210,11 +210,13 @@ if (Array.isArray(repuestoOrden) && repuestoOrden.length > 0) {
     }, 0);
 }
 total += totalRepuestosTaller;
-
+ 
+ 
 // Calcular la comisión a cobrar
-const totalParaComision = total - dpgMonto - totalRepuestos;
+/* const totalParaComision = total - dpgMonto - totalRepuestos; */
+const totalParaComision = total  - totalRepuestos;
 const comisionCobrar = totalParaComision / 2 + dpgMonto;
-const comisionCobrarRedondeado = Math.round(totalParaComision / 2 + dpgMonto);
+const comisionCobrarRedondeado = Math.round(totalParaComision * ordenActiva.Empleado.porcentaje_arreglo);
  
  // Mostrar el total y la comisión
  // console.log("Total con repuestos, descuento, y medio de pago:", total);

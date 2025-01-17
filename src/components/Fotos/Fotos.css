@@ -21,7 +21,12 @@
     gap: 10px;
     z-index: 1000;
   }
-  
+  .ion-button-fotos {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
   .camera-icon {
     font-size: 48px;
   }

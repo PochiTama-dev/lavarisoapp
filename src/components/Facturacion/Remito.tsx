@@ -27,7 +27,9 @@ const RemitoOrden = () => {
     const fotosOrden = await getFotosNumeroOrden(ordenActiva.id);
 
     const fotosEntrega = fotosOrden.filter((foto: { isEntrega: any }) => foto.isEntrega);
-    const fotosDiagnostico = fotosOrden.filter((foto: { isEntrega: any }) => !foto.isEntrega);
+    const fotosDiagnostico = fotosOrden.filter((foto: {
+      isFactura: any; isEntrega: any 
+}) => !foto.isEntrega && !foto.isFactura);
 
     console.log("Fotos de la Entrega:", fotosEntrega);
     console.log("Fotos del Diagnóstico:", fotosDiagnostico);

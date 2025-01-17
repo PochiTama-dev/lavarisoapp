@@ -277,6 +277,7 @@ const modificarEntrega = async (id: any, idOrden: any) => {
     if (response.ok) {
       // Mostrar alerta si el pago fue exitoso
       setShowAlert(true);
+     
     } else {
       const errorText = await response.text();
       console.error("Error al procesar el pago:", errorText);
@@ -375,7 +376,7 @@ const modificarEntrega = async (id: any, idOrden: any) => {
     </IonHeader>
     <div className='diagnostico-ctn'>
      <div className='entrega'>
-      <h2>Entrega</h2>
+ 
 
       <div className='item'>
        <span>
@@ -547,10 +548,10 @@ const modificarEntrega = async (id: any, idOrden: any) => {
       <div className='adjuntar-foto'>
        <input type='file' accept='image/*,application/pdf' onChange={handleFileChange} style={{ display: "none" }} id='file-upload' />
 
-       <IonButton style={{ "--border-radius": "20px" }} onClick={() => handleFotosClick2(true)}>
+    {/*    <IonButton style={{ "--border-radius": "20px" }} onClick={() => handleFotosClick2(true)}>
         <IonIcon icon={cameraOutline} className='custom-icon' />
         Agregar comprobante de pago
-       </IonButton>
+       </IonButton> */}
       </div>
 
       <div
@@ -605,18 +606,18 @@ const modificarEntrega = async (id: any, idOrden: any) => {
        message={"¿Qué desea hacer con el remito?"}
        buttons={[
         {
+          text: "Agregar comprobante de pago",
+          handler: () => handleFotosClick2(true),
+         },
+        {
          text: "Ver remito",
          handler: () => handleOptionSelection("ver"),
         },
-        // {
-        //   text: "Descargar remito",
-        //   handler: () => handleOptionSelection("descargar"),
-        // },
-
         {
          text: "Ir al inicio",
          handler: () => handleOptionSelection("inicio"),
         },
+       
        ]}
       />
      </div>
