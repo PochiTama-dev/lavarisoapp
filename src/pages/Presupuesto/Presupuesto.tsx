@@ -24,6 +24,7 @@ import {
  modificarStockPrincipal,
 } from "./fetchs";
 import { modificarStockCamioneta } from "../../components/Repuestos/FetchsRepuestos";
+import { listaReparaciones, modificarOrden } from "../Diagnostico/fetchs";
 const Presupuesto: React.FC = () => {
  const [montos, setMontos] = useState(Array(7).fill(0));
  const [formaPago, setFormaPago] = useState<FormaPago[]>([]);
@@ -58,6 +59,8 @@ const Presupuesto: React.FC = () => {
   acceptedPolicies: false,
   plazos: false,
  });
+   const [reparaciones, setReparaciones] = useState<any[]>([]);
+   const [selectedReparaciones, setSelectedReparaciones] = useState<number[]>([]);
  const [dpg, setDpg] = useState("");
  const [descuento, setDescuento] = useState("");
  const {
@@ -73,15 +76,16 @@ const Presupuesto: React.FC = () => {
   setSelectedRepuestosTaller,
   setSelectedRepuestos,
  } = useOrden();
-
- const servicios = ["Viaticos", "DPG", "Descuentos", "Precio"] as const;
+ const [showOtherModal, setShowOtherModal] = useState(false);
+ const [otherReason, setOtherReason] = useState(ordenActiva.otrasReparaciones);
+ const servicios = ["Viaticos", "Seguro", "Descuentos", "Precio"] as const;
  //  const servicios = ["Viaticos", "DPG", "Descuentos", "Comisión visita", "Comisión reparación", "Comisión entrega", "Comisión rep. a domicilio", "Gasto impositivo"] as const;
 
  type Servicio = (typeof servicios)[number];
 
  const servicioToDBFieldMap: Record<Servicio, string> = {
   Viaticos: "viaticos",
-  DPG: "dpg",
+  Seguro: "dpg",
   Descuentos: "descuento",
   Precio: "gasto_impositivo",
  };
@@ -162,7 +166,7 @@ if (Array.isArray(selectedRepuestosTaller) && selectedRepuestosTaller.length > 0
 
 // Calculo montos sin descuento ni DPG
 const descuentosIndex = servicios.indexOf("Descuentos");
-const dpgIndex = servicios.indexOf("DPG");
+const dpgIndex = servicios.indexOf("Seguro");
 const totalMontosSinDescuentoYDPG = montos.filter((_, index) => index !== descuentosIndex && index !== dpgIndex)
   .reduce((a, b) => a + parseFloat(b || 0), 0);
 
@@ -214,16 +218,12 @@ total += totalRepuestosTaller;
  
 // Calcular la comisión a cobrar
 /* const totalParaComision = total - dpgMonto - totalRepuestos; */
-const totalParaComision = total  - totalRepuestos;
+const totalParaComision = total  - totalRepuestos -dpgMonto;
 const comisionCobrar = totalParaComision / 2 + dpgMonto;
 const comisionCobrarRedondeado = Math.round(totalParaComision * ordenActiva.Empleado.porcentaje_arreglo);
+ const comisionGrupoService = total - dpgMonto- comisionCobrarRedondeado
  
- // Mostrar el total y la comisión
- // console.log("Total con repuestos, descuento, y medio de pago:", total);
- // console.log("Comisión a cobrar:", comisionCobrarRedondeado);
- // console.log("SELECTED",selectedRepuestos)
- // console.log("TOTAL REP", totalRepuestos)
- // console.log("TOTAL REP TALLER", totalRepuestosTaller)
+ 
 
  // AGREGAR RESPUESTOS DE CAMIONETA
  const agregarRepuestos = async () => {
@@ -278,7 +278,7 @@ const comisionCobrarRedondeado = Math.round(totalParaComision * ordenActiva.Empl
   setDescuento(Presupuesto?.descuento || "");
   setSelectedList(Presupuesto?.selectedList || []);
   setAcceptedPolicies(Presupuesto?.acceptedPolicies ?? true);
-  setPlazosCheckboxValues([Presupuesto?.id_plazo_reparacion] || []);
+  setPlazosCheckboxValues([Presupuesto?.id_plazo_reparacion] );
   setSelectedMedioPago(Presupuesto?.id_medio_de_pago || null);
   setSelectedEstadoPresupuesto(Presupuesto?.id_estado_presupuesto || null);
 
@@ -364,6 +364,12 @@ const comisionCobrarRedondeado = Math.round(totalParaComision * ordenActiva.Empl
    };
 console.log("DATA TO SEND",dataToSend)
    let response;
+   const dataMotivo = {
+ 
+    motivo: selectedReparaciones.join(', '),
+    otrasReparaciones: otherReason,
+  };
+  const success = await modificarOrden(ordenActiva.id, dataMotivo);
 
    if (presupuestoId) {
     // Manejo de repuestos de camioneta
@@ -460,7 +466,59 @@ console.log("DATA TO SEND",dataToSend)
 
  const handleRepuestos = () => history.push("/repuestosDomicilio");
  const combinedRepuestos = [...(selectedRepuestos || []), ...(selectedRepuestosTaller || []), ...(repuestoOrden || [])];
-
+ const handleModal = () => {
+  setShowModal(true);
+};
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredReparaciones, setFilteredReparaciones] = useState(reparaciones);
+const handleSearchChange = (term:any) => {
+  setSearchTerm(term);
+  setFilteredReparaciones(reparaciones.filter((rep) => rep.reparacion.toLowerCase().includes(term.toLowerCase())));
+};
+  const getReparaciones = async () => {
+    const reparacionesData = await listaReparaciones();
+    setReparaciones(reparacionesData);
+    setFilteredReparaciones(reparacionesData);
+  };
+    useEffect(() => {
+       loadData()
+      getReparaciones();
+    }, [ordenActiva ]);
+    const handleCheckboxChange = (reparacion: number) => {
+      if (selectedReparaciones.includes(reparacion)) {
+    
+        setSelectedReparaciones(selectedReparaciones.filter((item) => item !== reparacion));
+      } else {
+ 
+        setSelectedReparaciones([...selectedReparaciones, reparacion]);
+      }
+    };
+    const motivoRef = useRef<HTMLIonInputElement>(null);
+    const loadData = async () => {
+      if (ordenActiva) {
+ 
+  
+        if (motivoRef.current) {
+          motivoRef.current.value = ordenActiva.motivo || '';
+        }
+  
+        if (ordenActiva.motivo) {
+          const motivosSeleccionados = ordenActiva.motivo.split(', ');
+          setSelectedReparaciones(motivosSeleccionados);
+        }
+      }
+    };
+ 
+    const descripcionesMedioPago: Record<number, string> = {
+      1: "(Sin recargo)",
+      2: "(-5%)",
+      3: "(-5%)",
+      4: "(-5%)",
+      5: "(-5%)",
+      6: "(-5%)",
+      7: "(+21%)",
+    };
+    console.log("ORDEN ACTIVA", ordenActiva)
  return (
   <IonPage>
    <IonHeader>
@@ -545,19 +603,70 @@ console.log("DATA TO SEND",dataToSend)
         width: "90%",
        }}
       />
+   <div className='section'>
+            <h2>Falla del electrodoméstico</h2>
+            <IonButton onClick={handleModal}>Seleccione reparaciones</IonButton>
+            <IonModal isOpen={showModal} onDidDismiss={() => setShowModal(false)}>
+              <div style={{ padding: '16px', overflow: 'scroll' }}>
+                <IonSearchbar onIonInput={(e) => handleSearchChange(e.detail.value)} debounce={300} placeholder='Buscar...'></IonSearchbar>
+                <IonList>
+                  {filteredReparaciones.map((reparacion, index) => (
+                    <IonItem key={index}>
+                      <IonCheckbox slot='start' checked={selectedReparaciones.includes(reparacion.reparacion)} onIonChange={() => handleCheckboxChange(reparacion.reparacion)}>
+                        {reparacion.reparacion}
+                      </IonCheckbox>
+                    </IonItem>
+                  ))}
+                </IonList>
+              </div>
+              <IonButton expand='block' onClick={() => setShowModal(false)}>
+                Cerrar
+              </IonButton>
+            </IonModal>
+            <div style={{ marginTop: '16px' }}>
+          <span><strong>Seleccionado:</strong> </span> {selectedReparaciones.join(' - ')}
+            </div>
+            <div style={{ marginTop: '16px' }}>
+  <span>Otras fallas:</span>
+  <IonInput
+    placeholder="Escribe aquí..."
+    value={otherReason}
+    onIonInput={(e) => setOtherReason(e.detail.value ?? '')}
+    style={{ marginLeft: '8px' }}
+  />
+</div>
+            {/* <IonSelect
+              className={inputErrors.reparaciones ? 'select-error' : ''}
+              placeholder='Seleccione reparaciones'
+              multiple
+              value={selectedReparaciones}
+              onIonChange={(e) => handleReparacionChange(e.detail.value)}
+            >
+              {reparaciones.map((reparacion, index) => (
+                <IonSelectOption key={index} value={reparacion.reparacion}>
+                  {reparacion.reparacion}
+                </IonSelectOption>
+              ))}
+            </IonSelect> */}
+          </div>
 
       <div className='servicios' style={{ display: "flex", flexDirection: "column" }}>
        <h2>Servicios</h2>
        <div className='presupuesto-forma-pago'>
         <span className='forma-pago-label'>Forma de pago</span>
         <div>
-         <IonSelect className={`forma-pago-select ${inputErrors.medioPago ? "select-error" : ""}`} value={selectedMedioPago} placeholder='Seleccione medio de pago' onIonChange={handleMedioPagoChange}>
-          {medioPago.map((medio) => (
-           <IonSelectOption key={medio.id} value={medio.id}>
-            {medio.medio_de_pago}
-           </IonSelectOption>
-          ))}
-         </IonSelect>
+        <IonSelect 
+  className={`forma-pago-select ${inputErrors.medioPago ? "select-error" : ""}`} 
+  value={selectedMedioPago} 
+  placeholder='Seleccione medio de pago' 
+  onIonChange={handleMedioPagoChange}
+>
+  {medioPago.map((medio) => (
+    <IonSelectOption key={medio.id} value={medio.id}>
+      {medio.medio_de_pago}  {descripcionesMedioPago[medio.id] || "Sin descripción"}
+    </IonSelectOption>
+  ))}
+</IonSelect>
         </div>
        </div>
        {montos.map((monto, index) => (
@@ -574,7 +683,7 @@ console.log("DATA TO SEND",dataToSend)
           <strong>{servicios[index]}:</strong>
          </span>
          <div style={{ display: "flex", alignItems: "center" }}>
-          {servicios[index] === "DPG" ? (
+          {servicios[index] === "Seguro" ? (
            <select
             style={{
              margin: "10px 0 10px 20px",
@@ -636,7 +745,7 @@ console.log("DATA TO SEND",dataToSend)
        </div>
        <div style={{ width: "100%", marginTop: "30px" }}>
         <span>
-         <strong>Comisión a cobrar :</strong>
+         <strong>Comisión Técnico :</strong>
         </span>
        </div>
        <div
@@ -648,6 +757,23 @@ console.log("DATA TO SEND",dataToSend)
        >
         <span>${comisionCobrarRedondeado}</span>
        </div>
+       
+{/*   COMISION GRUPO service */}
+      <div style={{ width: "100%", marginTop: "30px" }}>
+        <span>
+         <strong>Comisión Grupo Service :</strong>
+        </span>
+       </div>
+       <div
+        style={{
+         textAlign: "right",
+         marginRight: "65px",
+         marginTop: "-20px",
+        }}
+       >
+        <span>${comisionGrupoService}</span>
+       </div>
+
       </div>
       <div
        className='separador'

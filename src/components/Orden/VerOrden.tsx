@@ -173,6 +173,8 @@ function ConfirmacionOrdenComponent() {
     const fullUrl = `${baseUrl}${""}/${destino}/${""}`;
     window.open(fullUrl, '_blank');
   };
+
+  console.log(ordenActiva)
   return (
     <GlobalRefresher>
       <IonContent className='confirmacion-orden-container'>
@@ -196,9 +198,20 @@ function ConfirmacionOrdenComponent() {
                   <strong>Nombre:</strong> {ordenActiva.Cliente.nombre}
                 </h4>
 
-                <h4>
+           {/*      <h4>
                   <strong>N° Cliente:</strong> {ordenActiva.Cliente.numero_cliente}
+                </h4> */}
+               
+
+               <h4>
+                  <strong>Producto:</strong> {ordenActiva.equipo}
                 </h4>
+
+
+                <h4>
+                  <strong>Observaciones:</strong> {ordenActiva.observaciones}
+                </h4>
+
                 <h4>
                   <strong>Dirección:</strong> {ordenActiva.Cliente.direccion}
                   <button onClick={copiarDireccion}>
@@ -208,11 +221,12 @@ function ConfirmacionOrdenComponent() {
                 </h4>
                 <div  className='button-maps'>
 
-                  <button style={{fontSize:'18px'}} onClick={() => handleGoogle(ordenActiva.Cliente)} >
-                   <img style={{width:'26px',   margin:'-10px 5px -5px 0px'}} src="./assets/maps.png" alt="" />
-                    Abrir en Maps
-                  </button>
-                </div>
+<button style={{fontSize:'18px'}} onClick={() => handleGoogle(ordenActiva.Cliente)} >
+ <img style={{width:'26px',   margin:'-10px 5px -5px 0px'}} src="./assets/maps.png" alt="" />
+  Abrir en Maps
+</button>
+</div> 
+              
               </div>
               {!loading && <Map position={position} zoom={13} />}
               {renderButtons()}

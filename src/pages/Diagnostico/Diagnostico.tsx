@@ -13,6 +13,8 @@ interface Foto {
 }
 
 const Diagnostico: React.FC = () => {
+
+  
   const [equipo, setEquipo] = useState('');
   const [marca, setMarca] = useState('');
   const [modelo, setModelo] = useState('');
@@ -41,6 +43,7 @@ const Diagnostico: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredReparaciones, setFilteredReparaciones] = useState(reparaciones);
+  const [observaciones, setObservaciones] = useState('');
 //@ts-ignore
   const handleSearchChange = (term) => {
     setSearchTerm(term);
@@ -50,13 +53,14 @@ const Diagnostico: React.FC = () => {
   const loadData = async () => {
     if (ordenActiva) {
       setTextosCheckbox(tiposDeFunciones);
-      setEquipo(ordenActiva.equipo || '');
-      setMarca(ordenActiva.marca || '');
-      setModelo(ordenActiva.modelo || '');
-      setCliente(ordenActiva.Cliente?.numero_cliente || '');
+      setEquipo(localStorage.getItem('equipo') || ordenActiva.equipo || '');
+      setMarca(localStorage.getItem('marca') || ordenActiva.marca || '');
+      setModelo(localStorage.getItem('modelo') || ordenActiva.modelo || '');
+      setCliente(localStorage.getItem('cliente') || ordenActiva.Cliente?.numero_cliente || '');
+      setObservaciones(localStorage.getItem('observaciones') || ordenActiva.observaciones || '');
 
       if (motivoRef.current) {
-        motivoRef.current.value = ordenActiva.motivo || '';
+        motivoRef.current.value = localStorage.getItem('motivo') || ordenActiva.motivo || '';
       }
 
       const diagnosticoOrden = ordenActiva.diagnostico || '';
@@ -139,13 +143,14 @@ const Diagnostico: React.FC = () => {
       modelo,
       cliente,
       diagnostico,
-      motivo: selectedReparaciones.join(', '),
+      observaciones,
     };
 
     if (ordenActiva && ordenActiva.id) {
       const success = await modificarOrden(ordenActiva.id, dataToSend);
       if (success) {
         console.log('Orden guardada', dataToSend);
+        localStorage.clear();
         cargarOrdenes();
         history.push('/verOrden');
       } else {
@@ -173,14 +178,17 @@ const Diagnostico: React.FC = () => {
       state: { isEntrega },
     });
   };
-  const handleCheckboxChange = (reparacion: number) => {
-    if (selectedReparaciones.includes(reparacion)) {
-      // Si ya está seleccionada, la eliminamos
-      setSelectedReparaciones(selectedReparaciones.filter((item) => item !== reparacion));
-    } else {
-      // Si no está seleccionada, la agregamos
-      setSelectedReparaciones([...selectedReparaciones, reparacion]);
-    }
+  const handleCheckboxChange = (index: number) => (e: CustomEvent) => {
+    const newCheckboxValues = [...checkboxValues];
+    newCheckboxValues[index] = e.detail.checked;
+    setCheckboxValues(newCheckboxValues);
+    localStorage.setItem('checkboxValues', JSON.stringify(newCheckboxValues));
+  };
+
+  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, key: string) => (e: CustomEvent) => {
+    const value = e.detail.value!;
+    setter(value);
+    localStorage.setItem(key, value);
   };
 
   return (
@@ -203,14 +211,14 @@ const Diagnostico: React.FC = () => {
                 style={{ marginLeft: '10px' }}
                 value={equipo}
                 placeholder='Ingrese equipo'
-                onIonChange={(e) => setEquipo(e.detail.value!)}
+                onIonChange={handleInputChange(setEquipo, 'equipo')}
               />
             </div>
             <div className='item2'>
               <span>
                 <strong>Marca:</strong>
               </span>
-              <IonInput className={inputErrors.marca ? 'input-error' : ''} style={{ marginLeft: '10px' }} value={marca} placeholder='Ingrese marca' onIonChange={(e) => setMarca(e.detail.value!)} />
+              <IonInput className={inputErrors.marca ? 'input-error' : ''} style={{ marginLeft: '10px' }} value={marca} placeholder='Ingrese marca' onIonChange={handleInputChange(setMarca, 'marca')} />
             </div>
             <div className='item2'>
               <span>
@@ -221,7 +229,7 @@ const Diagnostico: React.FC = () => {
                 style={{ marginLeft: '10px' }}
                 value={modelo}
                 placeholder='Ingrese modelo'
-                onIonChange={(e) => setModelo(e.detail.value!)}
+                onIonChange={handleInputChange(setModelo, 'modelo')}
               />
             </div>
             <div className='item2'>
@@ -233,7 +241,7 @@ const Diagnostico: React.FC = () => {
                 style={{ marginLeft: '10px' }}
                 value={cliente}
                 placeholder='Ingrese N° de cliente'
-                onIonChange={(e) => setCliente(e.detail.value!)}
+                onIonChange={handleInputChange(setCliente, 'cliente')}
               />
             </div>
           </div>
@@ -245,11 +253,7 @@ const Diagnostico: React.FC = () => {
                 <div key={index} className='checkbox-item'>
                   <IonCheckbox
                     checked={checkboxValues[index]}
-                    onIonChange={(e) => {
-                      const newCheckboxValues = [...checkboxValues];
-                      newCheckboxValues[index] = e.detail.checked;
-                      setCheckboxValues(newCheckboxValues);
-                    }}
+                    onIonChange={handleCheckboxChange(index)}
                     className='checkbox'
                   />
                   <span>{texto}</span>
@@ -259,39 +263,17 @@ const Diagnostico: React.FC = () => {
           </div>
 
           <div className='section'>
-            <h2>Motivos de la reparación</h2>
-            <IonButton onClick={handleModal}>Seleccione reparaciones</IonButton>
-            <IonModal isOpen={showModal} onDidDismiss={() => setShowModal(false)}>
-              <div style={{ padding: '16px', overflow: 'scroll' }}>
-                <IonSearchbar onIonInput={(e) => handleSearchChange(e.detail.value)} debounce={300} placeholder='Buscar...'></IonSearchbar>
-                <IonList>
-                  {filteredReparaciones.map((reparacion, index) => (
-                    <IonItem key={index}>
-                      <IonCheckbox slot='start' checked={selectedReparaciones.includes(reparacion.reparacion)} onIonChange={() => handleCheckboxChange(reparacion.reparacion)}>
-                        {reparacion.reparacion}
-                      </IonCheckbox>
-                    </IonItem>
-                  ))}
-                </IonList>
-              </div>
-              <IonButton expand='block' onClick={() => setShowModal(false)}>
-                Cerrar
-              </IonButton>
-            </IonModal>
-            {/* <IonSelect
-              className={inputErrors.reparaciones ? 'select-error' : ''}
-              placeholder='Seleccione reparaciones'
-              multiple
-              value={selectedReparaciones}
-              onIonChange={(e) => handleReparacionChange(e.detail.value)}
-            >
-              {reparaciones.map((reparacion, index) => (
-                <IonSelectOption key={index} value={reparacion.reparacion}>
-                  {reparacion.reparacion}
-                </IonSelectOption>
-              ))}
-            </IonSelect> */}
-          </div>
+  <h2>Falla de electrodoméstico</h2>
+  <div className='item2'>
+    <span></span>
+    <IonInput
+      value={observaciones}
+      placeholder='Ingrese observaciones'
+      onIonChange={handleInputChange(setObservaciones, 'observaciones')}
+      style={{  fontSize:'18px' }}
+    />
+  </div>
+</div>
 
           <div className='bottom-buttons-diagnostico'>
             <IonButton style={{ '--border-radius': '20px' }} onClick={() => handleFotosClick(false)}>
