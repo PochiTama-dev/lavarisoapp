@@ -296,7 +296,7 @@ const Fotos = () => {
             setSelectedPhoto(photo.base64 || photo.ruta_imagen || null);
             setShowModal(true);
           }}
-          style={{ cursor: "pointer", width: "100%", height: "auto" }}
+          style={{ cursor: "pointer", width: "140px", height: "150px" }}
         />
         <IonButton onClick={() => handleDeletePhoto(photo.id)} fill="clear">
           <IonIcon icon={trash} />
