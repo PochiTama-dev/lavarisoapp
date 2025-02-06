@@ -19,7 +19,10 @@ const Diagnostico: React.FC = () => {
   const [marca, setMarca] = useState('');
   const [modelo, setModelo] = useState('');
   const [cliente, setCliente] = useState('');
-  const [checkboxValues, setCheckboxValues] = useState<boolean[]>(Array(10).fill(false));
+  const [checkboxValues, setCheckboxValues] = useState<boolean[]>(() => {
+    const savedCheckboxValues = localStorage.getItem('checkboxValues');
+    return savedCheckboxValues ? JSON.parse(savedCheckboxValues) : Array(10).fill(false);
+  });
   const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
   const history = useHistory();
   const motivoRef = useRef<HTMLIonInputElement>(null);
@@ -63,9 +66,14 @@ const Diagnostico: React.FC = () => {
         motivoRef.current.value = localStorage.getItem('motivo') || ordenActiva.motivo || '';
       }
 
-      const diagnosticoOrden = ordenActiva.diagnostico || '';
-      const nuevosCheckboxValues = textosCheckbox.map((texto) => diagnosticoOrden.includes(texto));
-      setCheckboxValues(nuevosCheckboxValues);
+      const savedCheckboxValues = localStorage.getItem('checkboxValues');
+      if (savedCheckboxValues) {
+        setCheckboxValues(JSON.parse(savedCheckboxValues));
+      } else {
+        const diagnosticoOrden = ordenActiva.diagnostico || '';
+        const nuevosCheckboxValues = textosCheckbox.map((texto) => diagnosticoOrden.includes(texto));
+        setCheckboxValues(nuevosCheckboxValues);
+      }
 
       if (ordenActiva.motivo) {
         const motivosSeleccionados = ordenActiva.motivo.split(', ');
@@ -242,6 +250,7 @@ const Diagnostico: React.FC = () => {
                 value={cliente}
                 placeholder='Ingrese N° de cliente'
                 onIonChange={handleInputChange(setCliente, 'cliente')}
+                disabled
               />
             </div>
           </div>
@@ -263,7 +272,7 @@ const Diagnostico: React.FC = () => {
           </div>
 
           <div className='section'>
-  <h2>Falla de electrodoméstico</h2>
+  <h2>Falla / Observaciones</h2>
   <div className='item2'>
     <span></span>
     <IonInput
