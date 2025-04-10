@@ -93,7 +93,7 @@ export const fetchPlazosReparacion = async () => {
   }
   export const guardarPresupuesto = async (data: PresupuestoData) => {
     try {
-      console.log("Datos a enviar:", data); // Log de los datos enviados
+      console.log("Datos a enviar:", data); 
       const response = await fetch("https://lv-back.online/presupuestos/guardar", {
         method: "POST",
         headers: {

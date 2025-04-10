@@ -105,7 +105,7 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
       const todasLasOrdenes = await fetchOrdenes();
       if (todasLasOrdenes.length > 0) {
         const ordenesFiltradas = todasLasOrdenes.filter((orden: { Empleado: { id: string }; id_tipo_estado: number }) =>
-          orden.Empleado?.id == empleadoId && orden.id_tipo_estado === 1
+          orden.Empleado?.id == empleadoId  
         );
         setOrdenes(ordenesFiltradas);
   
@@ -151,8 +151,7 @@ export const OrdenProvider: React.FC<OrdenProviderProps> = ({ children }) => {
  
     try {
       const repuestos = await fetchStockPrincipal();
-      console.log("Repuestos de taller:", repuestos); // Log para verificar la respuesta
-      setRepuestosTaller(repuestos);
+       setRepuestosTaller(repuestos);
     } catch (error) {
       console.error("Error al cargar los repuestos de taller:", error);
     }

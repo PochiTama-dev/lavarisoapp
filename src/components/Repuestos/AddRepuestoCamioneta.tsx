@@ -285,7 +285,7 @@ const AddRepuestoCamioneta: React.FC = () => {
       </>
      )}
 
-     <h1>Repuestos propios</h1>
+     <h1>Lista de repuestos</h1>
      <IonList  className="lista-repuestos-propios">
       {localRepuestosCamioneta && localRepuestosCamioneta.length > 0 ? (
        localRepuestosCamioneta.map((repuesto: any) => (

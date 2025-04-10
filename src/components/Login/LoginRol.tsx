@@ -79,11 +79,11 @@
           <IonButton onClick={() => handleButtonClick(1)}>
             Trabajo a domicilio
           </IonButton>
-          <IonButton onClick={() => handleButtonClick(0)}>
+{/*           <IonButton onClick={() => handleButtonClick(0)}>
             Repuestos taller ( COMPRAR )
-          </IonButton>
+          </IonButton> */}
           <IonButton onClick={handleAddClick}>
-           Agregar Repuestos ( PROPIOS )
+           Agregar Repuestos 
         </IonButton>
           <IonButton onClick={handleFeedbackClick}>
           Feedback

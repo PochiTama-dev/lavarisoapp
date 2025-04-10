@@ -4,8 +4,7 @@ export const getFotos = async () => {
       const data = await response.json();
       return data; // Esto es un array de fotos
     } catch (error) {
-      console.error('Error al obtener las fotos:', error);
-      return [];
+       return [];
     }
   };
   
