@@ -6,7 +6,7 @@ interface AuthContextType {
   logout: () => void;
 }
 interface AuthProviderProps {
-    children: ReactNode;  // Esto permite pasar cualquier tipo de contenido como children
+    children: ReactNode;  
   }
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -19,7 +19,9 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    !!localStorage.getItem('empleadoId')  
+  );
 
   const login = async (email: string, cuil: string) => {
     try {

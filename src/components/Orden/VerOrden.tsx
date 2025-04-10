@@ -15,25 +15,23 @@ function ConfirmacionOrdenComponent() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [direccionCopiada, setDireccionCopiada] = useState(false);
-  const [isFacturado, setIsFacturado] = useState(false); // Nuevo estado para verificar facturación
+  const [isFacturado, setIsFacturado] = useState(false);  
   const history = useHistory();
   const location = useLocation<LocationState>();
   const orden = location.state?.orden;
   const { ordenActiva, pagos, cargarPagos } = useOrden();
   const [tecnico, setTecnico] = useState(Object);
-  const [isPagoCompleted, setIsPagoCompleted] = useState(false); // Nuevo estado para pagos
+  const [isPagoCompleted, setIsPagoCompleted] = useState(false); 
   const entregaPago = async () => {
-    const idEntrega = ordenActiva?.Entrega.id;  
+    const idEntrega = ordenActiva?.Entrega?.id;  
     try {
       const response = await fetch(`https://lv-back.online/pagos/entrega/${idEntrega}`);
       const pagos = await response.json();
       if (pagos[0] !== undefined) {
-        console.log(`Se encontraron medios de pago asociados a la entrega id ${idEntrega}`);
-        setIsPagoCompleted(true); // Si se encuentran pagos, se marca como completado
+         setIsPagoCompleted(true);  
         return pagos;
       } else {
-        console.log(`No se encontró ningún medio de pago con la entrega id ${idEntrega}`);
-        setIsPagoCompleted(false); // Si no hay pagos, se marca como no completado
+         setIsPagoCompleted(false); 
         return false;
       }
     } catch (error) {
@@ -85,11 +83,9 @@ function ConfirmacionOrdenComponent() {
       const response = await fetch(`https://lv-back.online/empleados/${id}`);
       const empleado = await response.json();
       if (empleado) {
-        console.log(`Se encontró un empleado asociado al id ${id}`);
-        return empleado;
+         return empleado;
       } else {
-        console.log(`No se encontró ningún empleado con el id ${id}`);
-        return false;
+         return false;
       }
     } catch (error) {
       console.error('Error, empleado no encontrado.', error);
@@ -173,8 +169,7 @@ function ConfirmacionOrdenComponent() {
     const fullUrl = `${baseUrl}${""}/${destino}/${""}`;
     window.open(fullUrl, '_blank');
   };
-
-  console.log(ordenActiva)
+ 
   return (
     <GlobalRefresher>
       <IonContent className='confirmacion-orden-container'>
@@ -236,7 +231,7 @@ function ConfirmacionOrdenComponent() {
         <div className='confirmacion-orden-bottom-box'>
           <h4>Cotización</h4>
           <h3>${ordenActiva?.Presupuesto?.total ?? '0'}</h3>
-          <button>Cerrar orden</button>
+   {/*        <button>Cerrar orden</button> */}
         </div>
       </IonContent>
     </GlobalRefresher>

@@ -223,7 +223,7 @@ const comisionCobrar = totalParaComision / 2 + dpgMonto;
 const comisionCobrarRedondeado = Math.round(totalParaComision * ordenActiva.Empleado.porcentaje_arreglo);
  const comisionGrupoService = total - dpgMonto- comisionCobrarRedondeado
  
- 
+ console.log("Comisión a cobrar:", comisionCobrarRedondeado);
 
  // AGREGAR RESPUESTOS DE CAMIONETA
  const agregarRepuestos = async () => {
@@ -338,14 +338,16 @@ const comisionCobrarRedondeado = Math.round(totalParaComision * ordenActiva.Empl
    const firma_cliente = sigCanvas1.current?.toDataURL();
    const firma_empleado = sigCanvas2.current?.toDataURL();
 
-   const serviciosMontos: Record<string, number> = {};
-   montos.forEach((monto, index) => {
+  const serviciosMontos: Record<string, number> = {};
+  montos.forEach((monto, index) => {
     const servicio = servicios[index];
     const dbField = servicioToDBFieldMap[servicio];
     if (dbField) {
-     serviciosMontos[dbField] = monto;
+      serviciosMontos[dbField] = parseFloat(monto) || 0; // Asegúrate de que sea un número
     }
-   });
+  });
+  
+  console.log("Servicios Montos:", serviciosMontos); // Verifica que "gasto_impositivo" esté presente
 
    const id_plazo_reparacion = plazosCheckboxValues.length > 0 ? plazosCheckboxValues[1] : 0;
 
@@ -362,7 +364,8 @@ const comisionCobrarRedondeado = Math.round(totalParaComision * ordenActiva.Empl
     ...serviciosMontos,
     total,
    };
-console.log("DATA TO SEND",dataToSend)
+   console.log("Servicios Montos:", serviciosMontos);
+   console.log("DATA TO SEND:", dataToSend);
    let response;
    const dataMotivo = {
  
@@ -755,7 +758,7 @@ const handleSearchChange = (term:any) => {
          marginTop: "-20px",
         }}
        >
-        <span>${comisionCobrarRedondeado}</span>
+        <span>${(comisionCobrarRedondeado).toFixed(2)}</span>
        </div>
        
 {/*   COMISION GRUPO service */}
@@ -771,7 +774,7 @@ const handleSearchChange = (term:any) => {
          marginTop: "-20px",
         }}
        >
-        <span>${comisionGrupoService}</span>
+        <span>${(comisionGrupoService).toFixed(2)}</span>
        </div>
 
       </div>

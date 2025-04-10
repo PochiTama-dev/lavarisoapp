@@ -153,7 +153,7 @@ const RepuestosDomicilio: React.FC = () => {
       </div>
       
       {/* Taller Section */}
-      <div className='container-listado-respuestos'>
+ {/*      <div className='container-listado-respuestos'>
         <span>Repuestos Taller</span>
         <IonList className='listado-respuestos'>
           {repuestosTaller && repuestosTaller.length > 0 ? (
@@ -177,7 +177,7 @@ const RepuestosDomicilio: React.FC = () => {
             </IonItem>
           )}
         </IonList>
-      </div>
+      </div> */}
  
       {/* Seleccionados */}
       

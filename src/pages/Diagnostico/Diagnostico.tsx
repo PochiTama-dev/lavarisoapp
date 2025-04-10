@@ -158,7 +158,8 @@ const Diagnostico: React.FC = () => {
       const success = await modificarOrden(ordenActiva.id, dataToSend);
       if (success) {
         console.log('Orden guardada', dataToSend);
-        localStorage.clear();
+        localStorage.removeItem('ordenActiva');  
+
         cargarOrdenes();
         history.push('/verOrden');
       } else {

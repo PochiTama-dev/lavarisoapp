@@ -28,6 +28,7 @@ const Entrega: React.FC = () => {
  const [textosCheckbox, setTextosCheckbox] = useState<string[]>([]);
  const [showAlert, setShowAlert] = useState(false);
  const [showConfirmEntregaAlert, setShowConfirmEntregaAlert] = useState(false);
+ const [showCancelAlert, setShowCancelAlert] = useState(false); // added state for cancel alert
  const [firmaCliente, setFirmaCliente] = useState<string>("");
  const [firmaTecnico, setFirmaTecnico] = useState<string>("");
  const sigCanvasCliente = useRef<SignatureCanvas | null>(null);
@@ -291,15 +292,15 @@ const modificarEntrega = async (id: any, idOrden: any) => {
  const handleCancelarOrden = async () => {
   setShowAlert(true);
   try {
-   console.log("Cancelando orden:", orden.id);
+ 
 
-   const response = await fetch(`https://lv-back.online/ordenes/modificar/${orden.id}`, {
+   const response = await fetch(`https://lv-back.online/ordenes/modificar/${ordenActiva.id}`, {
     method: "PUT",
     headers: {
      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-     id_tipo_estado: 2, // 2 es el ID para el estado "cancelada"
+     id_tipo_estado: 2, 
     }),
    });
 
@@ -569,7 +570,7 @@ const modificarEntrega = async (id: any, idOrden: any) => {
          "--background": "none",
          "--color": "#E58769",
         }}
-        onClick={() => setShowAlert(true)}
+        onClick={() => setShowCancelAlert(true)} // modified onClick for cancel
        >
         Cancelar orden
        </IonButton>
@@ -578,9 +579,10 @@ const modificarEntrega = async (id: any, idOrden: any) => {
        Finalizar
       </IonButton>
 
+      {/* Cancel order alert */}
       <IonAlert
-       isOpen={showAlert}
-       onDidDismiss={() => setShowAlert(false)}
+       isOpen={showCancelAlert} // modified alert open condition
+       onDidDismiss={() => setShowCancelAlert(false)} // modified dismiss handler
        header={"Cancelar"}
        message={"¿Estás seguro de que deseas cancelar la orden?"}
        buttons={[
@@ -589,7 +591,7 @@ const modificarEntrega = async (id: any, idOrden: any) => {
          role: "cancel",
          cssClass: "secondary",
          handler: () => {
-          setShowAlert(false);
+          setShowCancelAlert(false);
          },
         },
         {

@@ -84,7 +84,7 @@ export interface Orden {
         }
 
         const data = await response.json();
-        return data; // Esto es un array de fotos filtradas por numero_orden
+        return data;  
     } catch (error) {
         console.error('Error al obtener las fotos:', error);
         return [];
