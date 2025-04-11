@@ -138,7 +138,7 @@ const RemitoOrden = () => {
      
        </h4>
        <h4>
-        <strong>  {  new Date(ordenActiva.Entrega.created_at).toLocaleDateString() }</strong>
+        <strong>  {  new Date(ordenActiva.Entrega?.created_at).toLocaleDateString() }</strong>
        </h4>
 
         </div>

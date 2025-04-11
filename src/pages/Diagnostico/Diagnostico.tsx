@@ -39,7 +39,7 @@ const Diagnostico: React.FC = () => {
     modelo: false,
     cliente: false,
     checkbox: false,
-    reparaciones: false,
+/*     reparaciones: false, */
   });
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [errorAlertMessage, setErrorAlertMessage] = useState('');
@@ -48,10 +48,10 @@ const Diagnostico: React.FC = () => {
   const [filteredReparaciones, setFilteredReparaciones] = useState(reparaciones);
   const [observaciones, setObservaciones] = useState('');
 //@ts-ignore
-  const handleSearchChange = (term) => {
+/*   const handleSearchChange = (term) => {
     setSearchTerm(term);
     setFilteredReparaciones(reparaciones.filter((rep) => rep.reparacion.toLowerCase().includes(term.toLowerCase())));
-  };
+  }; */
 
   const loadData = async () => {
     if (ordenActiva) {
@@ -75,10 +75,10 @@ const Diagnostico: React.FC = () => {
         setCheckboxValues(nuevosCheckboxValues);
       }
 
-      if (ordenActiva.motivo) {
+  /*     if (ordenActiva.motivo) {
         const motivosSeleccionados = ordenActiva.motivo.split(', ');
         setSelectedReparaciones(motivosSeleccionados);
-      }
+      } */
 
       const numeroOrden = ordenActiva.id;
       if (numeroOrden) {
@@ -90,14 +90,14 @@ const Diagnostico: React.FC = () => {
 
   useEffect(() => {
     loadData();
-    getReparaciones();
+/*     getReparaciones(); */
   }, [ordenActiva, textosCheckbox, tiposDeFunciones]);
 
-  const getReparaciones = async () => {
+/*   const getReparaciones = async () => {
     const reparacionesData = await listaReparaciones();
     setReparaciones(reparacionesData);
     setFilteredReparaciones(reparacionesData);
-  };
+  }; */
   const handleModal = () => {
     setShowModal(true);
   };
@@ -130,11 +130,11 @@ const Diagnostico: React.FC = () => {
       newInputErrors.checkbox = true;
     } else newInputErrors.checkbox = false;
 
-    if (selectedReparaciones.length === 0) {
+/*     if (selectedReparaciones.length === 0) {
       camposFaltantes.push('Motivos de reparación');
       newInputErrors.reparaciones = true;
     } else newInputErrors.reparaciones = false;
-
+ */
     setInputErrors(newInputErrors);
 
     if (camposFaltantes.length > 0) {
@@ -158,7 +158,7 @@ const Diagnostico: React.FC = () => {
       const success = await modificarOrden(ordenActiva.id, dataToSend);
       if (success) {
         console.log('Orden guardada', dataToSend);
-        localStorage.removeItem('ordenActiva');  
+  /*       localStorage.removeItem('ordenActiva');   */
 
         cargarOrdenes();
         history.push('/verOrden');
@@ -167,18 +167,18 @@ const Diagnostico: React.FC = () => {
       }
     }
   };
-
+/* 
   const handleReparacionChange = (value: number[]) => {
     setSelectedReparaciones(value);
-  };
+  }; */
 
   const handleMotivoCheckboxChange = (index: number, checked: boolean) => {
     const newMotivoCheckboxValues = [...motivoCheckboxValues];
     newMotivoCheckboxValues[index] = checked;
     setMotivoCheckboxValues(newMotivoCheckboxValues);
-
+/* 
     const newSelectedReparaciones = reparaciones.filter((_, i) => newMotivoCheckboxValues[i]).map((reparacion) => reparacion.reparacion);
-    setSelectedReparaciones(newSelectedReparaciones);
+    setSelectedReparaciones(newSelectedReparaciones); */
   };
 
   const handleFotosClick = (isEntrega: boolean) => {
