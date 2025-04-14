@@ -103,34 +103,31 @@ function ConfirmacionOrdenComponent() {
   const renderButtons = () => {
     if (!ordenActiva) return null;
 
- 
     const isDiagnosticoCompleted = ordenActiva?.diagnostico;
     const isPresupuestoCompleted = ordenActiva?.Presupuesto;
     const isEntregaCompleted = ordenActiva?.Entrega;
-    
-    const isLiquidaciónCompleted = async () => {
-      const pagos = await entregaPago(); // Llamar a la función asincrónica
-      return pagos !== false; // Si la respuesta no es false, entonces la liquidación está completada
-    };
-    
+
     return (
       <>
-        <IonButton onClick={() => handleButtonClick('/diagnostico', orden)}>
-          Diagnóstico
-          {isDiagnosticoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
-        </IonButton>
-    
-        <IonButton onClick={() => handleButtonClick('/presupuesto', orden)}>
-          Presupuestar
-          {isPresupuestoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
-        </IonButton>
-    
+        {!isEntregaCompleted && (
+          <>
+            <IonButton onClick={() => handleButtonClick('/diagnostico', orden)}>
+              Diagnóstico
+              {isDiagnosticoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
+            </IonButton>
+
+            <IonButton onClick={() => handleButtonClick('/presupuesto', orden)}>
+              Presupuestar
+              {isPresupuestoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
+            </IonButton>
+          </>
+        )}
+
         <IonButton onClick={() => handleButtonClick('/entrega', orden)}>
           Entrega
           {isEntregaCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
         </IonButton>
-    
-        {/* Mostrar botón de "Ver Remito" si isEntregaCompleted es true */}
+
         {isPresupuestoCompleted && (
           <IonButton onClick={() => handleButtonClick('/remito', orden)}>
             Ver Remito
@@ -138,7 +135,6 @@ function ConfirmacionOrdenComponent() {
         )}
       </>
     );
-    
   };
 
   const copiarDireccion = () => {

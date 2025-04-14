@@ -130,7 +130,7 @@ const RemitoOrden = () => {
  
      <div className='remito-container-table'>
   
-      <div>
+      {<div>
         <div className='remito-head'>
         <img src={logo} alt="" /> 
        <h4 style={{marginBottom: "10px"}}>
@@ -138,7 +138,7 @@ const RemitoOrden = () => {
      
        </h4>
        <h4>
-        <strong>  {  new Date(ordenActiva.Entrega.created_at).toLocaleDateString() }</strong>
+        <strong>  {  new Date(ordenActiva.Entrega?.created_at).toLocaleDateString() }</strong>
        </h4>
 
         </div>
@@ -150,7 +150,7 @@ const RemitoOrden = () => {
        </h4>
        <h4 style={{marginBottom: "-15px"}}>www.gruposervice.ar</h4>
        <h4  > TEL: 351-7061881</h4>
-      </div>
+      </div>}
      </div>
  
      <div className='remito-container-table'>

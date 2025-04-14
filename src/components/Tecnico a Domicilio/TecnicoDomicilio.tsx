@@ -51,6 +51,14 @@ function TecnicoDomicilioComponent() {
     localStorage.setItem("ordenActiva", JSON.stringify(orden));
     localStorage.removeItem("diagnosticoData");
     localStorage.removeItem("presupuestoData");
+    localStorage.removeItem("equipo");
+    localStorage.removeItem("estadoOrden");
+
+    localStorage.removeItem("marca");
+    localStorage.removeItem("modelo");
+
+    localStorage.removeItem("observaciones");
+    localStorage.removeItem("checkboxValues");
     socket.emit("userStatus", {
       status: orden ? "ocupado" : "conectado",
       id: localStorage.getItem("empleadoId"),

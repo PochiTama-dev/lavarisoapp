@@ -527,10 +527,10 @@ const modificarEntrega = async (id: any, idOrden: any) => {
       </div>
 
       {/* Mostrar Comisión Técnico */}
-      <div className='estado-pago-total' style={{ marginTop: "20px" }}>
+   {/*    <div className='estado-pago-total' style={{ marginTop: "20px" }}>
        <span>Comisión a cobrar:</span>
        <span className='total-amount'>${ordenActiva.Presupuesto?.comision_visita}</span>
-      </div>
+      </div> */}
 
       <div className='subtitle-forma-pago'>
        <span>Formas de pago</span>

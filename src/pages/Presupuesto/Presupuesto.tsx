@@ -746,7 +746,7 @@ const handleSearchChange = (term:any) => {
        >
         <span>${total}</span>
        </div>
-       <div style={{ width: "100%", marginTop: "30px" }}>
+      {/*  <div style={{ width: "100%", marginTop: "30px" }}>
         <span>
          <strong>Comisión Técnico :</strong>
         </span>
@@ -759,10 +759,10 @@ const handleSearchChange = (term:any) => {
         }}
        >
         <span>${(comisionCobrarRedondeado).toFixed(2)}</span>
-       </div>
+       </div> */}
        
 {/*   COMISION GRUPO service */}
-      <div style={{ width: "100%", marginTop: "30px" }}>
+   {/*    <div style={{ width: "100%", marginTop: "30px" }}>
         <span>
          <strong>Comisión Grupo Service :</strong>
         </span>
@@ -775,7 +775,7 @@ const handleSearchChange = (term:any) => {
         }}
        >
         <span>${(comisionGrupoService).toFixed(2)}</span>
-       </div>
+       </div> */}
 
       </div>
       <div
