@@ -3,6 +3,8 @@ import "./Remito.css";
 import { IonContent } from "@ionic/react";
 import { useOrden } from "../../Provider/Provider";
 import { useHistory } from "react-router-dom";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 import GaleriaFotos from "./GaleriaFotos";
 import { getFotosNumeroOrden } from "../Fotos/fetchs";
@@ -114,8 +116,51 @@ const RemitoOrden = () => {
 
  const { id, Cliente = {}, Empleado = {}, equipo = "", modelo = "", antiguedad = "", diagnostico = "", motivo = "", Presupuesto = {} } = ordenActiva;
 
- const handlePrint = () => {
-  window.print();
+ const handlePrint = async () => {
+  const element = document.querySelector(".remito-container"); // Selecciona el contenedor principal
+  if (!element) {
+    console.error("No se encontró el elemento para generar el PDF.");
+    return;
+  }
+
+  try {
+    // Ocultar los botones antes de generar el PDF
+    const buttons = document.querySelectorAll(".remito-button-container");
+    buttons.forEach((button) => ((button as HTMLElement).style.display = "none"));
+
+    // Clonar el nodo para evitar problemas con el viewport
+    const clonedElement = element.cloneNode(true) as HTMLElement;
+    clonedElement.style.position = "absolute";
+    clonedElement.style.top = "0";
+    clonedElement.style.left = "0";
+    clonedElement.style.width = "100%";
+    clonedElement.style.height = "auto";
+    clonedElement.style.zIndex = "-1";
+
+    document.body.appendChild(clonedElement);
+
+    const canvas = await html2canvas(clonedElement, {
+      scale: 2,
+      useCORS: true,
+    });
+
+    document.body.removeChild(clonedElement);
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdfWidth = 210;
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    const pdf = new jsPDF("p", "mm", [pdfWidth, pdfHeight]);
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
+    pdf.save(`Orden_${ordenActiva.id || "sin_id"}.pdf`);
+
+    // Restaurar los botones después de generar el PDF
+    buttons.forEach((button) => ((button as HTMLElement).style.display = ""));
+  } catch (error) {
+    console.error("Error al generar el PDF:", error);
+  }
  };
  const handleRedirect = () => {
   if (location.pathname !== "/domicilio") {
