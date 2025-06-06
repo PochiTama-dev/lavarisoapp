@@ -101,42 +101,43 @@ function ConfirmacionOrdenComponent() {
   };
 
   const renderButtons = () => {
-    if (!ordenActiva) return null;
-
-    const isDiagnosticoCompleted = ordenActiva?.diagnostico;
-    const isPresupuestoCompleted = ordenActiva?.Presupuesto;
-    const isEntregaCompleted = ordenActiva?.Entrega;
-
-    return (
-      <>
-        {!isEntregaCompleted && (
-          <>
-            <IonButton onClick={() => handleButtonClick('/diagnostico', orden)}>
-              Diagnóstico
-              {isDiagnosticoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
+      if (!ordenActiva) return null;
+  
+      const isDiagnosticoCompleted = ordenActiva?.diagnostico;
+      const isPresupuestoCompleted = ordenActiva?.Presupuesto;
+      const isEntregaCompleted = ordenActiva?.Entrega;
+  
+      return (
+        <>
+          {!isEntregaCompleted && (
+            <>
+              <IonButton onClick={() => handleButtonClick('/diagnostico', orden)}>
+                Diagnóstico
+                {isDiagnosticoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
+              </IonButton>
+  
+              <IonButton onClick={() => handleButtonClick('/presupuesto', orden)}>
+                Presupuestar
+                {isPresupuestoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
+              </IonButton>
+            </>
+          )}
+  
+          {isDiagnosticoCompleted && isPresupuestoCompleted && (
+            <IonButton onClick={() => handleButtonClick('/entrega', orden)}>
+              Entrega
+              {isEntregaCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
             </IonButton>
-
-            <IonButton onClick={() => handleButtonClick('/presupuesto', orden)}>
-              Presupuestar
-              {isPresupuestoCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
+          )}
+  
+          {isPresupuestoCompleted && (
+            <IonButton onClick={() => handleButtonClick('/remito', orden)}>
+              Ver Remito
             </IonButton>
-          </>
-        )}
-
-        <IonButton onClick={() => handleButtonClick('/entrega', orden)}>
-          Entrega
-          {isEntregaCompleted && <IonIcon style={{ marginLeft: '10px' }} icon={checkmarkCircleOutline} color="success" />}
-        </IonButton>
-
-        {isPresupuestoCompleted && (
-          <IonButton onClick={() => handleButtonClick('/remito', orden)}>
-            Ver Remito
-          </IonButton>
-        )}
-      </>
-    );
+          )}
+        </>
+      );
   };
-
   const copiarDireccion = () => {
     const direccion = ordenActiva?.Cliente.direccion;
     if (direccion) {

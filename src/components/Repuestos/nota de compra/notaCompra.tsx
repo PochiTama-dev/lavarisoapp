@@ -2,7 +2,10 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonLabel, IonInpu
 import { useState } from 'react';
 
 const NotaCompra = () => {
-  const [factura, setFactura] = useState({
+  const [factura, setFactura] = useState<{
+    facturaNro: string;
+    items: string[];
+  }>({
     facturaNro: '',
     items: [],
   });
